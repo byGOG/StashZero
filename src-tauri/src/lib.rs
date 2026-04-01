@@ -3,12 +3,19 @@ use std::fs;
 use std::path::Path;
 use std::process::Command as StdCommand;
 use base64::Engine;
+use sha2::{Sha256, Digest};
+use std::io::Read;
+use tauri::Manager;
+use windows_sys::Win32::Storage::FileSystem::{
+    GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW,
+};
 
 #[derive(Serialize, Clone)]
 pub struct Installer {
     name: String,         // Display name (prefix stripped)
     path: String,         // Full path to the file
     icon_b64: Option<String>,
+    version: Option<String>,
     category: String,     // Category name from subfolder, or "Genel"
     order: i32,           // Numeric prefix for sorting (default 999)
     category_order: i32,  // Numeric prefix of the category folder (default 999)
@@ -56,13 +63,67 @@ fn strip_extension(name: &str) -> String {
     name.to_string()
 }
 
+/// Get a unique hash of a file path for cache indexing
+fn get_path_hash(path: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(path.as_bytes());
+    hex::encode(hasher.finalize())
+}
+
+/// Extract File Version from Windows executable
+fn get_file_version(path: &str) -> Option<String> {
+    use std::os::windows::ffi::OsStrExt;
+    let path_wide: Vec<u16> = std::ffi::OsStr::new(path)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    unsafe {
+        let mut _handle: u32 = 0;
+        let size = GetFileVersionInfoSizeW(path_wide.as_ptr(), &mut _handle);
+        if size == 0 {
+            return None;
+        }
+
+        let mut buffer = vec![0u8; size as usize];
+        if GetFileVersionInfoW(path_wide.as_ptr(), 0, size, buffer.as_mut_ptr() as *mut _) == 0 {
+            return None;
+        }
+
+        let mut sub_block: Vec<u16> = "\\StringFileInfo\\040904b0\\FileVersion"
+            .encode_utf16()
+            .chain(std::iter::once(0))
+            .collect();
+        let mut value_ptr: *mut u16 = std::ptr::null_mut();
+        let mut value_len: u32 = 0;
+
+        if VerQueryValueW(
+            buffer.as_ptr() as *const _,
+            sub_block.as_ptr(),
+            &mut value_ptr as *mut _ as *mut _,
+            &mut value_len,
+        ) != 0 && value_len > 0
+        {
+            let slice = std::slice::from_raw_parts(value_ptr, (value_len - 1) as usize);
+            return Some(String::from_utf16_lossy(slice).trim().to_string());
+        }
+    }
+    None
+}
+
 /// Scan a single directory for installer files, assigning them a category and order.
 fn scan_dir_for_installers(
+    app: &tauri::AppHandle,
     dir: &Path,
     category: &str,
     category_order: i32,
     installers: &mut Vec<Installer>,
 ) {
+    let cache_dir = app.path().app_data_dir().unwrap_or_default().join("cache");
+    if !cache_dir.exists() {
+        fs::create_dir_all(&cache_dir).ok();
+    }
+
     let entries = match fs::read_dir(dir) {
         Ok(e) => e,
         Err(_) => return,
@@ -86,16 +147,25 @@ fn scan_dir_for_installers(
         };
 
         let path_str = path.to_string_lossy().into_owned();
+        let path_hash = get_path_hash(&path_str);
+        let cache_file = cache_dir.join(format!("{}.png", path_hash));
+
         let (order, clean_name_with_ext) = parse_order_prefix(&raw_name);
         let display_name = strip_extension(&clean_name_with_ext);
 
-        // Extract icon
+        // Versioning
+        let version = if ext == "exe" { get_file_version(&path_str) } else { None };
+
+        // Extract icon with caching
         let mut icon_b64 = None;
         if ext == "exe" {
-            if let Ok(png_data) = win_icon_extractor::extract_icon_png(&path_str) {
-                icon_b64 = Some(
-                    base64::engine::general_purpose::STANDARD.encode(&png_data),
-                );
+            if cache_file.exists() {
+                if let Ok(data) = fs::read(&cache_file) {
+                    icon_b64 = Some(base64::engine::general_purpose::STANDARD.encode(&data));
+                }
+            } else if let Ok(png_data) = win_icon_extractor::extract_icon_png(&path_str) {
+                fs::write(&cache_file, &png_data).ok();
+                icon_b64 = Some(base64::engine::general_purpose::STANDARD.encode(&png_data));
             }
         }
 
@@ -103,6 +173,7 @@ fn scan_dir_for_installers(
             name: display_name,
             path: path_str,
             icon_b64,
+            version,
             category: category.to_string(),
             order,
             category_order,
@@ -111,7 +182,7 @@ fn scan_dir_for_installers(
 }
 
 #[tauri::command]
-fn get_installers(dir_path: String) -> Result<Vec<Installer>, String> {
+fn get_installers(app: tauri::AppHandle, dir_path: String) -> Result<Vec<Installer>, String> {
     let root = Path::new(&dir_path);
     if !root.is_dir() {
         return Err("Geçersiz klasör yolu".to_string());
@@ -120,7 +191,7 @@ fn get_installers(dir_path: String) -> Result<Vec<Installer>, String> {
     let mut installers: Vec<Installer> = Vec::new();
 
     // First, scan root-level files (category = "Genel")
-    scan_dir_for_installers(root, "Genel", 999, &mut installers);
+    scan_dir_for_installers(&app, root, "Genel", 999, &mut installers);
 
     // Then, scan subdirectories as categories
     if let Ok(entries) = fs::read_dir(root) {
@@ -132,7 +203,7 @@ fn get_installers(dir_path: String) -> Result<Vec<Installer>, String> {
                     None => continue,
                 };
                 let (cat_order, cat_name) = parse_order_prefix(&folder_name);
-                scan_dir_for_installers(&sub_path, &cat_name, cat_order, &mut installers);
+                scan_dir_for_installers(&app, &sub_path, &cat_name, cat_order, &mut installers);
             }
         }
     }
@@ -205,13 +276,55 @@ fn run_installer(path: String) -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+fn run_post_install_script(dir_path: String) -> Result<String, String> {
+    let root = Path::new(&dir_path);
+    let script_path = root.join("post-install.ps1");
+    
+    if !script_path.exists() {
+        return Ok("Post-install script bulunamadı, atlanıyor.".to_string());
+    }
+
+    let ps_script = format!(
+        "Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','{}' -Verb RunAs -Wait",
+        script_path.to_string_lossy()
+    );
+
+    let output = StdCommand::new("powershell")
+        .args(["-NoProfile", "-Command", &ps_script])
+        .output()
+        .map_err(|e| format!("Post-install başlatılamadı: {}", e))?;
+
+    if output.status.success() {
+        Ok("Post-install işlemi başarıyla tamamlandı".to_string())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(format!("Post-install hatası: {}", stderr))
+    }
+}
+
+#[tauri::command]
+fn clear_icon_cache(app: tauri::AppHandle) -> Result<String, String> {
+    let cache_dir = app.path().app_data_dir().unwrap_or_default().join("cache");
+    if cache_dir.exists() {
+        fs::remove_dir_all(&cache_dir).map_err(|e| e.to_string())?;
+        fs::create_dir_all(&cache_dir).map_err(|e| e.to_string())?;
+    }
+    Ok("Cache temizlendi".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![get_installers, run_installer])
+        .invoke_handler(tauri::generate_handler![
+            get_installers, 
+            run_installer, 
+            run_post_install_script,
+            clear_icon_cache
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
