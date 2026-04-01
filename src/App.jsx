@@ -1,7 +1,63 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
+import { sounds } from "./utils/audio";
 import "./App.css";
+
+const SidebarIcon = ({ type }) => {
+  switch (type) {
+    case "globe": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
+    case "terminal": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>;
+    case "message": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>;
+    case "palette": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.688-1.688h1.906c3.107 0 5.648-2.541 5.648-5.648 0-4.79-4.031-8.719-8.719-8.719z"></path></svg>;
+    case "monitor": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>;
+    case "file-text": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
+    case "settings": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+    default: return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" y1="22" x2="12" y2="12"></line></svg>;
+  }
+};
+
+const getAutoCategory = (name) => {
+  const n = name.toLowerCase();
+  
+  // Web Browsers (Priority 1)
+  if (n.includes("chrome") || n.includes("firefox") || n.includes("opera") || n.includes("browser") || n.includes("edge") || n.includes("vivaldi") || n.includes("brave")) {
+    return { name: "Web Tarayıcılar", order: 10, icon: "globe" };
+  }
+  
+  // Dev Tools (Priority 2)
+  if (n.includes("code") || n.includes("visual") || n.includes("node") || n.includes("python") || n.includes("git") || n.includes("studio") || n.includes("docker") || n.includes("sql") || n.includes("intellij") || n.includes("postman")) {
+    return { name: "Geliştirici Araçları", order: 20, icon: "terminal" };
+  }
+  
+  // Comm & Social (Priority 3)
+  if (n.includes("discord") || n.includes("slack") || n.includes("zoom") || n.includes("teams") || n.includes("telegram") || n.includes("whatsapp") || n.includes("skype")) {
+    return { name: "İletişim & Sosyal", order: 30, icon: "message" };
+  }
+
+  // Design & Graphics (Priority 4)
+  if (n.includes("photoshop") || n.includes("adobe") || n.includes("illustrator") || n.includes("figma") || n.includes("blender") || n.includes("canvas") || n.includes("gimp") || n.includes("inkscape")) {
+    return { name: "Tasarım & Grafik", order: 40, icon: "palette" };
+  }
+  
+  // Media & Games (Priority 5)
+  if (n.includes("vlc") || n.includes("spotify") || n.includes("player") || n.includes("steam") || n.includes("game") || n.includes("epic") || n.includes("riot") || n.includes("obs")) {
+    return { name: "Medya & Oyun", order: 50, icon: "monitor" };
+  }
+  
+  // Office & Productivity (Priority 6)
+  if (n.includes("office") || n.includes("notion") || n.includes("pdf") || n.includes("evernote") || n.includes("trello") || n.includes("excel") || n.includes("word")) {
+    return { name: "Ofis & Üretkenlik", order: 60, icon: "file-text" };
+  }
+  
+  // System & Tools (Priority 7)
+  if (n.includes("rar") || n.includes("zip") || n.includes("cleaner") || n.includes("driver") || n.includes("defender") || n.includes("optimizer") || n.includes("7zip") || n.includes("tool")) {
+    return { name: "Sistem & Araçlar", order: 70, icon: "settings" };
+  }
+  
+  return { name: "Genel", order: 100, icon: "box" };
+};
 
 function App() {
   const [folderPath, setFolderPath] = useState("");
@@ -19,6 +75,13 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
   const [menuHover, setMenuHover] = useState(false);
+  const [systemInfo, setSystemInfo] = useState(null);
+  const [diskUsage, setDiskUsage] = useState(null);
+  const [selectedAppMemo, setSelectedAppMemo] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [customArgs, setCustomArgs] = useState({});
+  const [autoCleanup, setAutoCleanup] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const menuBarRef = useRef(null);
   const searchInputRef = useRef(null);
 
@@ -43,6 +106,12 @@ function App() {
 
     const savedTheme = localStorage.getItem("stash-zero-theme");
     if (savedTheme) setCurrentTheme(savedTheme);
+
+    const savedCleanup = localStorage.getItem("stash-zero-cleanup");
+    if (savedCleanup) setAutoCleanup(JSON.parse(savedCleanup));
+
+    const savedSound = localStorage.getItem("stash-zero-sound");
+    if (savedSound) setSoundEnabled(JSON.parse(savedSound));
 
     const handleKeyDown = (e) => {
       // Search: Ctrl+F
@@ -88,36 +157,58 @@ function App() {
     if (folderPath) {
       loadInstallers(folderPath);
       localStorage.setItem("stash-zero-folder", folderPath);
+      updateDiskUsage(folderPath);
     }
   }, [folderPath]);
 
-  // Group installers by category and filter by search
-  const grouped = useMemo(() => {
-    const map = new Map();
-    const term = searchTerm.toLowerCase();
-
-    for (const app of installers) {
-      if (term && !app.name.toLowerCase().includes(term)) continue;
-
-      const cat = app.category || "Genel";
-      if (!map.has(cat)) {
-        map.set(cat, { name: cat, order: app.category_order, apps: [] });
+  // System Info Polling
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const info = await invoke("get_system_info");
+        setSystemInfo(info);
+      } catch (e) {
+        console.error("System info error", e);
       }
-      map.get(cat).apps.push(app);
-    }
-    // Sort categories by their order
-    return Array.from(map.values()).sort((a, b) => a.order - b.order);
-  }, [installers, searchTerm]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const getAutoCategory = (name) => {
-    const n = name.toLowerCase();
-    if (n.includes("chrome") || n.includes("firefox") || n.includes("opera") || n.includes("browser") || n.includes("edge")) return { name: "Web Tarayıcılar", order: 10 };
-    if (n.includes("code") || n.includes("visual") || n.includes("node") || n.includes("python") || n.includes("git") || n.includes("studio")) return { name: "Geliştirici Araçları", order: 20 };
-    if (n.includes("discord") || n.includes("slack") || n.includes("zoom") || n.includes("teams") || n.includes("telegram")) return { name: "İletişim & Sosyal", order: 30 };
-    if (n.includes("vlc") || n.includes("spotify") || n.includes("player") || n.includes("steam") || n.includes("game")) return { name: "Medya & Oyun", order: 40 };
-    if (n.includes("rar") || n.includes("zip") || n.includes("cleaner") || n.includes("driver") || n.includes("defender") || n.includes("optimizer")) return { name: "Sistem & Araçlar", order: 50 };
-    return null;
+  const updateDiskUsage = async (path) => {
+    try {
+      const usage = await invoke("get_disk_usage", { dirPath: path });
+      setDiskUsage(usage);
+    } catch (e) {
+      console.error("Disk usage error", e);
+    }
   };
+
+  // Group installers by category
+  const categories = useMemo(() => {
+    const map = new Map();
+    for (const app of installers) {
+      const catInfo = getAutoCategory(app.name);
+      const cat = catInfo.name;
+      if (!map.has(cat)) {
+        map.set(cat, { name: cat, order: catInfo.order, count: 0, icon: catInfo.icon });
+      }
+      map.get(cat).count++;
+    }
+    const list = Array.from(map.values()).sort((a, b) => a.order - b.order);
+    if (list.length > 0 && !activeCategory) setActiveCategory(list[0].name);
+    return list;
+  }, [installers]);
+
+  const filteredApps = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return installers.filter(app => {
+      const matchesSearch = !term || app.name.toLowerCase().includes(term);
+      const matchesCategory = !activeCategory || app.category === activeCategory;
+      return matchesSearch && (term ? matchesSearch : matchesCategory);
+    });
+  }, [installers, searchTerm, activeCategory]);
+
+
 
   const selectFolder = async () => {
     try {
@@ -131,6 +222,15 @@ function App() {
       }
     } catch (error) {
       console.error("Klasör seçilemedi:", error);
+    }
+  };
+
+  const clearCache = async () => {
+    try {
+      await invoke("clear_icon_cache");
+      if (folderPath) loadInstallers(folderPath);
+    } catch (e) {
+      console.error("Cache clear error", e);
     }
   };
 
@@ -156,6 +256,14 @@ function App() {
     } catch (error) {
       console.error("Uygulamalar yüklenemedi:", error);
     }
+  };
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
   };
 
   const toggleSelect = (path) => {
@@ -190,32 +298,63 @@ function App() {
 
   const startInstall = async () => {
     if (selected.size === 0 || installing) return;
+    
+    // Check disk space (simple warning)
+    if (diskUsage && diskUsage.free < 500 * 1024 * 1024) { // 500MB
+       if (!confirm("Disk alanınız düşük (500MB altı). Kuruluma devam etmek istiyor musunuz?")) return;
+    }
+
     setInstalling(true);
-
-    const appsToInstall = installers.filter((i) => selected.has(i.path));
-    setInstallProgress({ done: 0, total: appsToInstall.length });
-
     addLog("Kurulum oturumu başladı.", "info");
-    for (let idx = 0; idx < appsToInstall.length; idx++) {
-      const app = appsToInstall[idx];
+    sounds.playClick();
+
+    // Dependency sorting
+    const selectedApps = installers.filter((i) => selected.has(i.path));
+    
+    // Sort logic (very basic topological-ish based on dependency names)
+    const sortedApps = [...selectedApps].sort((a, b) => {
+       if (a.dependencies.includes(b.name)) return 1;
+       if (b.dependencies.includes(a.name)) return -1;
+       return 0;
+    });
+
+    setInstallProgress({ done: 0, total: sortedApps.length });
+
+    for (let idx = 0; idx < sortedApps.length; idx++) {
+      const app = sortedApps[idx];
       setCurrentInstall(app.name);
       setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
       addLog(`Kuruluyor: ${app.name}...`, "process");
 
       try {
-        await invoke("run_installer", { path: app.path });
+        await invoke("run_installer", { 
+          path: app.path, 
+          customArgs: customArgs[app.path] || null 
+        });
         setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
         addLog(`Başarılı: ${app.name}`, "success");
+        
+        if (autoCleanup) {
+          try {
+            await invoke("delete_installer", { path: app.path });
+            addLog(`Temizlendi: ${app.path}`, "info");
+          } catch(e) {
+            addLog(`Temizleme hatası: ${e}`, "error");
+          }
+        }
       } catch (error) {
         console.error(`Kurulum hatası (${app.name}):`, error);
         setInstallStatus((prev) => ({ ...prev, [app.path]: "error" }));
         addLog(`Hata (${app.name}): ${error}`, "error");
+        sounds.playError();
       }
-      setInstallProgress({ done: idx + 1, total: appsToInstall.length });
+      setInstallProgress({ done: idx + 1, total: sortedApps.length });
     }
 
-    addLog("Tüm kurulumlar tamamlandı. Post-install kontrol ediliyor...", "info");
+    addLog("Kurulumlar tamamlandı.", "info");
+    sounds.playSuccess();
     
+    // Check post-install
     try {
       const psResult = await invoke("run_post_install_script", { dirPath: folderPath });
       addLog(psResult, psResult.includes("başarıyla") ? "success" : "info");
@@ -225,6 +364,7 @@ function App() {
 
     setCurrentInstall(null);
     setInstalling(false);
+    if (folderPath) loadInstallers(folderPath); // Refresh to reflect deletions
   };
 
   const selectAll = () => {
@@ -253,9 +393,43 @@ function App() {
 
   const handleMenuAction = async (action, data = null) => {
     setOpenMenu(null);
+    sounds.playClick();
     switch (action) {
       case "open-folder":
         selectFolder();
+        break;
+      case "export-bundle":
+        if (selected.size === 0) return alert("Önce uygulama seçmelisiniz.");
+        try {
+          const exportPath = await save({
+            title: "Paketi Kaydet",
+            defaultPath: "bundle.stash",
+            filters: [{ name: "Stash Bundle", extensions: ["stash"] }]
+          });
+          if (exportPath) {
+             const bundle = {
+               apps: Array.from(selected),
+               customArgs
+             };
+             await writeTextFile(exportPath, JSON.stringify(bundle));
+             addLog("Paket dışa aktarıldı.", "success");
+          }
+        } catch(e) { addLog(`Dışa aktarma hatası: ${e}`, "error"); }
+        break;
+      case "import-bundle":
+        try {
+           const importPath = await open({
+             multiple: false,
+             filters: [{ name: "Stash Bundle", extensions: ["stash"] }]
+           });
+           if (importPath) {
+              const content = await readTextFile(importPath);
+              const bundle = JSON.parse(content);
+              setSelected(new Set(bundle.apps));
+              if (bundle.customArgs) setCustomArgs(bundle.customArgs);
+              addLog("Paket içe aktarıldı.", "success");
+           }
+        } catch(e) { addLog(`İçe aktarma hatası: ${e}`, "error"); }
         break;
       case "open-favorite":
         setFolderPath(data);
@@ -327,6 +501,9 @@ function App() {
         { label: "Klasör Aç", action: "open-folder", shortcut: "Ctrl+O" },
         { label: "Yenile", action: "refresh", shortcut: "F5", disabled: !folderPath },
         { type: "separator" },
+        { label: "Seçili Paketi Kaydet (.stash)", action: "export-bundle", disabled: selected.size === 0 },
+        { label: "Paket Yükle", action: "import-bundle" },
+        { type: "separator" },
         { label: "Çıkış", action: "exit", shortcut: "Alt+F4" },
       ],
     },
@@ -390,162 +567,132 @@ function App() {
       : 0;
 
   return (
-    <div className={`container theme-${currentTheme}`}>
-      {/* ─── Menu Bar ─── */}
-      <div className="menu-bar" ref={menuBarRef}>
-        {menuItems.map((menu) => (
-          <div
-            key={menu.id}
-            className={`menu-item${openMenu === menu.id ? " active" : ""}`}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setOpenMenu(openMenu === menu.id ? null : menu.id);
-            }}
-            onMouseEnter={() => {
-              if (openMenu !== null) setOpenMenu(menu.id);
-            }}
-          >
-            <span className="menu-label">{menu.label}</span>
-            {openMenu === menu.id && (
-              <div className="menu-dropdown">
-                {menu.items.map((item, idx) =>
-                  item.type === "separator" ? (
-                    <div key={idx} className="menu-separator" />
-                  ) : (
-                    <div
-                      key={idx}
-                      className={`menu-dropdown-item${item.disabled ? " disabled" : ""}`}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        if (!item.disabled) {
-                          handleMenuAction(item.action, item.data);
-                        }
-                      }}
-                    >
-                      <span>{item.label}</span>
-                      {item.shortcut && (
-                        <span className="menu-shortcut">{item.shortcut}</span>
-                      )}
-                    </div>
-                  )
-                )}
+    <div className={`app-layout theme-${currentTheme}`}>
+      <div className="mesh-gradient" />
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <h1>Stash<span>Zero</span></h1>
+        </div>
+        
+        <div className="sidebar-nav">
+          {categories.map(cat => (
+            <div 
+              key={cat.name} 
+              className={`sidebar-item ${activeCategory === cat.name ? 'active' : ''}`}
+              onClick={() => { setActiveCategory(cat.name); sounds.playClick(); }}
+            >
+              <div className="sidebar-item-left">
+                 <SidebarIcon type={cat.icon} />
+                 <span>{cat.name}</span>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <header className="header">
-        <h1>
-          Stash<span>Zero</span>
-        </h1>
-        <p className="subtitle">
-          Çevrimdışı toplu uygulama yükleyici &mdash; sessiz, hızlı, güvenli.
-        </p>
-      </header>
-
-      <div className="search-section">
-        <div className="folder-selection">
-          <button
-            className="neon-button"
-            onClick={selectFolder}
-            disabled={installing}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-            </svg>
-            Klasör Seç
-          </button>
-          <span className="folder-path">
-            {folderPath || "Henüz bir klasör seçilmedi."}
-          </span>
-        </div>
-
-        <div className="search-box">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="search-icon"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Uygulama ara... (Ctrl+F)"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={!folderPath}
-          />
-          {searchTerm && (
-            <button className="clear-search" onClick={() => setSearchTerm("")}>
-              &times;
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Global progress bar */}
-      {installing && (
-        <div className="global-progress">
-          <div className="progress-header">
-            <span className="progress-label">
-              Kuruluyor: <strong>{currentInstall}</strong>
-            </span>
-            <span className="progress-count">
-              {installProgress.done}/{installProgress.total} &bull;{" "}
-              {progressPercent}%
-            </span>
-          </div>
-          <div className="progress-bar-track">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="apps-list">
-        {installers.length === 0 && folderPath && (
-          <div className="empty-state">
-            Bu klasörde .exe veya .msi dosyası bulunamadı.
-          </div>
-        )}
-
-        {grouped.map((group) => (
-          <div key={group.name} className="category-group">
-            <div
-              className="category-header"
-              onClick={() => selectAllInCategory(group.apps)}
-            >
-              <span className="category-name">{group.name}</span>
-              <span className="category-count">{group.apps.length}</span>
+              <span className="sidebar-count">{cat.count}</span>
             </div>
+          ))}
+        </div>
+
+        <div className="sidebar-footer">
+           <div 
+             className="sidebar-item" 
+             onClick={() => handleMenuAction("show-settings")}
+           >
+             <span>Ayarlar</span>
+           </div>
+           <div 
+             className="sidebar-item" 
+             onClick={() => handleMenuAction("toggle-logs")}
+           >
+             <span>Loglar</span>
+           </div>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        <header className="top-bar">
+          <div className="top-left">
+             <div className="search-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Uygulama ara... (Ctrl+F)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+             </div>
+             <div className="path-display" onClick={selectFolder}>
+                {folderPath || "Klasör seçilmedi..."}
+             </div>
+          </div>
+
+          <div className="top-right">
+             {systemInfo && (
+               <div className="system-stats">
+                  <div className="stat-group network">
+                    <div className="net-item down">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"></path></svg>
+                      <span>{systemInfo.net_in.toFixed(1)} KB/s</span>
+                    </div>
+                    <div className="net-item up">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M7 11l5-5 5 5M7 18l5-5 5 5"></path></svg>
+                      <span>{systemInfo.net_out.toFixed(1)} KB/s</span>
+                    </div>
+                  </div>
+
+                  <div className="stat-item">
+                    <div className="stat-header"><span>CPU</span><span>{Math.round(systemInfo.cpu_usage)}%</span></div>
+                    <div className="stat-bar"><div className="stat-fill" style={{ width: `${systemInfo.cpu_usage}%` }} /></div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-header"><span>RAM</span><span>{Math.round((systemInfo.used_memory/systemInfo.total_memory)*100)}%</span></div>
+                    <div className="stat-bar"><div className="stat-fill" style={{ width: `${(systemInfo.used_memory/systemInfo.total_memory)*100}%` }} /></div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-header"><span>DISK</span><span>{Math.round(systemInfo.disk_usage)}%</span></div>
+                    <div className="stat-bar"><div className="stat-fill" style={{ width: `${systemInfo.disk_usage}%` }} /></div>
+                  </div>
+
+                  <div className="specs-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                    <div className="specs-tooltip diagnostic">
+                      <div className="diag-header">SYSTEM DIAGNOSTICS</div>
+                      <div className="diag-grid">
+                        <div className="diag-col">
+                          <div className="diag-section">SYSTEM</div>
+                          <div className="specs-row"><strong>OS:</strong> {systemInfo.os_version}</div>
+                          <div className="specs-row"><strong>Kernel:</strong> {systemInfo.kernel_version}</div>
+                          <div className="specs-row"><strong>Uptime:</strong> {Math.floor(systemInfo.uptime / 3600)}h {Math.floor((systemInfo.uptime % 3600) / 60)}m</div>
+                          <div className="specs-row"><strong>Processes:</strong> {systemInfo.total_processes}</div>
+                        </div>
+                        <div className="diag-col">
+                          <div className="diag-section">HARDWARE</div>
+                          <div className="specs-row"><strong>CPU:</strong> {systemInfo.cpu_model}</div>
+                          <div className="specs-row"><strong>Memory:</strong> {Math.round(systemInfo.total_memory / (1024*1024*1024))} GB</div>
+                          <div className="specs-row"><strong>Swap:</strong> {Math.round(systemInfo.swap_used / (1024*1024))} / {Math.round(systemInfo.swap_total / (1024*1024))} MB</div>
+                          <div className="specs-row"><strong>IP:</strong> {systemInfo.local_ip}</div>
+                        </div>
+                      </div>
+                      <div className="diag-footer">
+                        <button className="diag-action-btn" onClick={clearCache}>Clear Icon Cache</button>
+                      </div>
+                    </div>
+                  </div>
+               </div>
+             )}
+          </div>
+        </header>
+
+        <div className="content-scroll">
+
+
+          {filteredApps.length === 0 ? (
+            <div className="empty-state">
+              Görüntülenecek uygulama bulunamadı.
+            </div>
+          ) : (
             <div className="category-apps">
-              {group.apps.map((app) => {
+              {filteredApps.map((app) => {
                 const isSelected = selected.has(app.path);
                 const status = installStatus[app.path];
-
                 let cardClass = "app-card";
                 if (isSelected) cardClass += " selected";
                 if (status === "installing") cardClass += " installing";
@@ -553,47 +700,17 @@ function App() {
                 if (status === "error") cardClass += " error";
 
                 return (
-                  <div
-                    key={app.path}
-                    className={cardClass}
+                  <div 
+                    key={app.path} 
+                    className={cardClass} 
                     onClick={() => toggleSelect(app.path)}
+                    onMouseMove={handleMouseMove}
                   >
-                    <div className="checkbox">
-                      {isSelected && (
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      )}
-                    </div>
                     <div className="app-icon">
                       {app.icon_b64 ? (
-                        <img
-                          src={`data:image/png;base64,${app.icon_b64}`}
-                          alt=""
-                        />
+                        <img src={`data:image/png;base64,${app.icon_b64}`} alt="" />
                       ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                          <polyline points="2 17 12 22 22 17"></polyline>
-                          <polyline points="2 12 12 17 22 12"></polyline>
-                        </svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
                       )}
                     </div>
                     <div className="app-info">
@@ -601,42 +718,49 @@ function App() {
                         <span className="app-name">{app.name}</span>
                         {app.version && <span className="app-version-badge">{app.version}</span>}
                       </div>
-                      {status === "installing" && (
-                        <span className="status-text installing-text">
-                          <span className="spinner" /> Kuruluyor...
-                        </span>
-                      )}
-                      {status === "done" && (
-                        <span className="status-text done-text">✓ Tamam</span>
-                      )}
-                      {status === "error" && (
-                        <span className="status-text error-text">✗ Hata</span>
-                      )}
+                      <div className="app-meta">
+                        <span className="app-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+                        <div className="info-btn" onClick={(e) => { e.stopPropagation(); setSelectedAppMemo(app); }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        </div>
+                      </div>
                     </div>
+                    {status === "installing" && <div className="spinner" />}
                   </div>
                 );
               })}
             </div>
-          </div>
-        ))}
-      </div>
-
-      {installers.length > 0 && (
-        <div className="action-bar">
-          <div className="selection-info">
-            <strong>{selected.size}</strong> uygulama seçildi
-          </div>
-          <button
-            className="neon-button primary"
-            onClick={startInstall}
-            disabled={selected.size === 0 || installing}
-          >
-            {installing
-              ? `Kuruluyor (${installProgress.done}/${installProgress.total})...`
-              : "Sessiz Kurulum Başlat"}
-          </button>
+          )}
         </div>
-      )}
+
+        {installers.length > 0 && !installing && (
+          <div className="action-bar">
+            <div className="selection-info">
+              <strong>{selected.size}</strong> uygulama seçildi
+            </div>
+            <div className="action-btns">
+              <button className="neon-button" onClick={clearSelection} disabled={selected.size === 0 || installing}>Seçimi Temizle</button>
+              <button className="neon-button primary" onClick={startInstall} disabled={selected.size === 0 || installing}>
+                {installing ? "Kuruluyor..." : "Sessiz Kurulum Başlat"}
+              </button>
+            </div>
+          </div>
+        )}
+        {/* ─── Global Progress (Modern Bottom Bar) ─── */}
+        {installing && (
+          <div className="global-progress">
+            <div className="progress-header">
+              Kuruluyor: <strong>{currentInstall}</strong>
+            </div>
+            <div className="progress-container">
+              <div className="progress-bar-track">
+                <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
+              <div className="progress-percent-label">{installProgress.done}/{installProgress.total} • {progressPercent}%</div>
+            </div>
+          </div>
+        )}
+      </main>
 
       {/* ─── Log Panel ─── */}
       {showLogs && (
@@ -674,10 +798,31 @@ function App() {
             <div className="modal-body">
               <div className="setting-item">
                 <label>
-                  <span>Otomatik Tarama</span>
-                  <input type="checkbox" defaultChecked />
+                  <span>Otomatik Temizlik</span>
+                  <input 
+                    type="checkbox" 
+                    checked={autoCleanup} 
+                    onChange={(e) => {
+                       setAutoCleanup(e.target.checked);
+                       localStorage.setItem("stash-zero-cleanup", JSON.stringify(e.target.checked));
+                    }} 
+                  />
                 </label>
-                <p className="setting-desc">Klasör seçildiğinde içeriği otomatik tara.</p>
+                <p className="setting-desc">Kurulum bittikten sonra yükleyici dosyasını sil.</p>
+              </div>
+              <div className="setting-item">
+                <label>
+                  <span>Ses Efektleri</span>
+                  <input 
+                    type="checkbox" 
+                    checked={soundEnabled} 
+                    onChange={(e) => {
+                       setSoundEnabled(e.target.checked);
+                       sounds.setEnabled(e.target.checked);
+                       localStorage.setItem("stash-zero-sound", JSON.stringify(e.target.checked));
+                    }} 
+                  />
+                </label>
               </div>
               <div className="setting-item">
                 <label>
@@ -720,6 +865,65 @@ function App() {
             <div className="modal-footer">
               <button className="neon-button primary" onClick={() => setShowSettings(false)}>Kaydet ve Kapat</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* ─── App Details Modal ─── */}
+      {selectedAppMemo && (
+        <div className="modal-overlay" onClick={() => setSelectedAppMemo(null)}>
+          <div className="modal-content details-modal" onClick={(e) => e.stopPropagation()}>
+             <div className="modal-header">
+                <h2>Uygulama Detayları</h2>
+                <button className="close-modal" onClick={() => setSelectedAppMemo(null)}>&times;</button>
+             </div>
+             <div className="modal-body">
+                <div className="details-grid">
+                   <div className="details-icon">
+                     {selectedAppMemo.icon_b64 ? (
+                       <img src={`data:image/png;base64,${selectedAppMemo.icon_b64}`} alt="" />
+                     ) : (
+                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                         <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                       </svg>
+                     )}
+                   </div>
+                   <div className="details-info">
+                      <h3 className="details-name">{selectedAppMemo.name}</h3>
+                      <div className="details-row">
+                         <span className="details-badge">Versiyon: {selectedAppMemo.version || "???"}</span>
+                         <span className="details-badge">Boyut: {(selectedAppMemo.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+                         <span className="details-badge">Sıra: {selectedAppMemo.order}</span>
+                      </div>
+                      
+                      {selectedAppMemo.description && (
+                         <p className="details-desc">{selectedAppMemo.description}</p>
+                      )}
+
+                      {selectedAppMemo.dependencies.length > 0 && (
+                         <div className="details-deps">
+                            <h4>Bağımlılıklar</h4>
+                            <div className="deps-list">
+                               {selectedAppMemo.dependencies.map(d => <span key={d} className="dep-chip">{d}</span>)}
+                            </div>
+                         </div>
+                      )}
+
+                      <div className="setting-item">
+                         <label>Özel Kurulum Parametreleri</label>
+                         <input 
+                           className="custom-args-input" 
+                           type="text" 
+                           placeholder="/S /VERYSILENT ..." 
+                           value={customArgs[selectedAppMemo.path] || ""}
+                           onChange={(e) => setCustomArgs({...customArgs, [selectedAppMemo.path]: e.target.value})}
+                         />
+                      </div>
+                   </div>
+                </div>
+             </div>
+             <div className="modal-footer">
+                <button className="neon-button primary" onClick={() => setSelectedAppMemo(null)}>Kapat</button>
+             </div>
           </div>
         </div>
       )}

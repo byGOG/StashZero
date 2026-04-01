@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::fs;
 use std::path::Path;
-use std::process::Command as StdCommand;
+
 use base64::Engine;
 use sha2::{Sha256, Digest};
 use std::io::Read;
@@ -9,6 +9,24 @@ use tauri::Manager;
 use windows_sys::Win32::Storage::FileSystem::{
     GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW,
 };
+use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt, NetworksExt};
+use std::sync::Mutex;
+use std::time::Instant;
+use once_cell::sync::Lazy;
+
+struct NetState {
+    last_total_in: u64,
+    last_total_out: u64,
+    last_time: Instant,
+}
+
+static NET_STATE: Lazy<Mutex<NetState>> = Lazy::new(|| {
+    Mutex::new(NetState {
+        last_total_in: 0,
+        last_total_out: 0,
+        last_time: Instant::now(),
+    })
+});
 
 #[derive(Serialize, Clone)]
 pub struct Installer {
@@ -19,6 +37,34 @@ pub struct Installer {
     category: String,     // Category name from subfolder, or "Genel"
     order: i32,           // Numeric prefix for sorting (default 999)
     category_order: i32,  // Numeric prefix of the category folder (default 999)
+    size_bytes: u64,
+    description: Option<String>,
+    dependencies: Vec<String>,
+}
+
+#[derive(Serialize)]
+pub struct SystemInfo {
+    cpu_usage: f32,
+    total_memory: u64,
+    used_memory: u64,
+    os_version: String,
+    disk_usage: f32,
+    cpu_model: String,
+    hostname: String,
+    uptime: u64,
+    kernel_version: String,
+    total_processes: u32,
+    net_in: f32,
+    net_out: f32,
+    local_ip: String,
+    swap_total: u64,
+    swap_used: u64,
+}
+
+#[derive(Serialize)]
+pub struct DiskUsage {
+    free: u64,
+    total: u64,
 }
 
 /// Strip leading numeric prefix like "01-", "2_", "03 " from a name.
@@ -156,6 +202,22 @@ fn scan_dir_for_installers(
         // Versioning
         let version = if ext == "exe" { get_file_version(&path_str) } else { None };
 
+        // Metadata extraction
+        let size_bytes = fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+        
+        let desc_path = path.with_extension("txt");
+        let description = if desc_path.exists() {
+            fs::read_to_string(desc_path).ok().map(|s| s.trim().to_string())
+        } else { None };
+
+        let deps_path = path.with_extension("deps.json");
+        let dependencies = if deps_path.exists() {
+            fs::read_to_string(deps_path)
+                .ok()
+                .and_then(|s| serde_json::from_str::<Vec<String>>(&s).ok())
+                .unwrap_or_default()
+        } else { Vec::new() };
+
         // Extract icon with caching
         let mut icon_b64 = None;
         if ext == "exe" {
@@ -177,6 +239,9 @@ fn scan_dir_for_installers(
             category: category.to_string(),
             order,
             category_order,
+            size_bytes,
+            description,
+            dependencies,
         });
     }
 }
@@ -220,7 +285,7 @@ fn get_installers(app: tauri::AppHandle, dir_path: String) -> Result<Vec<Install
 }
 
 #[tauri::command]
-fn run_installer(path: String) -> Result<String, String> {
+async fn run_installer(path: String, custom_args: Option<String>) -> Result<String, String> {
     let p = Path::new(&path);
     let ext = p
         .extension()
@@ -229,7 +294,6 @@ fn run_installer(path: String) -> Result<String, String> {
 
     // Build silent install arguments
     let (program, args): (String, Vec<String>) = if ext == "msi" {
-        // MSI: use msiexec with silent flags
         (
             "msiexec".to_string(),
             vec![
@@ -240,14 +304,15 @@ fn run_installer(path: String) -> Result<String, String> {
             ],
         )
     } else {
-        // EXE: try common silent flags
-        (
-            path.clone(),
-            vec!["/S".to_string(), "/VERYSILENT".to_string(), "/SUPPRESSMSGBOXES".to_string(), "/NORESTART".to_string()],
-        )
+        let base_args = vec!["/S".to_string(), "/VERYSILENT".to_string(), "/SUPPRESSMSGBOXES".to_string(), "/NORESTART".to_string()];
+        let final_args = if let Some(c) = custom_args {
+            c.split_whitespace().map(|s| s.to_string()).collect()
+        } else {
+            base_args
+        };
+        (path.clone(), final_args)
     };
 
-    // Use PowerShell to elevate (RunAs) and wait for completion
     let ps_args_str = args
         .iter()
         .map(|a| format!("'{}'", a))
@@ -259,9 +324,10 @@ fn run_installer(path: String) -> Result<String, String> {
         program, ps_args_str
     );
 
-    let output = StdCommand::new("powershell")
+    let output = tokio::process::Command::new("powershell")
         .args(["-NoProfile", "-Command", &ps_script])
         .output()
+        .await
         .map_err(|e| format!("Kurulum başlatılamadı: {}", e))?;
 
     if output.status.success() {
@@ -277,7 +343,7 @@ fn run_installer(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn run_post_install_script(dir_path: String) -> Result<String, String> {
+async fn run_post_install_script(dir_path: String) -> Result<String, String> {
     let root = Path::new(&dir_path);
     let script_path = root.join("post-install.ps1");
     
@@ -290,9 +356,10 @@ fn run_post_install_script(dir_path: String) -> Result<String, String> {
         script_path.to_string_lossy()
     );
 
-    let output = StdCommand::new("powershell")
+    let output = tokio::process::Command::new("powershell")
         .args(["-NoProfile", "-Command", &ps_script])
         .output()
+        .await
         .map_err(|e| format!("Post-install başlatılamadı: {}", e))?;
 
     if output.status.success() {
@@ -313,6 +380,121 @@ fn clear_icon_cache(app: tauri::AppHandle) -> Result<String, String> {
     Ok("Cache temizlendi".to_string())
 }
 
+#[tauri::command]
+fn get_system_info() -> SystemInfo {
+    let mut sys = System::new_all();
+    sys.refresh_cpu();
+    sys.refresh_memory();
+    sys.refresh_disks_list();
+    sys.refresh_networks_list();
+    
+    // Disk info
+    let mut disk_pct = 0.0;
+    if let Some(disk) = sys.disks().first() {
+        let total = disk.total_space() as f32;
+        let available = disk.available_space() as f32;
+        if total > 0.0 {
+            disk_pct = ((total - available) / total) * 100.0;
+        }
+    }
+
+    // Network delta calculation (KB/s)
+    let mut total_in = 0;
+    let mut total_out = 0;
+    for (_iface, network) in sys.networks() {
+        total_in += network.total_received();
+        total_out += network.total_transmitted();
+    }
+
+    let mut net_in_kb = 0.0;
+    let mut net_out_kb = 0.0;
+
+    if let Ok(mut state) = NET_STATE.lock() {
+        let now = Instant::now();
+        let elapsed_sec = now.duration_since(state.last_time).as_secs_f32();
+        
+        if elapsed_sec > 0.0 {
+            if state.last_total_in > 0 {
+                net_in_kb = (total_in.saturating_sub(state.last_total_in) as f32) / 1024.0 / elapsed_sec;
+                net_out_kb = (total_out.saturating_sub(state.last_total_out) as f32) / 1024.0 / elapsed_sec;
+            }
+        }
+        
+        state.last_total_in = total_in;
+        state.last_total_out = total_out;
+        state.last_time = now;
+    }
+
+    // Local IP detection
+    let mut local_ip = String::from("127.0.0.1");
+    for (name, network) in sys.networks() {
+        // Skip common virtual/loopback adapters
+        if !name.to_lowercase().contains("virtual") && !name.to_lowercase().contains("pseudo") {
+             // sysinfo 0.29 doesn't provide IP easily, users usually want first non-loopback
+             // We'll return the name or just a placeholder for now as 0.29 IP is complex
+             local_ip = name.clone();
+        }
+    }
+
+    SystemInfo {
+        cpu_usage: sys.global_cpu_info().cpu_usage(),
+        total_memory: sys.total_memory(),
+        used_memory: sys.used_memory(),
+        os_version: sys.long_os_version().unwrap_or_else(|| sys.os_version().unwrap_or_else(|| "Unknown".to_string())),
+        disk_usage: disk_pct,
+        cpu_model: sys.global_cpu_info().brand().to_string(),
+        hostname: sys.host_name().unwrap_or_else(|| "PC".to_string()),
+        uptime: sys.uptime(),
+        kernel_version: sys.kernel_version().unwrap_or_else(|| "N/A".to_string()),
+        total_processes: sys.processes().len() as u32,
+        net_in: net_in_kb,
+        net_out: net_out_kb,
+        local_ip,
+        swap_total: sys.total_swap(),
+        swap_used: sys.used_swap(),
+    }
+}
+
+#[tauri::command]
+fn get_disk_usage(dir_path: String) -> DiskUsage {
+    let mut sys = System::new_all();
+    sys.refresh_disks_list();
+    
+    let path = Path::new(&dir_path);
+    // On Windows, canonicalize might fail if path doesn't exist or is relative, 
+    // but dir_path should be absolute.
+    let absolute = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+    
+    for disk in sys.disks() {
+        if absolute.starts_with(disk.mount_point()) {
+            return DiskUsage {
+                free: disk.available_space(),
+                total: disk.total_space(),
+            };
+        }
+    }
+    
+    // Fallback search by drive letter
+    if let Some(letter) = dir_path.get(..3) {
+       for disk in sys.disks() {
+          if disk.mount_point().to_string_lossy().starts_with(letter) {
+             return DiskUsage {
+                free: disk.available_space(),
+                total: disk.total_space(),
+             };
+          }
+       }
+    }
+    
+    DiskUsage { free: 0, total: 0 }
+}
+
+#[tauri::command]
+fn delete_installer(path: String) -> Result<String, String> {
+    fs::remove_file(path).map_err(|e| e.to_string())?;
+    Ok("Dosya silindi".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -323,7 +505,10 @@ pub fn run() {
             get_installers, 
             run_installer, 
             run_post_install_script,
-            clear_icon_cache
+            clear_icon_cache,
+            get_system_info,
+            get_disk_usage,
+            delete_installer
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
