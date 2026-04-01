@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import "./App.css";
@@ -11,6 +11,20 @@ function App() {
   const [currentInstall, setCurrentInstall] = useState(null);
   const [installStatus, setInstallStatus] = useState({});
   const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
+  const [openMenu, setOpenMenu] = useState(null);
+  const [menuHover, setMenuHover] = useState(false);
+  const menuBarRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuBarRef.current && !menuBarRef.current.contains(e.target)) {
+        setOpenMenu(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (folderPath) {
@@ -110,6 +124,91 @@ function App() {
     setInstalling(false);
   };
 
+  const selectAll = () => {
+    if (installing) return;
+    setSelected(new Set(installers.map((a) => a.path)));
+  };
+
+  const clearSelection = () => {
+    if (installing) return;
+    setSelected(new Set());
+  };
+
+  const handleMenuAction = (action) => {
+    setOpenMenu(null);
+    switch (action) {
+      case "open-folder":
+        selectFolder();
+        break;
+      case "refresh":
+        if (folderPath) loadInstallers(folderPath);
+        break;
+      case "select-all":
+        selectAll();
+        break;
+      case "clear-selection":
+        clearSelection();
+        break;
+      case "start-install":
+        startInstall();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const menuItems = [
+    {
+      label: "Dosya",
+      id: "dosya",
+      items: [
+        { label: "Klasör Aç", action: "open-folder", shortcut: "Ctrl+O" },
+        { label: "Yenile", action: "refresh", shortcut: "F5", disabled: !folderPath },
+        { type: "separator" },
+        { label: "Çıkış", action: "exit", shortcut: "Alt+F4" },
+      ],
+    },
+    {
+      label: "Komutlar",
+      id: "komutlar",
+      items: [
+        { label: "Tümünü Seç", action: "select-all", shortcut: "Ctrl+A", disabled: installers.length === 0 },
+        { label: "Seçimi Temizle", action: "clear-selection", disabled: selected.size === 0 },
+        { type: "separator" },
+        { label: "Sessiz Kurulum Başlat", action: "start-install", shortcut: "F6", disabled: selected.size === 0 || installing },
+      ],
+    },
+    {
+      label: "Araçlar",
+      id: "araclar",
+      items: [
+        { label: "Klasör İçeriğini Tara", action: "refresh", disabled: !folderPath },
+      ],
+    },
+    {
+      label: "Sık Kullanılanlar",
+      id: "favori",
+      items: [
+        { label: "(Henüz favori yok)", disabled: true },
+      ],
+    },
+    {
+      label: "Seçenekler",
+      id: "secenekler",
+      items: [
+        { label: "Ayarlar", disabled: true },
+      ],
+    },
+    {
+      label: "Yardım",
+      id: "yardim",
+      items: [
+        { label: "Hakkında", action: "about" },
+        { label: "Sürüm: 0.1.0", disabled: true },
+      ],
+    },
+  ];
+
   const progressPercent =
     installProgress.total > 0
       ? Math.round((installProgress.done / installProgress.total) * 100)
@@ -117,6 +216,48 @@ function App() {
 
   return (
     <div className="container">
+      {/* ─── Menu Bar ─── */}
+      <div className="menu-bar" ref={menuBarRef}>
+        {menuItems.map((menu) => (
+          <div
+            key={menu.id}
+            className={`menu-item${openMenu === menu.id ? " active" : ""}`}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setOpenMenu(openMenu === menu.id ? null : menu.id);
+            }}
+            onMouseEnter={() => {
+              if (openMenu !== null) setOpenMenu(menu.id);
+            }}
+          >
+            <span className="menu-label">{menu.label}</span>
+            {openMenu === menu.id && (
+              <div className="menu-dropdown">
+                {menu.items.map((item, idx) =>
+                  item.type === "separator" ? (
+                    <div key={idx} className="menu-separator" />
+                  ) : (
+                    <div
+                      key={idx}
+                      className={`menu-dropdown-item${item.disabled ? " disabled" : ""}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!item.disabled) handleMenuAction(item.action);
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      {item.shortcut && (
+                        <span className="menu-shortcut">{item.shortcut}</span>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
       <header className="header">
         <h1>
           Stash<span>Zero</span>
