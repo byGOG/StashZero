@@ -83,6 +83,7 @@ dependencies = [
  "hex",
  "log",
  "once_cell",
+ "regex",
  "serde",
  "serde_json",
  "sha2",

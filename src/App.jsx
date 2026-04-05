@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from '@tauri-apps/api/event';
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { sounds } from "./utils/audio";
@@ -7,68 +8,183 @@ import "./App.css";
 
 const SidebarIcon = ({ type }) => {
   switch (type) {
-    case "globe": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
-    case "terminal": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>;
-    case "message": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>;
-    case "palette": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.688-1.688h1.906c3.107 0 5.648-2.541 5.648-5.648 0-4.79-4.031-8.719-8.719-8.719z"></path></svg>;
-    case "monitor": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>;
-    case "file-text": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
-    case "settings": return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
-    default: return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" y1="22" x2="12" y2="12"></line></svg>;
+    case "globe": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" strokeOpacity="0.2"/>
+        <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
+        <circle cx="12" cy="10" r="3" strokeOpacity="0.5"/>
+      </svg>
+    );
+    case "terminal": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="18" rx="2" strokeOpacity="0.2"/>
+        <path d="m7 8 5 5-5 5" strokeWidth="2.5"/>
+        <path d="M13 17h4" strokeWidth="2.5"/>
+      </svg>
+    );
+    case "message": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+        <path d="M8 12h.01" strokeWidth="3" strokeLinecap="round"/>
+        <path d="M12 12h.01" strokeWidth="3" strokeLinecap="round"/>
+        <path d="M16 12h.01" strokeWidth="3" strokeLinecap="round"/>
+      </svg>
+    );
+    case "monitor": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="20" height="15" x="2" y="3" rx="2" strokeOpacity="0.2"/>
+        <path d="M12 18v3"/>
+        <path d="M8 21h8"/>
+        <path d="m9 8 6 3-6 3V8z" fill="currentColor" fillOpacity="0.2"/>
+      </svg>
+    );
+    case "file-text": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+        <path d="M14 2v6h6" strokeOpacity="0.3"/>
+        <path d="M8 13h8M8 17h8M8 9h2" strokeOpacity="0.5"/>
+      </svg>
+    );
+    case "settings": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+        <circle cx="12" cy="12" r="3" strokeOpacity="0.4"/>
+      </svg>
+    );
+    default: return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>;
   }
 };
 
-const getAutoCategory = (name) => {
-  const n = name.toLowerCase();
-  
-  // Web Browsers (Priority 1)
-  if (n.includes("chrome") || n.includes("firefox") || n.includes("opera") || n.includes("browser") || n.includes("edge") || n.includes("vivaldi") || n.includes("brave")) {
-    return { name: "Web Tarayıcılar", order: 10, icon: "globe" };
+const TelemetryIcon = ({ type }) => {
+  switch (type) {
+    case "cpu": return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="4" width="16" height="16" rx="2"/>
+        <path d="M9 9h6v6H9z" fill="currentColor" fillOpacity="0.2"/>
+        <path d="M15 2v2M9 2v2M20 15h2M20 9h2M15 20v2M9 20v2M2 15h2M2 9h2"/>
+      </svg>
+    );
+    case "ram": return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 19v-3M10 19v-3M14 19v-3M18 19v-3M2 6v12h20V6H2z"/>
+        <path d="M21 10h-2M21 14h-2"/>
+      </svg>
+    );
+    case "disk": return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="2" width="16" height="20" rx="2"/>
+        <path d="M12 18h.01" strokeWidth="3"/>
+        <circle cx="12" cy="8" r="3" strokeOpacity="0.4"/>
+      </svg>
+    );
+    case "net": return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12h14l-4 4-4-4M19 12l-4-4-4 4"/>
+        <path d="M12 2v20" strokeOpacity="0.2"/>
+      </svg>
+    );
+    default: return null;
   }
-  
-  // Dev Tools (Priority 2)
-  if (n.includes("code") || n.includes("visual") || n.includes("node") || n.includes("python") || n.includes("git") || n.includes("studio") || n.includes("docker") || n.includes("sql") || n.includes("intellij") || n.includes("postman")) {
-    return { name: "Geliştirici Araçları", order: 20, icon: "terminal" };
-  }
-  
-  // Comm & Social (Priority 3)
-  if (n.includes("discord") || n.includes("slack") || n.includes("zoom") || n.includes("teams") || n.includes("telegram") || n.includes("whatsapp") || n.includes("skype")) {
-    return { name: "İletişim & Sosyal", order: 30, icon: "message" };
+};
+
+const APP_ICON_MAP = {
+  chrome: "googlechrome",
+  firefox: "firefoxbrowser",
+  brave: "brave",
+  vscode: "visualstudiocode",
+  git: "git",
+  nodejs: "nodedotjs",
+  python: "python",
+  discord: "discord",
+  telegram: "telegram",
+  slack: "slack",
+  whatsapp: "whatsapp",
+  zoom: "zoom",
+  spotify: "spotify",
+  vlc: "vlcmediaplayer",
+  obs: "obsstudio",
+  steam: "steam",
+  archive: "7zip",
+  winrar: "winrar",
+  adobe: "adobeacrobatreader",
+  notion: "notion",
+  rufus: "rufus"
+};
+
+const SPECIAL_LOGOS = {
+  vscode: "https://img.icons8.com/color/48/visual-studio-code-2019.png",
+  adobe: "https://img.icons8.com/color/48/adobe-acrobat.png",
+  rufus: "https://cdn.brandfetch.io/idrMrJarjv/w/512/h/512/theme/dark/logo.png?c=1dxbfHSJFAPEGdCLU4o5B",
+  winrar: "https://img.icons8.com/?size=48&id=PLvn50bVGAlA&format=png&color=000000",
+  archive: "https://img.icons8.com/?size=48&id=9ha2laDO6EkM&format=png&color=000000",
+  vlc: "https://img.icons8.com/color/48/vlc.png"
+};
+
+const AppLogo = ({ id, className, ...props }) => {
+  if (SPECIAL_LOGOS[id]) {
+    return (
+      <div className={`${className} logo-container`} {...props}>
+        <img src={SPECIAL_LOGOS[id]} alt={id} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
+    );
   }
 
-  // Design & Graphics (Priority 4)
-  if (n.includes("photoshop") || n.includes("adobe") || n.includes("illustrator") || n.includes("figma") || n.includes("blender") || n.includes("canvas") || n.includes("gimp") || n.includes("inkscape")) {
-    return { name: "Tasarım & Grafik", order: 40, icon: "palette" };
-  }
+  const slug = APP_ICON_MAP[id] || "windowsterminal";
+  const iconUrl = `https://cdn.simpleicons.org/${slug}`;
   
-  // Media & Games (Priority 5)
-  if (n.includes("vlc") || n.includes("spotify") || n.includes("player") || n.includes("steam") || n.includes("game") || n.includes("epic") || n.includes("riot") || n.includes("obs")) {
-    return { name: "Medya & Oyun", order: 50, icon: "monitor" };
-  }
-  
-  // Office & Productivity (Priority 6)
-  if (n.includes("office") || n.includes("notion") || n.includes("pdf") || n.includes("evernote") || n.includes("trello") || n.includes("excel") || n.includes("word")) {
-    return { name: "Ofis & Üretkenlik", order: 60, icon: "file-text" };
-  }
-  
-  // System & Tools (Priority 7)
-  if (n.includes("rar") || n.includes("zip") || n.includes("cleaner") || n.includes("driver") || n.includes("defender") || n.includes("optimizer") || n.includes("7zip") || n.includes("tool")) {
-    return { name: "Sistem & Araçlar", order: 70, icon: "settings" };
-  }
-  
-  return { name: "Genel", order: 100, icon: "box" };
+  return (
+    <div className={`${className} logo-container`} {...props}>
+      <img 
+        src={iconUrl} 
+        alt={id} 
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        onError={(e) => {
+          e.target.src = `https://img.icons8.com/color/48/${id}.png`;
+        }}
+      />
+    </div>
+  );
 };
+
+const LEGENDARY_APPS = [
+  { id: "chrome", name: "Google Chrome", winget_id: "Google.Chrome", category: "Web Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, description: "Dünyanın en popüler web tarayıcısı." },
+  { id: "firefox", name: "Mozilla Firefox", winget_id: "Mozilla.Firefox", category: "Web Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, description: "Açık kaynaklı ve gizlilik odaklı tarayıcı." },
+  { id: "brave", name: "Brave Browser", winget_id: "Brave.Brave", category: "Web Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, description: "Reklam engelleyici entegreli hızlı tarayıcı." },
+  
+  { id: "vscode", name: "Visual Studio Code", winget_id: "Microsoft.VisualStudioCode", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 85, description: "Güçlü ve esnek kod editörü." },
+  { id: "git", name: "Git", winget_id: "Git.Git", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 50, description: "Versiyon kontrol sistemi." },
+  { id: "nodejs", name: "Node.js LTS", winget_id: "OpenJS.NodeJS.LTS", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 30, description: "JavaScript çalışma ortamı." },
+  { id: "python", name: "Python 3.12", winget_id: "Python.Python.3.12", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 25, description: "Popüler programlama dili." },
+  
+  { id: "discord", name: "Discord", winget_id: "Discord.Discord", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 80, description: "Oyuncular ve topluluklar için iletişim platformu." },
+  { id: "telegram", name: "Telegram Desktop", winget_id: "Telegram.TelegramDesktop", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 35, description: "Hızlı ve güvenli mesajlaşma uygulaması." },
+  { id: "slack", name: "Slack", winget_id: "Slack.Slack", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 75, description: "İş yerleri için mesajlaşma ve iş birliği." },
+  { id: "whatsapp", name: "WhatsApp", winget_id: "WhatsApp.WhatsApp", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 90, description: "Popüler mesajlaşma uygulaması." },
+  { id: "zoom", name: "Zoom", winget_id: "Zoom.Zoom", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 60, description: "Video konferans ve toplantı aracı." },
+  
+  { id: "spotify", name: "Spotify", winget_id: "Spotify.Spotify", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 70, description: "Müzik ve podcast platformu." },
+  { id: "vlc", name: "VLC Media Player", winget_id: "VideoLAN.VLC", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 40, description: "Çok yönlü medya oynatıcı." },
+  { id: "obs", name: "OBS Studio", winget_id: "OBSProject.OBSStudio", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 120, description: "Yayın ve ekran kaydı yazılımı." },
+  { id: "steam", name: "Steam", winget_id: "Valve.Steam", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 2, description: "Dijital oyun platformu." },
+  
+  { id: "archive", name: "7-Zip", winget_id: "7zip.7zip", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, description: "Yüksek sıkıştırma oranlı dosya arşivleyici." },
+  { id: "rufus", name: "Rufus", winget_id: "Rufus.Rufus", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, description: "Önyüklenebilir USB sürücü oluşturma aracı." },
+  { id: "winrar", name: "WinRAR", winget_id: "RARLab.WinRAR", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, description: "Güçlü arşiv yönetimi aracı." },
+  
+  { id: "adobe", name: "Adobe Acrobat Reader", winget_id: "Adobe.Acrobat.Reader.64-bit", category: "Ofis & Üretkenlik", category_order: 60, icon: "file-text", size_bytes: 1024 * 1024 * 250, description: "PDF görüntüleme ve düzenleme." },
+  { id: "notion", name: "Notion", winget_id: "Notion.Notion", category: "Ofis & Üretkenlik", category_order: 60, icon: "file-text", size_bytes: 1024 * 1024 * 70, description: "Hepsi bir arada çalışma alanı." },
+];
 
 function App() {
-  const [folderPath, setFolderPath] = useState("");
-  const [installers, setInstallers] = useState([]);
+  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({...a, path: a.winget_id, dependencies: []})));
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
   const [currentInstall, setCurrentInstall] = useState(null);
   const [installStatus, setInstallStatus] = useState({});
+  const [installedIds, setInstalledIds] = useState(new Set());
   const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
+  const [appProgress, setAppProgress] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [favorites, setFavorites] = useState([]);
   const [currentTheme, setCurrentTheme] = useState("neon");
   const [showSettings, setShowSettings] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -82,28 +198,56 @@ function App() {
   const [customArgs, setCustomArgs] = useState({});
   const [autoCleanup, setAutoCleanup] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showControlCenter, setShowControlCenter] = useState(true);
+  const [logPanelHeight, setLogPanelHeight] = useState(220);
   const menuBarRef = useRef(null);
   const searchInputRef = useRef(null);
+  const logEndRef = useRef(null);
+  const isResizingLog = useRef(false);
+  const startY = useRef(0);
+  const startHeight = useRef(220);
 
-  // Close menu when clicking outside
+  // Auto-scroll logs
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuBarRef && menuBarRef.current && !menuBarRef.current.contains(e.target)) {
-        setOpenMenu(null);
+    if (showLogs && logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [logs, showLogs]);
+
+  // Log panel resize handler
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizingLog.current) return;
+      e.preventDefault();
+      const delta = startY.current - e.clientY;
+      const newHeight = Math.min(600, Math.max(100, startHeight.current + delta));
+      setLogPanelHeight(newHeight);
+    };
+    const handleMouseUp = () => {
+      if (isResizingLog.current) {
+        isResizingLog.current = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
   }, []);
+
+  const startLogResize = useCallback((e) => {
+    isResizingLog.current = true;
+    startY.current = e.clientY;
+    startHeight.current = logPanelHeight;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  }, [logPanelHeight]);
 
   // Load persistence and keyboard shortcuts
   useEffect(() => {
-    const lastPath = localStorage.getItem("stash-zero-folder");
-    if (lastPath) setFolderPath(lastPath);
-
-    const savedFavs = localStorage.getItem("stash-zero-favorites");
-    if (savedFavs) setFavorites(JSON.parse(savedFavs));
-
     const savedTheme = localStorage.getItem("stash-zero-theme");
     if (savedTheme) setCurrentTheme(savedTheme);
 
@@ -118,16 +262,6 @@ function App() {
       if (e.ctrlKey && e.key === "f") {
         e.preventDefault();
         searchInputRef.current?.focus();
-      }
-      // Open: Ctrl+O
-      if (e.ctrlKey && (e.key === "o" || e.key === "O")) {
-        e.preventDefault();
-        selectFolder();
-      }
-      // Refresh: F5
-      if (e.key === "F5") {
-        e.preventDefault();
-        if (folderPath) loadInstallers(folderPath);
       }
       // Select All: Ctrl+A
       if (e.ctrlKey && (e.key === "a" || e.key === "A")) {
@@ -151,15 +285,36 @@ function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [folderPath, installers]); // Need installers and folderPath for some shortcuts
+  }, [installers]);
 
+  // Initial load
   useEffect(() => {
-    if (folderPath) {
-      loadInstallers(folderPath);
-      localStorage.setItem("stash-zero-folder", folderPath);
-      updateDiskUsage(folderPath);
+    const installersCount = installers.length;
+    addLog(`${installersCount} adet efsane uygulama hazır.`, "info");
+    
+    // Set initial category
+    if (categories.length > 0 && !activeCategory) {
+      setActiveCategory(categories[0].name);
     }
-  }, [folderPath]);
+
+    refreshInstalledStatus();
+  }, []);
+
+  // Listen for install progress events
+  useEffect(() => {
+    const unlisten = listen('install-progress', (event) => {
+      const payload = event.payload;
+      const { package_id, percentage, message } = payload;
+      addLog(message, "process");
+      if (percentage !== null) {
+        setAppProgress(prev => ({ ...prev, [package_id]: percentage }));
+      }
+    });
+
+    return () => {
+      unlisten.then(f => f());
+    };
+  }, []);
 
   // System Info Polling
   useEffect(() => {
@@ -174,23 +329,13 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const updateDiskUsage = async (path) => {
-    try {
-      const usage = await invoke("get_disk_usage", { dirPath: path });
-      setDiskUsage(usage);
-    } catch (e) {
-      console.error("Disk usage error", e);
-    }
-  };
-
   // Group installers by category
   const categories = useMemo(() => {
     const map = new Map();
     for (const app of installers) {
-      const catInfo = getAutoCategory(app.name);
-      const cat = catInfo.name;
+      const cat = app.category;
       if (!map.has(cat)) {
-        map.set(cat, { name: cat, order: catInfo.order, count: 0, icon: catInfo.icon });
+        map.set(cat, { name: cat, order: app.category_order, count: 0, icon: app.icon });
       }
       map.get(cat).count++;
     }
@@ -208,56 +353,6 @@ function App() {
     });
   }, [installers, searchTerm, activeCategory]);
 
-
-
-  const selectFolder = async () => {
-    try {
-      const selectedPath = await open({
-        directory: true,
-        multiple: false,
-        title: "Kurulum Klasörünü Seçin",
-      });
-      if (selectedPath) {
-        setFolderPath(selectedPath);
-      }
-    } catch (error) {
-      console.error("Klasör seçilemedi:", error);
-    }
-  };
-
-  const clearCache = async () => {
-    try {
-      await invoke("clear_icon_cache");
-      if (folderPath) loadInstallers(folderPath);
-    } catch (e) {
-      console.error("Cache clear error", e);
-    }
-  };
-
-  const loadInstallers = async (path) => {
-    try {
-      const result = await invoke("get_installers", { dirPath: path });
-      
-      // Auto-categorize if "Genel" or missing
-      const categorized = result.map(app => {
-        if (app.category === "Genel") {
-          const auto = getAutoCategory(app.name);
-          if (auto) {
-            return { ...app, category: auto.name, category_order: auto.order };
-          }
-        }
-        return app;
-      });
-
-      setInstallers(categorized);
-      setSelected(new Set());
-      setInstallStatus({});
-      setInstallProgress({ done: 0, total: 0 });
-    } catch (error) {
-      console.error("Uygulamalar yüklenemedi:", error);
-    }
-  };
-
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -269,26 +364,35 @@ function App() {
   const toggleSelect = (path) => {
     if (installing) return;
     const newSelected = new Set(selected);
-    if (newSelected.has(path)) {
-      newSelected.delete(path);
-    } else {
-      newSelected.add(path);
-    }
+    if (newSelected.has(path)) newSelected.delete(path);
+    else newSelected.add(path);
     setSelected(newSelected);
   };
 
-  const selectAllInCategory = (categoryApps) => {
-    if (installing) return;
-    const newSelected = new Set(selected);
-    const allSelected = categoryApps.every((a) => newSelected.has(a.path));
-    for (const app of categoryApps) {
-      if (allSelected) {
-        newSelected.delete(app.path);
-      } else {
-        newSelected.add(app.path);
+  const refreshInstalledStatus = async () => {
+    try {
+      const displayNames = await invoke("get_installed_winget_ids");
+      const newInstalledIds = new Set();
+      
+      for (const app of installers) {
+        const lowerName = app.name.toLowerCase();
+        // Check if any registry DisplayName contains the app name or simple ID
+        const isInstalled = displayNames.some(d => {
+           const lowerD = d.toLowerCase();
+           // Remove " LTS" or similar suffixes for broader matching
+           const simpleName = lowerName.replace(" lts", "");
+           return lowerD.includes(simpleName) || lowerD.includes(app.id.toLowerCase());
+        });
+        
+        if (isInstalled) {
+          newInstalledIds.add(app.winget_id);
+        }
       }
+      
+      setInstalledIds(newInstalledIds);
+    } catch (e) {
+      console.error("Installation status check failed", e);
     }
-    setSelected(newSelected);
   };
 
   const addLog = (msg, type = "info") => {
@@ -299,72 +403,43 @@ function App() {
   const startInstall = async () => {
     if (selected.size === 0 || installing) return;
     
-    // Check disk space (simple warning)
-    if (diskUsage && diskUsage.free < 500 * 1024 * 1024) { // 500MB
-       if (!confirm("Disk alanınız düşük (500MB altı). Kuruluma devam etmek istiyor musunuz?")) return;
-    }
-
     setInstalling(true);
-    addLog("Kurulum oturumu başladı.", "info");
+    setShowLogs(true);
+    addLog("Winget kurulum oturumu başladı.", "info");
     sounds.playClick();
 
-    // Dependency sorting
     const selectedApps = installers.filter((i) => selected.has(i.path));
-    
-    // Sort logic (very basic topological-ish based on dependency names)
-    const sortedApps = [...selectedApps].sort((a, b) => {
-       if (a.dependencies.includes(b.name)) return 1;
-       if (b.dependencies.includes(a.name)) return -1;
-       return 0;
-    });
+    setInstallProgress({ done: 0, total: selectedApps.length });
 
-    setInstallProgress({ done: 0, total: sortedApps.length });
-
-    for (let idx = 0; idx < sortedApps.length; idx++) {
-      const app = sortedApps[idx];
+    for (let idx = 0; idx < selectedApps.length; idx++) {
+      const app = selectedApps[idx];
       setCurrentInstall(app.name);
       setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
-      addLog(`Kuruluyor: ${app.name}...`, "process");
+      addLog(`İşlem başlatılıyor: ${app.name}`, "process");
+      
+      const wingetCmd = `winget install ${app.winget_id} --accept-package-agreements --accept-source-agreements`;
+      addLog(`> ${wingetCmd}`, "command");
 
       try {
-        await invoke("run_installer", { 
-          path: app.path, 
-          customArgs: customArgs[app.path] || null 
+        await invoke("install_winget_package", { 
+          packageId: app.winget_id
         });
         setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
         addLog(`Başarılı: ${app.name}`, "success");
-        
-        if (autoCleanup) {
-          try {
-            await invoke("delete_installer", { path: app.path });
-            addLog(`Temizlendi: ${app.path}`, "info");
-          } catch(e) {
-            addLog(`Temizleme hatası: ${e}`, "error");
-          }
-        }
+        refreshInstalledStatus();
       } catch (error) {
         console.error(`Kurulum hatası (${app.name}):`, error);
         setInstallStatus((prev) => ({ ...prev, [app.path]: "error" }));
         addLog(`Hata (${app.name}): ${error}`, "error");
         sounds.playError();
       }
-      setInstallProgress({ done: idx + 1, total: sortedApps.length });
+      setInstallProgress({ done: idx + 1, total: selectedApps.length });
     }
 
-    addLog("Kurulumlar tamamlandı.", "info");
+    addLog("Tüm kurulumlar tamamlandı.", "info");
     sounds.playSuccess();
-    
-    // Check post-install
-    try {
-      const psResult = await invoke("run_post_install_script", { dirPath: folderPath });
-      addLog(psResult, psResult.includes("başarıyla") ? "success" : "info");
-    } catch (error) {
-      addLog(`Post-install hatası: ${error}`, "error");
-    }
-
     setCurrentInstall(null);
     setInstalling(false);
-    if (folderPath) loadInstallers(folderPath); // Refresh to reflect deletions
   };
 
   const selectAll = () => {
@@ -377,27 +452,10 @@ function App() {
     setSelected(new Set());
   };
 
-  const addToFavorites = () => {
-    if (!folderPath || favorites.includes(folderPath)) return;
-    const newFavs = [...favorites, folderPath];
-    setFavorites(newFavs);
-    localStorage.setItem("stash-zero-favorites", JSON.stringify(newFavs));
-    addLog(`Favorilere eklendi: ${folderPath}`, "info");
-  };
-
-  const removeFromFavorites = (path) => {
-    const newFavs = favorites.filter(f => f !== path);
-    setFavorites(newFavs);
-    localStorage.setItem("stash-zero-favorites", JSON.stringify(newFavs));
-  };
-
   const handleMenuAction = async (action, data = null) => {
     setOpenMenu(null);
     sounds.playClick();
     switch (action) {
-      case "open-folder":
-        selectFolder();
-        break;
       case "export-bundle":
         if (selected.size === 0) return alert("Önce uygulama seçmelisiniz.");
         try {
@@ -431,15 +489,6 @@ function App() {
            }
         } catch(e) { addLog(`İçe aktarma hatası: ${e}`, "error"); }
         break;
-      case "open-favorite":
-        setFolderPath(data);
-        break;
-      case "add-favorite":
-        addToFavorites();
-        break;
-      case "refresh":
-        if (folderPath) loadInstallers(folderPath);
-        break;
       case "select-all":
         selectAll();
         break;
@@ -449,18 +498,6 @@ function App() {
       case "start-install":
         startInstall();
         break;
-      case "show-in-explorer":
-        if (folderPath) {
-          try {
-             // We can use tauri shell plugin or custom command. 
-             // In v2, opening a folder can be done via shell.open
-             const { open: shellOpen } = await import("@tauri-apps/plugin-shell");
-             await shellOpen(folderPath);
-          } catch(e) {
-             addLog(`Klasör açılamadı: ${e}`, "error");
-          }
-        }
-        break;
       case "toggle-logs":
         setShowLogs(!showLogs);
         break;
@@ -469,14 +506,6 @@ function App() {
         break;
       case "show-settings":
         setShowSettings(true);
-        break;
-      case "clear-cache":
-        try {
-          await invoke("clear_icon_cache");
-          addLog("Simge önbelleği temizlendi.", "success");
-        } catch(e) {
-          addLog(`Önbellek temizlenemedi: ${e}`, "error");
-        }
         break;
       case "change-theme":
         setCurrentTheme(data);
@@ -493,74 +522,6 @@ function App() {
     }
   };
 
-  const menuItems = [
-    {
-      label: "Dosya",
-      id: "dosya",
-      items: [
-        { label: "Klasör Aç", action: "open-folder", shortcut: "Ctrl+O" },
-        { label: "Yenile", action: "refresh", shortcut: "F5", disabled: !folderPath },
-        { type: "separator" },
-        { label: "Seçili Paketi Kaydet (.stash)", action: "export-bundle", disabled: selected.size === 0 },
-        { label: "Paket Yükle", action: "import-bundle" },
-        { type: "separator" },
-        { label: "Çıkış", action: "exit", shortcut: "Alt+F4" },
-      ],
-    },
-    {
-      label: "Komutlar",
-      id: "komutlar",
-      items: [
-        { label: "Tümünü Seç", action: "select-all", shortcut: "Ctrl+A", disabled: installers.length === 0 },
-        { label: "Seçimi Temizle", action: "clear-selection", disabled: selected.size === 0 },
-        { type: "separator" },
-        { label: "Sessiz Kurulum Başlat", action: "start-install", shortcut: "F6", disabled: selected.size === 0 || installing },
-      ],
-    },
-    {
-      label: "Araçlar",
-      id: "araclar",
-      items: [
-        { label: "Klasör İçeriğini Tara", action: "refresh", disabled: !folderPath },
-        { label: "Dosya Gezgininde Göster", action: "show-in-explorer", disabled: !folderPath },
-        { type: "separator" },
-        { label: showLogs ? "Logları Gizle" : "Logları Göster", action: "toggle-logs" },
-        { label: "Logları Temizle", action: "clear-logs", disabled: logs.length === 0 },
-      ],
-    },
-    {
-      label: "Sık Kullanılanlar",
-      id: "favori",
-      items: [
-        { label: "Mevcut Klasörü Ekle", action: "add-favorite", disabled: !folderPath || favorites.includes(folderPath) },
-        { type: "separator" },
-        ...(favorites.length > 0 
-          ? favorites.map(path => ({ 
-              label: path.split(/[\\/]/).pop() || path, 
-              action: "open-favorite", 
-              data: path 
-            }))
-          : [{ label: "(Henüz favori yok)", disabled: true }]
-        ),
-      ],
-    },
-    {
-      label: "Seçenekler",
-      id: "secenekler",
-      items: [
-        { label: "Ayarlar", action: "show-settings" },
-      ],
-    },
-    {
-      label: "Yardım",
-      id: "yardim",
-      items: [
-        { label: "Hakkında", action: "about" },
-        { label: "Sürüm: 0.1.0", disabled: true },
-      ],
-    },
-  ];
-
   const progressPercent =
     installProgress.total > 0
       ? Math.round((installProgress.done / installProgress.total) * 100)
@@ -571,7 +532,11 @@ function App() {
       <div className="mesh-gradient" />
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h1>Stash<span>Zero</span></h1>
+          <div className="logo-wrapper">
+            <img src="/logo.png" alt="StashZero Logo" className="project-logo-img" />
+            <div className="logo-glow" />
+          </div>
+          <h1>STASH<span>ZERO</span></h1>
         </div>
         
         <div className="sidebar-nav">
@@ -619,65 +584,19 @@ function App() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
              </div>
-             <div className="path-display" onClick={selectFolder}>
-                {folderPath || "Klasör seçilmedi..."}
-             </div>
+              <div className="path-display">
+                 Legendary Application Store
+              </div>
           </div>
 
           <div className="top-right">
-             {systemInfo && (
-               <div className="system-stats">
-                  <div className="stat-group network">
-                    <div className="net-item down">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"></path></svg>
-                      <span>{systemInfo.net_in.toFixed(1)} KB/s</span>
-                    </div>
-                    <div className="net-item up">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M7 11l5-5 5 5M7 18l5-5 5 5"></path></svg>
-                      <span>{systemInfo.net_out.toFixed(1)} KB/s</span>
-                    </div>
-                  </div>
-
-                  <div className="stat-item">
-                    <div className="stat-header"><span>CPU</span><span>{Math.round(systemInfo.cpu_usage)}%</span></div>
-                    <div className="stat-bar"><div className="stat-fill" style={{ width: `${systemInfo.cpu_usage}%` }} /></div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-header"><span>RAM</span><span>{Math.round((systemInfo.used_memory/systemInfo.total_memory)*100)}%</span></div>
-                    <div className="stat-bar"><div className="stat-fill" style={{ width: `${(systemInfo.used_memory/systemInfo.total_memory)*100}%` }} /></div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-header"><span>DISK</span><span>{Math.round(systemInfo.disk_usage)}%</span></div>
-                    <div className="stat-bar"><div className="stat-fill" style={{ width: `${systemInfo.disk_usage}%` }} /></div>
-                  </div>
-
-                  <div className="specs-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-                    <div className="specs-tooltip diagnostic">
-                      <div className="diag-header">SYSTEM DIAGNOSTICS</div>
-                      <div className="diag-grid">
-                        <div className="diag-col">
-                          <div className="diag-section">SYSTEM</div>
-                          <div className="specs-row"><strong>OS:</strong> {systemInfo.os_version}</div>
-                          <div className="specs-row"><strong>Kernel:</strong> {systemInfo.kernel_version}</div>
-                          <div className="specs-row"><strong>Uptime:</strong> {Math.floor(systemInfo.uptime / 3600)}h {Math.floor((systemInfo.uptime % 3600) / 60)}m</div>
-                          <div className="specs-row"><strong>Processes:</strong> {systemInfo.total_processes}</div>
-                        </div>
-                        <div className="diag-col">
-                          <div className="diag-section">HARDWARE</div>
-                          <div className="specs-row"><strong>CPU:</strong> {systemInfo.cpu_model}</div>
-                          <div className="specs-row"><strong>Memory:</strong> {Math.round(systemInfo.total_memory / (1024*1024*1024))} GB</div>
-                          <div className="specs-row"><strong>Swap:</strong> {Math.round(systemInfo.swap_used / (1024*1024))} / {Math.round(systemInfo.swap_total / (1024*1024))} MB</div>
-                          <div className="specs-row"><strong>IP:</strong> {systemInfo.local_ip}</div>
-                        </div>
-                      </div>
-                      <div className="diag-footer">
-                        <button className="diag-action-btn" onClick={clearCache}>Clear Icon Cache</button>
-                      </div>
-                    </div>
-                  </div>
-               </div>
-             )}
+             <button 
+               className={`panel-toggle ${showControlCenter ? 'active' : ''}`}
+               onClick={() => { setShowControlCenter(!showControlCenter); sounds.playClick(); }}
+               title="Kontrol Merkezini Aç/Kapat"
+             >
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+             </button>
           </div>
         </header>
 
@@ -698,6 +617,7 @@ function App() {
                 if (status === "installing") cardClass += " installing";
                 if (status === "done") cardClass += " done";
                 if (status === "error") cardClass += " error";
+                if (installedIds.has(app.winget_id)) cardClass += " installed";
 
                 return (
                   <div 
@@ -707,25 +627,38 @@ function App() {
                     onMouseMove={handleMouseMove}
                   >
                     <div className="app-icon">
-                      {app.icon_b64 ? (
-                        <img src={`data:image/png;base64,${app.icon_b64}`} alt="" />
-                      ) : (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                      <AppLogo id={app.id} className="brand-logo" />
+                      {installedIds.has(app.winget_id) && (
+                        <div className="installed-badge">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
                       )}
                     </div>
                     <div className="app-info">
                       <div className="app-name-row">
                         <span className="app-name">{app.name}</span>
                         {app.version && <span className="app-version-badge">{app.version}</span>}
+                        {installedIds.has(app.winget_id) && <span className="app-installed-tag">Kurulu</span>}
                       </div>
                       <div className="app-meta">
                         <span className="app-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-                        <div className="info-btn" onClick={(e) => { e.stopPropagation(); setSelectedAppMemo(app); }}>
+                        <div className="info-btn" onClick={(e) => { e.stopPropagation(); setSelectedAppMemo(app); if(!showControlCenter) setShowControlCenter(true); }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                         </div>
                       </div>
                     </div>
-                    {status === "installing" && <div className="spinner" />}
+                    {status === "installing" && (
+                      appProgress[app.path] !== undefined ? (
+                        <div className="app-progress">
+                          <div className="progress-bar-track">
+                            <div className="progress-bar-fill" style={{ width: `${appProgress[app.path]}%` }} />
+                          </div>
+                          <span className="progress-percent">{appProgress[app.path]}%</span>
+                        </div>
+                      ) : (
+                        <div className="spinner" />
+                      )
+                    )}
                   </div>
                 );
               })}
@@ -760,31 +693,172 @@ function App() {
             </div>
           </div>
         )}
-      </main>
 
-      {/* ─── Log Panel ─── */}
-      {showLogs && (
-        <div className="log-panel">
-          <div className="log-header">
-            <span>Yükleme Günlüğü</span>
-            <div className="log-actions">
-              <button onClick={() => setLogs([])}>Temizle</button>
-              <button onClick={() => setShowLogs(false)}>&times;</button>
+        {/* ─── Integrated Terminal (Docked at Bottom) ─── */}
+        {showLogs && (
+          <div className="log-panel" style={{ height: logPanelHeight }}>
+            <div className="log-resize-handle" onMouseDown={startLogResize} />
+            <div className="log-header">
+              <span>Yükleme Günlüğü</span>
+              <div className="log-actions">
+                <button onClick={() => setLogs([])}>Temizle</button>
+                <button onClick={() => setShowLogs(false)}>Kapat</button>
+              </div>
+            </div>
+            <div className="log-content">
+              {logs.length === 0 ? (
+                <div className="log-empty">Henüz bir kayıt yok.</div>
+              ) : (
+                logs.slice().reverse().map((log, i) => (
+                  <div key={i} className={`log-entry ${log.type}`}>
+                    <span className="log-time">[{log.time}]</span>
+                    <span className="log-msg">{log.msg}</span>
+                  </div>
+                ))
+              )}
+              <div ref={logEndRef} />
             </div>
           </div>
-          <div className="log-content">
-            {logs.length === 0 ? (
-              <div className="log-empty">Henüz bir kayıt yok.</div>
-            ) : (
-              logs.map((log, i) => (
-                <div key={i} className={`log-entry ${log.type}`}>
-                  <span className="log-time">[{log.time}]</span>
-                  <span className="log-msg">{log.msg}</span>
+        )}
+      </main>
+
+      {/* ─── Control Center (Right Sidebar) ─── */}
+      {showControlCenter && (
+        <aside className="control-center">
+          <div className="cc-header">
+            <h2>Telemetry Hub</h2>
+            <button className="close-panel" onClick={() => setShowControlCenter(false)}>
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          
+          <div className="cc-content">
+            {/* App Selection / Details Area */}
+            <div className="cc-section">
+              <h3 className="cc-section-title">{selectedAppMemo ? "Program Detayları" : "Aktif Dosya Durumu"}</h3>
+              {selectedAppMemo ? (
+                <div className="cc-app-details">
+                   <div className="cc-app-icon">
+                     <AppLogo id={selectedAppMemo.id} className="brand-logo large" />
+                   </div>
+                   <h3 className="cc-app-name">{selectedAppMemo.name}</h3>
+                   <div className="cc-app-meta">
+                     <span className="cc-badge">Versiyon: {selectedAppMemo.version || "Bilinmiyor"}</span>
+                     <span className="cc-badge">{(selectedAppMemo.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+                   </div>
+                   <div className="spec-item" style={{border:'none', padding:0}}>
+                      <button className="neon-button" onClick={() => setSelectedAppMemo(null)} style={{width:'100%', fontSize:'11px'}}>Listeye Geri Dön</button>
+                   </div>
                 </div>
-              ))
+              ) : (
+                <div className="net-monitor">
+                  <div className="net-stat">
+                    <span>Seçili</span>
+                    <span>{selected.size} Uygulama</span>
+                  </div>
+                  <div className="net-stat">
+                    <span>Toplam Boyut</span>
+                    <span>{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0 
+                      ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024*1024)).toFixed(1) + " MB"
+                      : "0 MB"}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Performance Telemetry */}
+            {systemInfo && (
+              <div className="cc-section">
+                <h3 className="cc-section-title">Performans</h3>
+                <div className="telemetry-grid">
+                  <div className="telemetry-card">
+                    <div className="tel-header">
+                      <div className="tel-label-group">
+                        <TelemetryIcon type="cpu" />
+                        <span className="tel-label">CPU Kullanımı</span>
+                      </div>
+                      <span className="tel-value">{Math.round(systemInfo.cpu_usage)}%</span>
+                    </div>
+                    <div className="tel-progress">
+                      <div className="tel-fill" style={{ width: `${systemInfo.cpu_usage}%` }} />
+                    </div>
+                  </div>
+                  <div className="telemetry-card">
+                    <div className="tel-header">
+                      <div className="tel-label-group">
+                        <TelemetryIcon type="ram" />
+                        <span className="tel-label">Bellek (RAM)</span>
+                      </div>
+                      <span className="tel-value">{Math.round((systemInfo.used_memory/systemInfo.total_memory)*100)}%</span>
+                    </div>
+                    <div className="tel-progress">
+                      <div className="tel-fill" style={{ width: `${(systemInfo.used_memory/systemInfo.total_memory)*100}%` }} />
+                    </div>
+                  </div>
+                  <div className="telemetry-card">
+                    <div className="tel-header">
+                      <div className="tel-label-group">
+                        <TelemetryIcon type="disk" />
+                        <span className="tel-label">Disk Durumu</span>
+                      </div>
+                      <span className="tel-value">{Math.round(systemInfo.disk_usage)}%</span>
+                    </div>
+                    <div className="tel-progress">
+                      <div className="tel-fill" style={{ width: `${systemInfo.disk_usage}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Network */}
+            {systemInfo && (
+              <div className="cc-section">
+                <h3 className="cc-section-title">Ağ Trafiği</h3>
+                <div className="net-monitor">
+                  <div className="net-stat">
+                    <span>İndirme</span>
+                    <span>{systemInfo.net_in.toFixed(1)} KB/s</span>
+                  </div>
+                  <div className="net-stat">
+                    <span>Yükleme</span>
+                    <span>{systemInfo.net_out.toFixed(1)} KB/s</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* System Details */}
+            {systemInfo && (
+              <div className="cc-section">
+                <h3 className="cc-section-title">Sistem Özellikleri</h3>
+                <div className="specs-list">
+                  <div className="spec-item">
+                    <span className="spec-key">İşletim Sistemi</span>
+                    <span className="spec-val" title={systemInfo.os_version}>{systemInfo.os_version}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-key">İşlemci</span>
+                    <span className="spec-val" title={systemInfo.cpu_model}>{systemInfo.cpu_model}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-key">Toplam Bellek</span>
+                    <span className="spec-val">{Math.round(systemInfo.total_memory / (1024*1024*1024))} GB</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-key">Çalışma Süresi</span>
+                    <span className="spec-val">{Math.floor(systemInfo.uptime / 3600)}s {Math.floor((systemInfo.uptime % 3600) / 60)}d</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-key">Yerel IP</span>
+                    <span className="spec-val">{systemInfo.local_ip}</span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-        </div>
+
+        </aside>
       )}
 
       {/* ─── Settings Modal ─── */}
@@ -835,95 +909,15 @@ function App() {
                 </label>
               </div>
               <div className="setting-item">
-                <button className="danger-button" onClick={() => handleMenuAction("clear-cache")}>
-                  Simge Önbelleğini Temizle
-                </button>
-              </div>
-              <div className="setting-item">
                 <label>
                   <span>Sessiz Parametreleri</span>
                   <input type="text" placeholder="/S /VERYSILENT /SUPPRESSMSGBOXES" />
                 </label>
               </div>
-              <div className="setting-item">
-                <button className="fav-button" onClick={() => { setShowSettings(false); handleMenuAction("add-favorite"); }}>
-                  Mevcut Klasörü Favorilere Ekle
-                </button>
-              </div>
-              {favorites.length > 0 && (
-                <div className="settings-favorites">
-                  <h3>Favori Klasörler</h3>
-                  {favorites.map(path => (
-                    <div key={path} className="fav-item">
-                      <span title={path}>{path}</span>
-                      <button onClick={() => removeFromFavorites(path)}>&times;</button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
             <div className="modal-footer">
               <button className="neon-button primary" onClick={() => setShowSettings(false)}>Kaydet ve Kapat</button>
             </div>
-          </div>
-        </div>
-      )}
-      {/* ─── App Details Modal ─── */}
-      {selectedAppMemo && (
-        <div className="modal-overlay" onClick={() => setSelectedAppMemo(null)}>
-          <div className="modal-content details-modal" onClick={(e) => e.stopPropagation()}>
-             <div className="modal-header">
-                <h2>Uygulama Detayları</h2>
-                <button className="close-modal" onClick={() => setSelectedAppMemo(null)}>&times;</button>
-             </div>
-             <div className="modal-body">
-                <div className="details-grid">
-                   <div className="details-icon">
-                     {selectedAppMemo.icon_b64 ? (
-                       <img src={`data:image/png;base64,${selectedAppMemo.icon_b64}`} alt="" />
-                     ) : (
-                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                         <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                       </svg>
-                     )}
-                   </div>
-                   <div className="details-info">
-                      <h3 className="details-name">{selectedAppMemo.name}</h3>
-                      <div className="details-row">
-                         <span className="details-badge">Versiyon: {selectedAppMemo.version || "???"}</span>
-                         <span className="details-badge">Boyut: {(selectedAppMemo.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-                         <span className="details-badge">Sıra: {selectedAppMemo.order}</span>
-                      </div>
-                      
-                      {selectedAppMemo.description && (
-                         <p className="details-desc">{selectedAppMemo.description}</p>
-                      )}
-
-                      {selectedAppMemo.dependencies.length > 0 && (
-                         <div className="details-deps">
-                            <h4>Bağımlılıklar</h4>
-                            <div className="deps-list">
-                               {selectedAppMemo.dependencies.map(d => <span key={d} className="dep-chip">{d}</span>)}
-                            </div>
-                         </div>
-                      )}
-
-                      <div className="setting-item">
-                         <label>Özel Kurulum Parametreleri</label>
-                         <input 
-                           className="custom-args-input" 
-                           type="text" 
-                           placeholder="/S /VERYSILENT ..." 
-                           value={customArgs[selectedAppMemo.path] || ""}
-                           onChange={(e) => setCustomArgs({...customArgs, [selectedAppMemo.path]: e.target.value})}
-                         />
-                      </div>
-                   </div>
-                </div>
-             </div>
-             <div className="modal-footer">
-                <button className="neon-button primary" onClick={() => setSelectedAppMemo(null)}>Kapat</button>
-             </div>
           </div>
         </div>
       )}

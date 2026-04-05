@@ -1,11 +1,16 @@
 use serde::Serialize;
 use std::fs;
 use std::path::Path;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use regex::Regex;
 
 use base64::Engine;
 use sha2::{Sha256, Digest};
 use std::io::Read;
 use tauri::Manager;
+use tauri::Window as TauriWindow;
+use tauri::Emitter;
+use tauri::Window;
 use windows_sys::Win32::Storage::FileSystem::{
     GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW,
 };
@@ -30,16 +35,17 @@ static NET_STATE: Lazy<Mutex<NetState>> = Lazy::new(|| {
 
 #[derive(Serialize, Clone)]
 pub struct Installer {
-    name: String,         // Display name (prefix stripped)
-    path: String,         // Full path to the file
+    name: String,         // Display name
+    path: String,         // Full path or ID
     icon_b64: Option<String>,
     version: Option<String>,
-    category: String,     // Category name from subfolder, or "Genel"
-    order: i32,           // Numeric prefix for sorting (default 999)
-    category_order: i32,  // Numeric prefix of the category folder (default 999)
+    category: String,
+    order: i32,
+    category_order: i32,
     size_bytes: u64,
     description: Option<String>,
     dependencies: Vec<String>,
+    winget_id: Option<String>, // Added for Winget support
 }
 
 #[derive(Serialize)]
@@ -157,228 +163,7 @@ fn get_file_version(path: &str) -> Option<String> {
     None
 }
 
-/// Scan a single directory for installer files, assigning them a category and order.
-fn scan_dir_for_installers(
-    app: &tauri::AppHandle,
-    dir: &Path,
-    category: &str,
-    category_order: i32,
-    installers: &mut Vec<Installer>,
-) {
-    let cache_dir = app.path().app_data_dir().unwrap_or_default().join("cache");
-    if !cache_dir.exists() {
-        fs::create_dir_all(&cache_dir).ok();
-    }
-
-    let entries = match fs::read_dir(dir) {
-        Ok(e) => e,
-        Err(_) => return,
-    };
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_file() {
-            continue;
-        }
-        let ext = match path.extension() {
-            Some(e) => e.to_string_lossy().to_lowercase(),
-            None => continue,
-        };
-        if ext != "exe" && ext != "msi" {
-            continue;
-        }
-        let raw_name = match path.file_name() {
-            Some(n) => n.to_string_lossy().into_owned(),
-            None => continue,
-        };
-
-        let path_str = path.to_string_lossy().into_owned();
-        let path_hash = get_path_hash(&path_str);
-        let cache_file = cache_dir.join(format!("{}.png", path_hash));
-
-        let (order, clean_name_with_ext) = parse_order_prefix(&raw_name);
-        let display_name = strip_extension(&clean_name_with_ext);
-
-        // Versioning
-        let version = if ext == "exe" { get_file_version(&path_str) } else { None };
-
-        // Metadata extraction
-        let size_bytes = fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
-        
-        let desc_path = path.with_extension("txt");
-        let description = if desc_path.exists() {
-            fs::read_to_string(desc_path).ok().map(|s| s.trim().to_string())
-        } else { None };
-
-        let deps_path = path.with_extension("deps.json");
-        let dependencies = if deps_path.exists() {
-            fs::read_to_string(deps_path)
-                .ok()
-                .and_then(|s| serde_json::from_str::<Vec<String>>(&s).ok())
-                .unwrap_or_default()
-        } else { Vec::new() };
-
-        // Extract icon with caching
-        let mut icon_b64 = None;
-        if ext == "exe" {
-            if cache_file.exists() {
-                if let Ok(data) = fs::read(&cache_file) {
-                    icon_b64 = Some(base64::engine::general_purpose::STANDARD.encode(&data));
-                }
-            } else if let Ok(png_data) = win_icon_extractor::extract_icon_png(&path_str) {
-                fs::write(&cache_file, &png_data).ok();
-                icon_b64 = Some(base64::engine::general_purpose::STANDARD.encode(&png_data));
-            }
-        }
-
-        installers.push(Installer {
-            name: display_name,
-            path: path_str,
-            icon_b64,
-            version,
-            category: category.to_string(),
-            order,
-            category_order,
-            size_bytes,
-            description,
-            dependencies,
-        });
-    }
-}
-
-#[tauri::command]
-fn get_installers(app: tauri::AppHandle, dir_path: String) -> Result<Vec<Installer>, String> {
-    let root = Path::new(&dir_path);
-    if !root.is_dir() {
-        return Err("Geçersiz klasör yolu".to_string());
-    }
-
-    let mut installers: Vec<Installer> = Vec::new();
-
-    // First, scan root-level files (category = "Genel")
-    scan_dir_for_installers(&app, root, "Genel", 999, &mut installers);
-
-    // Then, scan subdirectories as categories
-    if let Ok(entries) = fs::read_dir(root) {
-        for entry in entries.flatten() {
-            let sub_path = entry.path();
-            if sub_path.is_dir() {
-                let folder_name = match sub_path.file_name() {
-                    Some(n) => n.to_string_lossy().into_owned(),
-                    None => continue,
-                };
-                let (cat_order, cat_name) = parse_order_prefix(&folder_name);
-                scan_dir_for_installers(&app, &sub_path, &cat_name, cat_order, &mut installers);
-            }
-        }
-    }
-
-    // Sort: first by category_order, then by order within category, then alphabetically
-    installers.sort_by(|a, b| {
-        a.category_order
-            .cmp(&b.category_order)
-            .then(a.order.cmp(&b.order))
-            .then(a.name.to_lowercase().cmp(&b.name.to_lowercase()))
-    });
-
-    Ok(installers)
-}
-
-#[tauri::command]
-async fn run_installer(path: String, custom_args: Option<String>) -> Result<String, String> {
-    let p = Path::new(&path);
-    let ext = p
-        .extension()
-        .map(|e| e.to_string_lossy().to_lowercase())
-        .unwrap_or_default();
-
-    // Build silent install arguments
-    let (program, args): (String, Vec<String>) = if ext == "msi" {
-        (
-            "msiexec".to_string(),
-            vec![
-                "/i".to_string(),
-                path.clone(),
-                "/qn".to_string(),
-                "/norestart".to_string(),
-            ],
-        )
-    } else {
-        let base_args = vec!["/S".to_string(), "/VERYSILENT".to_string(), "/SUPPRESSMSGBOXES".to_string(), "/NORESTART".to_string()];
-        let final_args = if let Some(c) = custom_args {
-            c.split_whitespace().map(|s| s.to_string()).collect()
-        } else {
-            base_args
-        };
-        (path.clone(), final_args)
-    };
-
-    let ps_args_str = args
-        .iter()
-        .map(|a| format!("'{}'", a))
-        .collect::<Vec<_>>()
-        .join(",");
-
-    let ps_script = format!(
-        "Start-Process -FilePath '{}' -ArgumentList {} -Verb RunAs -Wait",
-        program, ps_args_str
-    );
-
-    let output = tokio::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", &ps_script])
-        .output()
-        .await
-        .map_err(|e| format!("Kurulum başlatılamadı: {}", e))?;
-
-    if output.status.success() {
-        Ok("Kurulum tamamlandı".to_string())
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        if stderr.contains("canceled") || stderr.contains("The operation was canceled") {
-            Err("Kullanıcı yönetici iznini reddetti".to_string())
-        } else {
-            Err(format!("Kurulum hatası: {}", stderr))
-        }
-    }
-}
-
-#[tauri::command]
-async fn run_post_install_script(dir_path: String) -> Result<String, String> {
-    let root = Path::new(&dir_path);
-    let script_path = root.join("post-install.ps1");
-    
-    if !script_path.exists() {
-        return Ok("Post-install script bulunamadı, atlanıyor.".to_string());
-    }
-
-    let ps_script = format!(
-        "Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','{}' -Verb RunAs -Wait",
-        script_path.to_string_lossy()
-    );
-
-    let output = tokio::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", &ps_script])
-        .output()
-        .await
-        .map_err(|e| format!("Post-install başlatılamadı: {}", e))?;
-
-    if output.status.success() {
-        Ok("Post-install işlemi başarıyla tamamlandı".to_string())
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("Post-install hatası: {}", stderr))
-    }
-}
-
-#[tauri::command]
-fn clear_icon_cache(app: tauri::AppHandle) -> Result<String, String> {
-    let cache_dir = app.path().app_data_dir().unwrap_or_default().join("cache");
-    if cache_dir.exists() {
-        fs::remove_dir_all(&cache_dir).map_err(|e| e.to_string())?;
-        fs::create_dir_all(&cache_dir).map_err(|e| e.to_string())?;
-    }
-    Ok("Cache temizlendi".to_string())
-}
+// System and Winget commands only
 
 #[tauri::command]
 fn get_system_info() -> SystemInfo {
@@ -455,44 +240,104 @@ fn get_system_info() -> SystemInfo {
     }
 }
 
+// Disk usage removed as it is folder context sensitive
+
 #[tauri::command]
-fn get_disk_usage(dir_path: String) -> DiskUsage {
-    let mut sys = System::new_all();
-    sys.refresh_disks_list();
-    
-    let path = Path::new(&dir_path);
-    // On Windows, canonicalize might fail if path doesn't exist or is relative, 
-    // but dir_path should be absolute.
-    let absolute = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
-    
-    for disk in sys.disks() {
-        if absolute.starts_with(disk.mount_point()) {
-            return DiskUsage {
-                free: disk.available_space(),
-                total: disk.total_space(),
-            };
+async fn install_winget_package(window: TauriWindow, package_id: String) -> Result<String, String> {
+    // winget install <id> --accept-package-agreements --accept-source-agreements
+    // winget install <id> --accept-package-agreements --accept-source-agreements
+    let ps_command = format!("winget install --id {} --accept-package-agreements --accept-source-agreements", package_id);
+    let mut child = tokio::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", &ps_command])
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Winget başlatılamadı: {}", e))?;
+
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+
+    let mut stdout_reader = BufReader::new(stdout).lines();
+    let mut stderr_reader = BufReader::new(stderr).lines();
+
+    // Read stdout and stderr concurrently
+    let window_clone = window.clone();
+    let package_id_clone = package_id.clone();
+    let stdout_task = tokio::spawn(async move {
+        while let Ok(Some(line)) = stdout_reader.next_line().await {
+            // Parse progress percentage from line
+            if let Some(caps) = regex::Regex::new(r"(\d+)%").unwrap().captures(&line) {
+                if let Ok(percentage) = caps[1].parse::<u32>() {
+                    let _ = window_clone.emit("install-progress", serde_json::json!({
+                        "package_id": package_id_clone,
+                        "percentage": percentage,
+                        "message": line
+                    }));
+                }
+            } else if line.contains("Downloading") || line.contains("Installing") || line.contains("Successfully") {
+                let _ = window_clone.emit("install-progress", serde_json::json!({
+                    "package_id": package_id_clone,
+                    "percentage": null,
+                    "message": line
+                }));
+            }
         }
+    });
+
+    let stderr_task = tokio::spawn(async move {
+        while let Ok(Some(line)) = stderr_reader.next_line().await {
+            // Log errors if any
+            let _ = window.emit("install-progress", format!("Error: {}", line));
+        }
+    });
+
+    // Wait for process to complete
+    let status = child.wait().await.map_err(|e| format!("Process wait error: {}", e))?;
+
+    // Wait for readers to finish
+    let _ = stdout_task.await;
+    let _ = stderr_task.await;
+
+    if status.success() {
+        Ok(format!("{} başarıyla kuruldu", package_id))
+    } else {
+        Err(format!("Winget hatası: Exit code {}", status.code().unwrap_or(-1)))
     }
-    
-    // Fallback search by drive letter
-    if let Some(letter) = dir_path.get(..3) {
-       for disk in sys.disks() {
-          if disk.mount_point().to_string_lossy().starts_with(letter) {
-             return DiskUsage {
-                free: disk.available_space(),
-                total: disk.total_space(),
-             };
-          }
-       }
-    }
-    
-    DiskUsage { free: 0, total: 0 }
 }
 
 #[tauri::command]
-fn delete_installer(path: String) -> Result<String, String> {
-    fs::remove_file(path).map_err(|e| e.to_string())?;
-    Ok("Dosya silindi".to_string())
+async fn get_installed_winget_ids() -> Result<Vec<String>, String> {
+    // Instead of using 'winget list' which is notoriously slow and fragile (e.g., throwing 0x8007139f if sources are corrupt),
+    // we use a highly robust PowerShell one-liner to query the Windows Uninstall Registry keys for all installed DisplayNames.
+    // This perfectly reflects what is actually installed on the system.
+    let ps_script = r#"
+        $paths = @(
+            "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+            "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        )
+        Get-ItemProperty $paths -ErrorAction SilentlyContinue | 
+            Select-Object -ExpandProperty DisplayName -ErrorAction SilentlyContinue | 
+            Where-Object { $_ -ne $null -and $_ -ne '' }
+    "#;
+
+    let output = tokio::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", ps_script])
+        .output()
+        .await
+        .map_err(|e| format!("Kayıt defteri okunamadı: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut names = Vec::new();
+    
+    for line in stdout.lines() {
+        let trimmed = line.trim();
+        if !trimmed.is_empty() {
+            names.push(trimmed.to_string());
+        }
+    }
+    
+    Ok(names)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -502,13 +347,9 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
-            get_installers, 
-            run_installer, 
-            run_post_install_script,
-            clear_icon_cache,
             get_system_info,
-            get_disk_usage,
-            delete_installer
+            install_winget_package,
+            get_installed_winget_ids
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
