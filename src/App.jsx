@@ -193,7 +193,7 @@ function App() {
   const [menuHover, setMenuHover] = useState(false);
   const [systemInfo, setSystemInfo] = useState(null);
   const [diskUsage, setDiskUsage] = useState(null);
-  const [selectedAppMemo, setSelectedAppMemo] = useState(null);
+
   const [activeCategory, setActiveCategory] = useState(null);
   const [customArgs, setCustomArgs] = useState({});
   const [autoCleanup, setAutoCleanup] = useState(false);
@@ -398,6 +398,47 @@ function App() {
   const addLog = (msg, type = "info") => {
     const time = new Date().toLocaleTimeString();
     setLogs(prev => [{ time, msg, type }, ...prev].slice(0, 100));
+  };
+
+  const startUninstall = async (app) => {
+    if (installing) return;
+    
+    if (!window.confirm(`${app.name} programını sistemden kaldırmak istediğinize emin misiniz?`)) return;
+    
+    setInstalling(true);
+    setShowLogs(true);
+    addLog(`${app.name} için kaldırma işlemi başlatılıyor...`, "process");
+    let wingetCmd = `winget uninstall --id ${app.winget_id} --silent --accept-source-agreements`;
+    addLog(`> ${wingetCmd}`, "command");
+    sounds.playClick();
+    
+    setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
+    setCurrentInstall(app.name);
+
+    try {
+      await invoke("uninstall_winget_package", { packageId: app.winget_id });
+      setInstallStatus((prev) => {
+        const next = {...prev};
+        delete next[app.path];
+        return next;
+      });
+      addLog(`Başarılı: ${app.name} başarıyla kaldırıldı.`, "success");
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(app.path);
+        return next;
+      });
+      refreshInstalledStatus();
+      sounds.playSuccess();
+    } catch (error) {
+      console.error(`Kaldırma hatası (${app.name}):`, error);
+      setInstallStatus((prev) => ({ ...prev, [app.path]: "error" }));
+      addLog(`Hata (${app.name}): ${error}`, "error");
+      sounds.playError();
+    }
+    
+    setCurrentInstall(null);
+    setInstalling(false);
   };
 
   const startInstall = async () => {
@@ -642,8 +683,28 @@ function App() {
                       </div>
                       <div className="app-meta">
                         <span className="app-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-                        <div className="info-btn" onClick={(e) => { e.stopPropagation(); setSelectedAppMemo(app); if(!showControlCenter) setShowControlCenter(true); }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <div style={{display: "flex", gap: "8px", alignItems: "center"}}>
+                          {installedIds.has(app.winget_id) && (
+                            <div className="info-btn uninstall-btn" style={{color: "var(--text-secondary)"}} onClick={(e) => { e.stopPropagation(); startUninstall(app); }} title="Sistemden Kaldır">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </div>
+                          )}
+                          <div className="info-btn" onClick={(e) => e.stopPropagation()}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <div className="info-tooltip">
+                            <div className="tooltip-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                              <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '4px' }}>
+                                <AppLogo id={app.id} className="brand-logo" />
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span className="tooltip-title" style={{ marginBottom: '2px' }}>{app.name}</span>
+                                <span style={{ fontSize: '9.5px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{app.winget_id}</span>
+                              </div>
+                            </div>
+                            <div className="tooltip-desc">{app.description}</div>
+                            <div className="tooltip-meta">Kategori: {app.category}</div>
+                          </div>
+                        </div>
                         </div>
                       </div>
                     </div>
@@ -701,8 +762,12 @@ function App() {
             <div className="log-header">
               <span>Yükleme Günlüğü</span>
               <div className="log-actions">
-                <button onClick={() => setLogs([])}>Temizle</button>
-                <button onClick={() => setShowLogs(false)}>Kapat</button>
+                <button className="icon-btn-sm" onClick={() => setLogs([])} title="Kayıtları Temizle">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+                <button className="icon-btn-sm close-btn" onClick={() => setShowLogs(false)} title="Günlüğü Kapat">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
               </div>
             </div>
             <div className="log-content">
@@ -727,43 +792,27 @@ function App() {
         <aside className="control-center">
           <div className="cc-header">
             <h2>Telemetry Hub</h2>
-            <button className="close-panel" onClick={() => setShowControlCenter(false)}>
-               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <button className="close-btn circle" onClick={() => setShowControlCenter(false)} title="Paneli Kapat">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
           
           <div className="cc-content">
             {/* App Selection / Details Area */}
             <div className="cc-section">
-              <h3 className="cc-section-title">{selectedAppMemo ? "Program Detayları" : "Aktif Dosya Durumu"}</h3>
-              {selectedAppMemo ? (
-                <div className="cc-app-details">
-                   <div className="cc-app-icon">
-                     <AppLogo id={selectedAppMemo.id} className="brand-logo large" />
-                   </div>
-                   <h3 className="cc-app-name">{selectedAppMemo.name}</h3>
-                   <div className="cc-app-meta">
-                     <span className="cc-badge">Versiyon: {selectedAppMemo.version || "Bilinmiyor"}</span>
-                     <span className="cc-badge">{(selectedAppMemo.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-                   </div>
-                   <div className="spec-item" style={{border:'none', padding:0}}>
-                      <button className="neon-button" onClick={() => setSelectedAppMemo(null)} style={{width:'100%', fontSize:'11px'}}>Listeye Geri Dön</button>
-                   </div>
+              <h3 className="cc-section-title">Aktif Dosya Durumu</h3>
+              <div className="net-monitor">
+                <div className="net-stat">
+                  <span>Seçili</span>
+                  <span>{selected.size} Uygulama</span>
                 </div>
-              ) : (
-                <div className="net-monitor">
-                  <div className="net-stat">
-                    <span>Seçili</span>
-                    <span>{selected.size} Uygulama</span>
-                  </div>
-                  <div className="net-stat">
-                    <span>Toplam Boyut</span>
-                    <span>{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0 
-                      ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024*1024)).toFixed(1) + " MB"
-                      : "0 MB"}</span>
-                  </div>
+                <div className="net-stat">
+                  <span>Toplam Boyut</span>
+                  <span>{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0 
+                    ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024*1024)).toFixed(1) + " MB"
+                    : "0 MB"}</span>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Performance Telemetry */}
@@ -816,13 +865,21 @@ function App() {
               <div className="cc-section">
                 <h3 className="cc-section-title">Ağ Trafiği</h3>
                 <div className="net-monitor">
-                  <div className="net-stat">
-                    <span>İndirme</span>
+                  <div className="net-stat download">
+                    <div className="net-stat-header">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                      <span>İndirme</span>
+                    </div>
                     <span>{systemInfo.net_in.toFixed(1)} KB/s</span>
+                    <div className="net-activity"><div className="net-activity-bar" style={{width: `${Math.min(100, systemInfo.net_in / 10)}%`}}></div></div>
                   </div>
-                  <div className="net-stat">
-                    <span>Yükleme</span>
+                  <div className="net-stat upload">
+                    <div className="net-stat-header">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      <span>Yükleme</span>
+                    </div>
                     <span>{systemInfo.net_out.toFixed(1)} KB/s</span>
+                    <div className="net-activity"><div className="net-activity-bar" style={{width: `${Math.min(100, systemInfo.net_out / 10)}%`}}></div></div>
                   </div>
                 </div>
               </div>
@@ -864,15 +921,20 @@ function App() {
       {/* ─── Settings Modal ─── */}
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Ayarlar</h2>
-              <button className="close-modal" onClick={() => setShowSettings(false)}>&times;</button>
+              <h2>Stash Ayarları</h2>
+              <button className="close-btn circle modern-modal-close" onClick={() => setShowSettings(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
             </div>
-            <div className="modal-body">
-              <div className="setting-item">
-                <label>
-                  <span>Otomatik Temizlik</span>
+            <div className="modal-body settings-body">
+              <div className="setting-card">
+                <div className="setting-info">
+                  <span className="setting-title">Otomatik Temizlik</span>
+                  <span className="setting-desc">Kurulum bittikten sonra inen kalıntı dosyaları otomatik siler.</span>
+                </div>
+                <label className="toggle-switch">
                   <input 
                     type="checkbox" 
                     checked={autoCleanup} 
@@ -881,12 +943,16 @@ function App() {
                        localStorage.setItem("stash-zero-cleanup", JSON.stringify(e.target.checked));
                     }} 
                   />
+                  <span className="slider"></span>
                 </label>
-                <p className="setting-desc">Kurulum bittikten sonra yükleyici dosyasını sil.</p>
               </div>
-              <div className="setting-item">
-                <label>
-                  <span>Ses Efektleri</span>
+
+              <div className="setting-card">
+                <div className="setting-info">
+                  <span className="setting-title">Ses Efektleri</span>
+                  <span className="setting-desc">Etkileşimlerde ufak ses bildirimleri çalınsın.</span>
+                </div>
+                <label className="toggle-switch">
                   <input 
                     type="checkbox" 
                     checked={soundEnabled} 
@@ -896,27 +962,25 @@ function App() {
                        localStorage.setItem("stash-zero-sound", JSON.stringify(e.target.checked));
                     }} 
                   />
+                  <span className="slider"></span>
                 </label>
               </div>
-              <div className="setting-item">
-                <label>
-                  <span>Tema Seçimi</span>
-                  <div className="theme-selector">
-                    <button className={currentTheme === "neon" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "neon")}>Neon</button>
-                    <button className={currentTheme === "sleek" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "sleek")}>Sleek</button>
-                    <button className={currentTheme === "cyber" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "cyber")}>Cyber</button>
-                  </div>
-                </label>
+
+              <div className="setting-card col">
+                <div className="setting-info">
+                  <span className="setting-title">Tema Seçimi</span>
+                  <span className="setting-desc">Uygulama arayüzünün estetiğini belirleyin.</span>
+                </div>
+                <div className="theme-selector modern">
+                  <button className={currentTheme === "neon" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "neon")}>Neon</button>
+                  <button className={currentTheme === "sleek" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "sleek")}>Sleek</button>
+                  <button className={currentTheme === "cyber" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "cyber")}>Cyber</button>
+                </div>
               </div>
-              <div className="setting-item">
-                <label>
-                  <span>Sessiz Parametreleri</span>
-                  <input type="text" placeholder="/S /VERYSILENT /SUPPRESSMSGBOXES" />
-                </label>
-              </div>
+
             </div>
             <div className="modal-footer">
-              <button className="neon-button primary" onClick={() => setShowSettings(false)}>Kaydet ve Kapat</button>
+              <button className="neon-button primary custom-save-btn" onClick={() => setShowSettings(false)}>Değişiklikleri Kaydet</button>
             </div>
           </div>
         </div>

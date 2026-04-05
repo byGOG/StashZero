@@ -210,14 +210,13 @@ fn get_system_info() -> SystemInfo {
         state.last_time = now;
     }
 
-    // Local IP detection
+    // Local IP detection by establishing a dummy UDP socket to identify the active routing interface
     let mut local_ip = String::from("127.0.0.1");
-    for (name, network) in sys.networks() {
-        // Skip common virtual/loopback adapters
-        if !name.to_lowercase().contains("virtual") && !name.to_lowercase().contains("pseudo") {
-             // sysinfo 0.29 doesn't provide IP easily, users usually want first non-loopback
-             // We'll return the name or just a placeholder for now as 0.29 IP is complex
-             local_ip = name.clone();
+    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        if socket.connect("8.8.8.8:80").is_ok() {
+            if let Ok(addr) = socket.local_addr() {
+                local_ip = addr.ip().to_string();
+            }
         }
     }
 
@@ -246,9 +245,8 @@ fn get_system_info() -> SystemInfo {
 async fn install_winget_package(window: TauriWindow, package_id: String) -> Result<String, String> {
     // winget install <id> --accept-package-agreements --accept-source-agreements
     // winget install <id> --accept-package-agreements --accept-source-agreements
-    let ps_command = format!("winget install --id {} --accept-package-agreements --accept-source-agreements", package_id);
-    let mut child = tokio::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", &ps_command])
+    let mut child = tokio::process::Command::new("winget")
+        .args(["install", "--id", &package_id, "--exact", "--accept-package-agreements", "--accept-source-agreements"])
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
@@ -306,6 +304,67 @@ async fn install_winget_package(window: TauriWindow, package_id: String) -> Resu
 }
 
 #[tauri::command]
+async fn uninstall_winget_package(window: TauriWindow, package_id: String) -> Result<String, String> {
+    let mut child = tokio::process::Command::new("winget")
+        .args(["uninstall", "--id", &package_id, "--exact", "--silent", "--accept-source-agreements"])
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Winget başlatılamadı: {}", e))?;
+
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+
+    let mut stdout_reader = tokio::io::BufReader::new(stdout).lines();
+    let mut stderr_reader = tokio::io::BufReader::new(stderr).lines();
+
+    let window_clone = window.clone();
+    let package_id_clone = package_id.clone();
+    
+    let stdout_task = tokio::spawn(async move {
+        while let Ok(Some(line)) = stdout_reader.next_line().await {
+            if let Some(caps) = regex::Regex::new(r"(\d+)%").unwrap().captures(&line) {
+                if let Ok(percentage) = caps[1].parse::<u32>() {
+                    let _ = window_clone.emit("install-progress", serde_json::json!({
+                        "package_id": package_id_clone,
+                        "percentage": percentage,
+                        "message": format!("Kaldırılıyor: {}...", percentage)
+                    }));
+                }
+            } else if line.contains("Uninstalling") || line.contains("Successfully") || line.contains("Kaldırılıyor") {
+                let _ = window_clone.emit("install-progress", serde_json::json!({
+                    "package_id": package_id_clone,
+                    "percentage": null,
+                    "message": line
+                }));
+            }
+        }
+    });
+
+    let window_clone_err = window.clone();
+    let package_id_err = package_id.clone();
+    let stderr_task = tokio::spawn(async move {
+        while let Ok(Some(line)) = stderr_reader.next_line().await {
+            let _ = window_clone_err.emit("install-progress", serde_json::json!({
+                "package_id": package_id_err,
+                "percentage": null,
+                "message": format!("Error: {}", line)
+            }));
+        }
+    });
+
+    let status = child.wait().await.map_err(|e| format!("Process wait error: {}", e))?;
+    let _ = stdout_task.await;
+    let _ = stderr_task.await;
+
+    if status.success() {
+        Ok(format!("{} başarıyla kaldırıldı", package_id))
+    } else {
+        Err(format!("Winget hatası: Exit code {}", status.code().unwrap_or(-1)))
+    }
+}
+
+#[tauri::command]
 async fn get_installed_winget_ids() -> Result<Vec<String>, String> {
     // Instead of using 'winget list' which is notoriously slow and fragile (e.g., throwing 0x8007139f if sources are corrupt),
     // we use a highly robust PowerShell one-liner to query the Windows Uninstall Registry keys for all installed DisplayNames.
@@ -349,6 +408,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_system_info,
             install_winget_package,
+            uninstall_winget_package,
             get_installed_winget_ids
         ])
         .run(tauri::generate_context!())
