@@ -36,19 +36,24 @@ StashZero Studio Edition is a high-performance, aesthetically driven application
 - [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (Windows)
 
 ### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/byGOG/StashZero.git
-   cd StashZero
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run in development mode:
-   ```bash
-   npm run tauri dev
-   ```
+# 🛡️ StashZero - Studio Master Edition
+
+StashZero, modern ve hız odaklı bir çevrimdışı toplu uygulama yükleme platformudur. Profesyonel kullanıcılar için tasarlanmış olan bu platform, "Ninite" konseptini Rust tabanlı yüksek performanslı bir mimariyle birleştirir.
+
+## 🚀 Öne Çıkan Özellikler
+
+- **Ultra-Hızlı Açılış:** Gecikmesiz, profesyonel tasarım.
+- **Offline Repository:** Hazır uygulamaları tek tıkla kurma imkanı.
+- **Studio Telemetri Hub:** Gerçek zamanlı sistem takibi.
+- **Modern Arayüz:** Neon cam estetiği (Glassmorphism).
+
+## 👨‍💻 Geliştirici Bilgileri
+
+**Baş Mimari & Geliştirici:** byGOG  
+**Edition:** Studio Master Edition (Master Release)  
+**Teknoloji Yığını:** Tauri 2.5, React 18, Rust, Vite  
+
+© 2026 byGOG Software. Tüm hakları saklıdır.
 
 ## 📂 Project Structure
 - `src-tauri/`: High-performance Rust backend logic.

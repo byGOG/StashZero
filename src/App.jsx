@@ -181,6 +181,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTheme, setCurrentTheme] = useState("studio");
   const [showSettings, setShowSettings] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState([]);
   const [openMenu, setOpenMenu] = useState(null);
@@ -280,6 +281,7 @@ function App() {
         setSearchTerm("");
         setOpenMenu(null);
         setShowSettings(false);
+        setShowAbout(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -552,7 +554,7 @@ function App() {
         window.close();
         break;
       case "about":
-        alert("StashZero v0.1.0\nÇevrimdışı toplu uygulama yükleyici.\n\n© 2026 byGOG");
+        setShowAbout(true);
         break;
       default:
         break;
@@ -1029,6 +1031,53 @@ function App() {
             </div>
             <div className="modal-footer">
               <button className="neon-button primary custom-save-btn" onClick={() => setShowSettings(false)}>Değişiklikleri Kaydet</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showAbout && (
+        <div className="modal-overlay" onClick={() => setShowAbout(false)}>
+          <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>StashZero Hakkında</h2>
+              <button className="close-btn" onClick={() => setShowAbout(false)}>&times;</button>
+            </div>
+            <div className="modal-body about-body">
+              <div className="about-branding">
+                <svg width="60" height="60" viewBox="0 0 100 100">
+                  <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#00ff9f" strokeWidth="10" strokeLinecap="round" />
+                </svg>
+                <div className="about-title">
+                  <h3>STASH<span>ZERO</span></h3>
+                  <p>Studio Master Edition</p>
+                </div>
+              </div>
+              <div className="about-info-grid">
+                <div className="info-item">
+                  <span className="label">Geliştirici</span>
+                  <span className="value">byGOG</span>
+                </div>
+                <div className="info-item">
+                  <span className="label">Sürüm</span>
+                  <span className="value">v1.0.0 (Master)</span>
+                </div>
+                <div className="info-item">
+                  <span className="label">Mimari</span>
+                  <span className="value">Tauri 2.5 + React 18</span>
+                </div>
+                <div className="info-item">
+                  <span className="label">Motor</span>
+                  <span className="value">Rust (High Performance)</span>
+                </div>
+              </div>
+              <div className="about-desc">
+                StashZero, modern ve hız odaklı bir çevrimdışı uygulama kütüphanesidir. 
+                Gelişmiş telemetri hub'ı ve tek tıkla kurulum özelliği ile 
+                profesyonel kullanıcılar için tasarlanmış bir "Ninite" klonudur.
+              </div>
+              <div className="about-copyright">
+                © 2026 byGOG Software. Tüm hakları saklıdır.
+              </div>
             </div>
           </div>
         </div>
