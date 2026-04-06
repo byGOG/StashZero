@@ -139,7 +139,24 @@ const AppLogo = ({ id, className, ...props }) => {
         alt={id} 
         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         onError={(e) => {
-          e.target.src = `https://img.icons8.com/color/48/${id}.png`;
+          e.target.src = `https://i    body {
+      margin: 0;
+      background-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .splash-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      height: 120px;
+      position: relative;
+      animation: zoomIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }  `;
         }}
       />
     </div>
@@ -147,36 +164,13 @@ const AppLogo = ({ id, className, ...props }) => {
 };
 
 const LEGENDARY_APPS = [
-  { id: "chrome", name: "Google Chrome", winget_id: "Google.Chrome", category: "Web Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, description: "Dünyanın en popüler web tarayıcısı." },
-  { id: "firefox", name: "Mozilla Firefox", winget_id: "Mozilla.Firefox", category: "Web Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, description: "Açık kaynaklı ve gizlilik odaklı tarayıcı." },
-  { id: "brave", name: "Brave Browser", winget_id: "Brave.Brave", category: "Web Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, description: "Reklam engelleyici entegreli hızlı tarayıcı." },
-  
-  { id: "vscode", name: "Visual Studio Code", winget_id: "Microsoft.VisualStudioCode", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 85, description: "Güçlü ve esnek kod editörü." },
-  { id: "git", name: "Git", winget_id: "Git.Git", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 50, description: "Versiyon kontrol sistemi." },
-  { id: "nodejs", name: "Node.js LTS", winget_id: "OpenJS.NodeJS.LTS", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 30, description: "JavaScript çalışma ortamı." },
-  { id: "python", name: "Python 3.12", winget_id: "Python.Python.3.12", category: "Geliştirici Araçları", category_order: 20, icon: "terminal", size_bytes: 1024 * 1024 * 25, description: "Popüler programlama dili." },
-  
-  { id: "discord", name: "Discord", winget_id: "Discord.Discord", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 80, description: "Oyuncular ve topluluklar için iletişim platformu." },
-  { id: "telegram", name: "Telegram Desktop", winget_id: "Telegram.TelegramDesktop", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 35, description: "Hızlı ve güvenli mesajlaşma uygulaması." },
-  { id: "slack", name: "Slack", winget_id: "Slack.Slack", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 75, description: "İş yerleri için mesajlaşma ve iş birliği." },
-  { id: "whatsapp", name: "WhatsApp", winget_id: "WhatsApp.WhatsApp", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 90, description: "Popüler mesajlaşma uygulaması." },
-  { id: "zoom", name: "Zoom", winget_id: "Zoom.Zoom", category: "İletişim & Sosyal", category_order: 30, icon: "message", size_bytes: 1024 * 1024 * 60, description: "Video konferans ve toplantı aracı." },
-  
-  { id: "spotify", name: "Spotify", winget_id: "Spotify.Spotify", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 70, description: "Müzik ve podcast platformu." },
-  { id: "vlc", name: "VLC Media Player", winget_id: "VideoLAN.VLC", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 40, description: "Çok yönlü medya oynatıcı." },
-  { id: "obs", name: "OBS Studio", winget_id: "OBSProject.OBSStudio", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 120, description: "Yayın ve ekran kaydı yazılımı." },
-  { id: "steam", name: "Steam", winget_id: "Valve.Steam", category: "Medya & Oyun", category_order: 50, icon: "monitor", size_bytes: 1024 * 1024 * 2, description: "Dijital oyun platformu." },
-  
-  { id: "archive", name: "7-Zip", winget_id: "7zip.7zip", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, description: "Yüksek sıkıştırma oranlı dosya arşivleyici." },
-  { id: "rufus", name: "Rufus", winget_id: "Rufus.Rufus", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, description: "Önyüklenebilir USB sürücü oluşturma aracı." },
-  { id: "winrar", name: "WinRAR", winget_id: "RARLab.WinRAR", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, description: "Güçlü arşiv yönetimi aracı." },
-  
-  { id: "adobe", name: "Adobe Acrobat Reader", winget_id: "Adobe.Acrobat.Reader.64-bit", category: "Ofis & Üretkenlik", category_order: 60, icon: "file-text", size_bytes: 1024 * 1024 * 250, description: "PDF görüntüleme ve düzenleme." },
-  { id: "notion", name: "Notion", winget_id: "Notion.Notion", category: "Ofis & Üretkenlik", category_order: 60, icon: "file-text", size_bytes: 1024 * 1024 * 70, description: "Hepsi bir arada çalışma alanı." },
+  { id: "archive", name: "7-Zip", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, description: "Yüksek sıkıştırma oranlı dosya arşivleyici.", download_url: "https://github.com/ip7z/7zip/releases/download/26.00/7z2600-x64.exe", version: "26.00", uninstall_path: "C:\\Program Files\\7-Zip\\Uninstall.exe" },
+  { id: "rufus", name: "Rufus", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, description: "Önyüklenebilir USB sürücü oluşturma aracı.", download_url: "https://github.com/pbatard/rufus/releases/download/v4.13/rufus-4.13.exe", version: "4.13", portable: true },
+  { id: "winrar", name: "WinRAR", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, description: "Güçlü arşiv yönetimi aracı.", download_url: "https://www.rarlab.com/rar/winrar-x64-720tr.exe", version: "7.20 TR", uninstall_path: "C:\\Program Files\\WinRAR\\Uninstall.exe" },
 ];
 
 function App() {
-  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({...a, path: a.winget_id, dependencies: []})));
+  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({...a, path: a.id, dependencies: []})));
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
   const [currentInstall, setCurrentInstall] = useState(null);
@@ -198,7 +192,7 @@ function App() {
   const [customArgs, setCustomArgs] = useState({});
   const [autoCleanup, setAutoCleanup] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showControlCenter, setShowControlCenter] = useState(true);
+  const [showControlCenter, setShowControlCenter] = useState(false);
   const [logPanelHeight, setLogPanelHeight] = useState(220);
   const menuBarRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -256,6 +250,11 @@ function App() {
 
     const savedSound = localStorage.getItem("stash-zero-sound");
     if (savedSound) setSoundEnabled(JSON.parse(savedSound));
+
+    // Handle Splashscreen: Initial load + 3.5s buffer for professional feel
+    const timer = setTimeout(() => {
+      invoke("close_splashscreen").catch(e => console.error("Splash error:", e));
+    }, 3500); 
 
     const handleKeyDown = (e) => {
       // Search: Ctrl+F
@@ -361,12 +360,19 @@ function App() {
     e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
   };
 
-  const toggleSelect = (path) => {
+  const toggleSelect = async (path) => {
     if (installing) return;
-    const newSelected = new Set(selected);
-    if (newSelected.has(path)) newSelected.delete(path);
-    else newSelected.add(path);
-    setSelected(newSelected);
+    
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+    sounds.playClick();
   };
 
   const refreshInstalledStatus = async () => {
@@ -376,16 +382,19 @@ function App() {
       
       for (const app of installers) {
         const lowerName = app.name.toLowerCase();
-        // Check if any registry DisplayName contains the app name or simple ID
-        const isInstalled = displayNames.some(d => {
+        let isInstalled = displayNames.some(d => {
            const lowerD = d.toLowerCase();
-           // Remove " LTS" or similar suffixes for broader matching
-           const simpleName = lowerName.replace(" lts", "");
-           return lowerD.includes(simpleName) || lowerD.includes(app.id.toLowerCase());
+           return lowerD.includes(lowerName) || lowerD.includes(app.id.toLowerCase());
         });
         
+        // For portable apps, also check if the file exists on Desktop
+        if (app.portable) {
+           // We'll rely on the backend to tell us eventually, but for now we'll assume it's "installed" if we just downloaded it
+           // A better check would be a dedicated command, but for now name check might suffice or just keep it as is
+        }
+        
         if (isInstalled) {
-          newInstalledIds.add(app.winget_id);
+          newInstalledIds.add(app.id);
         }
       }
       
@@ -401,43 +410,27 @@ function App() {
   };
 
   const startUninstall = async (app) => {
-    if (installing) return;
-    
-    if (!window.confirm(`${app.name} programını sistemden kaldırmak istediğinize emin misiniz?`)) return;
-    
     setInstalling(true);
     setShowLogs(true);
-    addLog(`${app.name} için kaldırma işlemi başlatılıyor...`, "process");
-    let wingetCmd = `winget uninstall --id ${app.winget_id} --silent --accept-source-agreements`;
-    addLog(`> ${wingetCmd}`, "command");
-    sounds.playClick();
+    addLog(`${app.name} kaldırılıyor...`, "process");
     
-    setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
-    setCurrentInstall(app.name);
-
     try {
-      await invoke("uninstall_winget_package", { packageId: app.winget_id });
-      setInstallStatus((prev) => {
-        const next = {...prev};
-        delete next[app.path];
-        return next;
-      });
-      addLog(`Başarılı: ${app.name} başarıyla kaldırıldı.`, "success");
-      setSelected((prev) => {
-        const next = new Set(prev);
-        next.delete(app.path);
-        return next;
-      });
+      if (app.portable) {
+        await invoke("uninstall_portable", { url: app.download_url });
+        addLog(`Başarılı: ${app.name} masaüstünden silindi.`, "success");
+      } else if (app.uninstall_path) {
+        addLog(`> ${app.uninstall_path}`, "command");
+        await invoke("uninstall_software", { path: app.uninstall_path });
+        addLog(`Başarılı: ${app.name} sistemden kaldırıldı.`, "success");
+      } else {
+        throw new Error("Kaldırma yolu tanımlanmamış.");
+      }
       refreshInstalledStatus();
       sounds.playSuccess();
     } catch (error) {
-      console.error(`Kaldırma hatası (${app.name}):`, error);
-      setInstallStatus((prev) => ({ ...prev, [app.path]: "error" }));
-      addLog(`Hata (${app.name}): ${error}`, "error");
+      addLog(`Hata: ${error}`, "error");
       sounds.playError();
     }
-    
-    setCurrentInstall(null);
     setInstalling(false);
   };
 
@@ -446,7 +439,7 @@ function App() {
     
     setInstalling(true);
     setShowLogs(true);
-    addLog("Winget kurulum oturumu başladı.", "info");
+    addLog("Kurulum oturumu başladı.", "info");
     sounds.playClick();
 
     const selectedApps = installers.filter((i) => selected.has(i.path));
@@ -458,15 +451,18 @@ function App() {
       setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
       addLog(`İşlem başlatılıyor: ${app.name}`, "process");
       
-      const wingetCmd = `winget install ${app.winget_id} --accept-package-agreements --accept-source-agreements`;
-      addLog(`> ${wingetCmd}`, "command");
-
       try {
-        await invoke("install_winget_package", { 
-          packageId: app.winget_id
-        });
-        setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
-        addLog(`Başarılı: ${app.name}`, "success");
+        if (app.download_url) {
+          addLog(`> curl ile indiriliyor: ${app.download_url}`, "command");
+          await invoke("install_exe_from_url", { 
+            url: app.download_url,
+            packageId: app.id,
+            appName: app.name,
+            isPortable: !!app.portable
+          });
+          setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
+          addLog(`Başarılı: ${app.name}`, "success");
+        }
         refreshInstalledStatus();
       } catch (error) {
         console.error(`Kurulum hatası (${app.name}):`, error);
@@ -477,7 +473,7 @@ function App() {
       setInstallProgress({ done: idx + 1, total: selectedApps.length });
     }
 
-    addLog("Tüm kurulumlar tamamlandı.", "info");
+    addLog("Tüm işlemler tamamlandı.", "info");
     sounds.playSuccess();
     setCurrentInstall(null);
     setInstalling(false);
@@ -587,8 +583,8 @@ function App() {
               </defs>
               <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logo-grad)" strokeWidth="1.5" opacity="0.3" strokeDasharray="10 5" />
               <path d="M50 15 A35 35 0 0 1 85 50 A35 35 0 0 1 50 85 A35 35 0 0 1 15 50 A35 35 0 0 1 50 15" fill="none" stroke="url(#logo-grad)" strokeWidth="3" filter="url(#glow)" />
-              <path d="M40 35 C35 35 32 38 32 42 C32 46 35 48 40 50 C45 52 48 54 48 58 C48 62 45 65 40 65" fill="none" stroke="url(#logo-grad)" strokeWidth="6" strokeLinecap="round" transform="translate(10, 0)" />
-              <path d="M40 35 C35 35 32 38 32 42 C32 46 35 48 40 50 C45 52 48 54 48 58 C48 62 45 65 40 65" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" transform="translate(10, 0)" opacity="0.5" />
+              <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="url(#logo-grad)" strokeWidth="10" strokeLinecap="round" filter="url(#glow)" />
+              <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.5" />
             </svg>
             <div className="logo-glow" />
           </div>
@@ -673,7 +669,7 @@ function App() {
                 if (status === "installing") cardClass += " installing";
                 if (status === "done") cardClass += " done";
                 if (status === "error") cardClass += " error";
-                if (installedIds.has(app.winget_id)) cardClass += " installed";
+                if (installedIds.has(app.id)) cardClass += " installed";
 
                 return (
                   <div 
@@ -684,7 +680,7 @@ function App() {
                   >
                     <div className="app-icon">
                       <AppLogo id={app.id} className="brand-logo" />
-                      {installedIds.has(app.winget_id) && (
+                      {installedIds.has(app.id) && (
                         <div className="installed-badge">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
@@ -693,16 +689,24 @@ function App() {
                     <div className="app-info">
                       <div className="app-name-row">
                         <span className="app-name">{app.name}</span>
+                        {app.portable && <span className="app-portable-badge" style={{ fontSize: '10px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', padding: '2px 6px', borderRadius: '4px', color: '#34d399', fontWeight: 'bold' }}>Portable</span>}
                         {app.version && <span className="app-version-badge">{app.version}</span>}
-                        {installedIds.has(app.winget_id) && <span className="app-installed-tag">Kurulu</span>}
+                        {installedIds.has(app.id) && <span className="app-installed-tag">Kurulu</span>}
                       </div>
                       <div className="app-meta">
                         <span className="app-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
                         <div style={{display: "flex", gap: "8px", alignItems: "center"}}>
-                          {installedIds.has(app.winget_id) && (
-                            <div className="info-btn uninstall-btn" style={{color: "var(--text-secondary)"}} onClick={(e) => { e.stopPropagation(); startUninstall(app); }} title="Sistemden Kaldır">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                            </div>
+                          {installedIds.has(app.id) && (
+                            <>
+                              {app.portable && (
+                                <div className="info-btn launch-btn" style={{color: "#34d399"}} onClick={(e) => { e.stopPropagation(); invoke("launch_portable", {url: app.download_url}).then(() => addLog(`${app.name} başlatılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error")); }} title="Uygulamayı Başlat / Aç">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                </div>
+                              )}
+                              <div className="info-btn uninstall-btn" style={{color: "var(--text-secondary)"}} onClick={(e) => { e.stopPropagation(); startUninstall(app); }} title="Sistemden Kaldır / Sil">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                              </div>
+                            </>
                           )}
                           <div className="info-btn" onClick={(e) => e.stopPropagation()}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -712,8 +716,11 @@ function App() {
                                 <AppLogo id={app.id} className="brand-logo" />
                               </div>
                               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span className="tooltip-title" style={{ marginBottom: '2px' }}>{app.name}</span>
-                                <span style={{ fontSize: '9.5px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{app.winget_id}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span className="tooltip-title">{app.name}</span>
+                                  {app.version && <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-secondary)' }}>{app.version}</span>}
+                                </div>
+                                <span style={{ fontSize: '9.5px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>Bağımsız Kurulum</span>
                               </div>
                             </div>
                             <div className="tooltip-desc">{app.description}</div>

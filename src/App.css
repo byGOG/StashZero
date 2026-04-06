@@ -60,6 +60,33 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Custom Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 185, 129, 0.2) rgba(255, 255, 255, 0.02);
+}
+
 /* ─── Studio Mesh Gradient (Cyber Edition) ─── */
 .mesh-gradient {
   position: fixed;
@@ -1025,6 +1052,7 @@ body {
   z-index: 10000;
   backdrop-filter: blur(8px);
 }
+
 
 .modal-content {
   background: #111418;

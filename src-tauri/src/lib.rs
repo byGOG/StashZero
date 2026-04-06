@@ -1,16 +1,12 @@
 use serde::Serialize;
 use std::fs;
-use std::path::Path;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use regex::Regex;
 
-use base64::Engine;
 use sha2::{Sha256, Digest};
-use std::io::Read;
 use tauri::Manager;
 use tauri::Window as TauriWindow;
 use tauri::Emitter;
-use tauri::Window;
 use windows_sys::Win32::Storage::FileSystem::{
     GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW,
 };
@@ -18,6 +14,9 @@ use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt, NetworksExt};
 use std::sync::Mutex;
 use std::time::Instant;
 use once_cell::sync::Lazy;
+use std::os::windows::process::CommandExt;
+
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 struct NetState {
     last_total_in: u64,
@@ -47,6 +46,18 @@ struct StaticSystemInfo {
 
 static STATIC_SYS_INFO: Lazy<Mutex<Option<StaticSystemInfo>>> = Lazy::new(|| Mutex::new(None));
 
+#[tauri::command]
+async fn close_splashscreen(window: tauri::Window) {
+  // Get windows
+  if let Some(splash_window) = window.get_webview_window("splash") {
+    splash_window.close().unwrap();
+  }
+  if let Some(main_window) = window.get_webview_window("main") {
+    main_window.show().unwrap();
+    main_window.maximize().unwrap();
+  }
+}
+
 #[derive(Serialize, Clone)]
 pub struct Installer {
     name: String,         // Display name
@@ -59,7 +70,6 @@ pub struct Installer {
     size_bytes: u64,
     description: Option<String>,
     dependencies: Vec<String>,
-    winget_id: Option<String>, // Added for Winget support
 }
 
 #[derive(Serialize)]
@@ -106,98 +116,6 @@ pub struct DiskUsage {
     total: u64,
 }
 
-/// Strip leading numeric prefix like "01-", "2_", "03 " from a name.
-/// Returns (order_number, clean_name).
-fn parse_order_prefix(raw: &str) -> (i32, String) {
-    let trimmed = raw.trim();
-    let mut num_end = 0;
-    for (i, ch) in trimmed.char_indices() {
-        if ch.is_ascii_digit() {
-            num_end = i + ch.len_utf8();
-        } else {
-            break;
-        }
-    }
-
-    if num_end == 0 {
-        return (999, trimmed.to_string());
-    }
-
-    let num_str = &trimmed[..num_end];
-    let order = num_str.parse::<i32>().unwrap_or(999);
-
-    // Skip separator characters after the number: '-', '_', ' ', '.'
-    let rest = &trimmed[num_end..];
-    let clean = rest.trim_start_matches(|c: char| c == '-' || c == '_' || c == ' ' || c == '.');
-    
-    if clean.is_empty() {
-        return (order, trimmed.to_string());
-    }
-
-    (order, clean.to_string())
-}
-
-/// Strip file extension from name for display
-fn strip_extension(name: &str) -> String {
-    if let Some(pos) = name.rfind('.') {
-        let ext = &name[pos + 1..];
-        if ext.eq_ignore_ascii_case("exe") || ext.eq_ignore_ascii_case("msi") {
-            return name[..pos].to_string();
-        }
-    }
-    name.to_string()
-}
-
-/// Get a unique hash of a file path for cache indexing
-fn get_path_hash(path: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(path.as_bytes());
-    hex::encode(hasher.finalize())
-}
-
-/// Extract File Version from Windows executable
-fn get_file_version(path: &str) -> Option<String> {
-    use std::os::windows::ffi::OsStrExt;
-    let path_wide: Vec<u16> = std::ffi::OsStr::new(path)
-        .encode_wide()
-        .chain(std::iter::once(0))
-        .collect();
-
-    unsafe {
-        let mut _handle: u32 = 0;
-        let size = GetFileVersionInfoSizeW(path_wide.as_ptr(), &mut _handle);
-        if size == 0 {
-            return None;
-        }
-
-        let mut buffer = vec![0u8; size as usize];
-        if GetFileVersionInfoW(path_wide.as_ptr(), 0, size, buffer.as_mut_ptr() as *mut _) == 0 {
-            return None;
-        }
-
-        let mut sub_block: Vec<u16> = "\\StringFileInfo\\040904b0\\FileVersion"
-            .encode_utf16()
-            .chain(std::iter::once(0))
-            .collect();
-        let mut value_ptr: *mut u16 = std::ptr::null_mut();
-        let mut value_len: u32 = 0;
-
-        if VerQueryValueW(
-            buffer.as_ptr() as *const _,
-            sub_block.as_ptr(),
-            &mut value_ptr as *mut _ as *mut _,
-            &mut value_len,
-        ) != 0 && value_len > 0
-        {
-            let slice = std::slice::from_raw_parts(value_ptr, (value_len - 1) as usize);
-            return Some(String::from_utf16_lossy(slice).trim().to_string());
-        }
-    }
-    None
-}
-
-// System and Winget commands only
-
 #[tauri::command]
 fn get_system_info() -> SystemInfo {
     let mut sys = System::new_all();
@@ -209,79 +127,35 @@ fn get_system_info() -> SystemInfo {
     let mut disk_pct = 0.0;
     let mut disks_info = Vec::new();
     
-    let mut static_info_guard = STATIC_SYS_INFO.lock().unwrap();
-    if static_info_guard.is_none() {
-        // Run PowerShell queries once to prevent app freezes on interval checks
-        let mut phys_map: std::collections::HashMap<String, (String, String, String)> = std::collections::HashMap::new();
-        
-        let physical_disks_raw = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", "Get-PhysicalDisk | Select-Object FriendlyName, BusType, MediaType, Size, DeviceId | ConvertTo-Json"])
-            .output();
-
-        if let Ok(out) = physical_disks_raw {
-            if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
-                let items = if json.is_array() { json.as_array().unwrap().clone() } else { vec![json] };
-                for item in items {
-                    let name = item["FriendlyName"].as_str().unwrap_or("Unknown").to_string();
-                    let bus = item["BusType"].as_str().unwrap_or("Unknown").to_string();
-                    let media = item["MediaType"].as_str().unwrap_or("Unknown").to_string();
-                    let id = item["DeviceId"].as_str().unwrap_or("0").to_string();
-                    phys_map.insert(id, (name, bus, media));
-                }
-            }
-        }
-        
-        let mut drive_to_disk: std::collections::HashMap<String, String> = std::collections::HashMap::new();
-        let partitions_raw = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", "Get-Partition | Where-Object DriveLetter | Select-Object @{N='Letter';E={[string]$_.DriveLetter}}, @{N='DiskNumber';E={[string]$_.DiskNumber}} | ConvertTo-Json"])
-            .output();
-
-        if let Ok(out) = partitions_raw {
-            if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
-                let items = if json.is_array() { json.as_array().unwrap().clone() } else { vec![json] };
-                for item in items {
-                    let letter = item["Letter"].as_str().unwrap_or("").to_string();
-                    let dnum = item["DiskNumber"].as_str().unwrap_or("").to_string();
-                    if !letter.is_empty() {
-                        drive_to_disk.insert(letter, dnum);
-                    }
-                }
-            }
-        }
-        
-        *static_info_guard = Some(StaticSystemInfo {
-
-            gpu_model: get_gpu_info(),
-            motherboard: get_motherboard_info(),
-            bios_info: get_bios_info(),
-            uefi_boot: get_uefi_status(),
-            secure_boot: get_secureboot_status(),
-            tpm_status: get_tpm_status(),
-            hvci_status: get_hvci_status(),
-            phys_map,
-            drive_to_disk,
-        });
-    }
+    let static_info_guard = STATIC_SYS_INFO.lock().unwrap();
     
-    let static_info = static_info_guard.as_ref().unwrap();
+    // If static info is not yet available, we return defaults to keep UI snappy
+    let static_info_ref = static_info_guard.as_ref();
 
-    // Also get mapping of Drive Letter to Physical Disk to enrich logical disks
-    // For simplicity and matching the user request, we'll list logical labels but with physical hardware info if possible
     for disk in sys.disks() {
         let total = disk.total_space();
         let available = disk.available_space();
         let name = disk.name().to_string_lossy().to_string();
         let mount_point = disk.mount_point().to_string_lossy().to_string();
         
-        // Extract drive letter from mount point (e.g., "C:\")
         let letter = mount_point.chars().next().unwrap_or(' ').to_string().to_uppercase();
-        let disk_id = static_info.drive_to_disk.get(&letter).cloned().unwrap_or("Unknown".to_string());
         
-        // Try to find a physical match
-        let (model, bus, media) = static_info.phys_map.get(&disk_id).cloned().unwrap_or_else(|| {
-            // For virtual drives like Google Drive or unrecognized removable drives
-            ("Virtual/Network Drive".to_string(), "Virtual".to_string(), "Cloud".to_string())
-        });
+        let mut model = "Unknown Drive".to_string();
+        let mut bus = "Unknown".to_string();
+        let mut media = "Unknown".to_string();
+
+        if let Some(si) = static_info_ref {
+            let disk_id = si.drive_to_disk.get(&letter).cloned().unwrap_or("Unknown".to_string());
+            if let Some((m, b, med)) = si.phys_map.get(&disk_id).cloned() {
+                model = m;
+                bus = b;
+                media = med;
+            } else if mount_point.starts_with("\\") {
+                model = "Network Drive".to_string();
+                bus = "Network".to_string();
+                media = "Cloud".to_string();
+            }
+        }
 
         disks_info.push(DiskInfo {
             name: if name.is_empty() { mount_point.clone() } else { name },
@@ -298,7 +172,6 @@ fn get_system_info() -> SystemInfo {
         }
     }
 
-    // Network delta calculation (KB/s)
     let mut total_in = 0;
     let mut total_out = 0;
     for (_iface, network) in sys.networks() {
@@ -312,25 +185,23 @@ fn get_system_info() -> SystemInfo {
     if let Ok(mut state) = NET_STATE.lock() {
         let now = Instant::now();
         let elapsed_sec = now.duration_since(state.last_time).as_secs_f32();
-        
-        if elapsed_sec > 0.0 {
-            if state.last_total_in > 0 {
-                net_in_kb = (total_in.saturating_sub(state.last_total_in) as f32) / 1024.0 / elapsed_sec;
-                net_out_kb = (total_out.saturating_sub(state.last_total_out) as f32) / 1024.0 / elapsed_sec;
-            }
+        if elapsed_sec > 0.0 && state.last_total_in > 0 {
+            net_in_kb = (total_in.saturating_sub(state.last_total_in) as f32) / 1024.0 / elapsed_sec;
+            net_out_kb = (total_out.saturating_sub(state.last_total_out) as f32) / 1024.0 / elapsed_sec;
         }
-        
         state.last_total_in = total_in;
         state.last_total_out = total_out;
         state.last_time = now;
     }
 
-    // Local IP detection by establishing a dummy UDP socket to identify the active routing interface
-    let mut local_ip = String::from("127.0.0.1");
-    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
-        if socket.connect("8.8.8.8:80").is_ok() {
-            if let Ok(addr) = socket.local_addr() {
-                local_ip = addr.ip().to_string();
+    let mut local_ip = String::from("Detecting...");
+    if let Some(_si) = static_info_ref {
+        local_ip = "127.0.0.1".to_string();
+        if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+            if socket.connect("8.8.8.8:80").is_ok() {
+                if let Ok(addr) = socket.local_addr() {
+                    local_ip = addr.ip().to_string();
+                }
             }
         }
     }
@@ -339,7 +210,7 @@ fn get_system_info() -> SystemInfo {
         cpu_usage: sys.global_cpu_info().cpu_usage(),
         total_memory: sys.total_memory(),
         used_memory: sys.used_memory(),
-        os_version: sys.long_os_version().unwrap_or_else(|| sys.os_version().unwrap_or_else(|| "Unknown".to_string())),
+        os_version: sys.long_os_version().unwrap_or_else(|| "Unknown Windows".to_string()),
         disk_usage: disk_pct,
         cpu_model: sys.global_cpu_info().brand().to_string(),
         hostname: sys.host_name().unwrap_or_else(|| "PC".to_string()),
@@ -351,223 +222,187 @@ fn get_system_info() -> SystemInfo {
         local_ip,
         swap_total: sys.total_swap(),
         swap_used: sys.used_swap(),
-        gpu_model: static_info.gpu_model.clone(),
-        motherboard: static_info.motherboard.clone(),
-        bios_info: static_info.bios_info.clone(),
-        uefi_boot: static_info.uefi_boot,
-        secure_boot: static_info.secure_boot,
-        tpm_status: static_info.tpm_status,
-        hvci_status: static_info.hvci_status,
+        gpu_model: static_info_ref.map(|s| s.gpu_model.clone()).unwrap_or("Detecting...".to_string()),
+        motherboard: static_info_ref.map(|s| s.motherboard.clone()).unwrap_or("Detecting...".to_string()),
+        bios_info: static_info_ref.map(|s| s.bios_info.clone()).unwrap_or("Detecting...".to_string()),
+        uefi_boot: static_info_ref.map(|s| s.uefi_boot).unwrap_or(true),
+        secure_boot: static_info_ref.map(|s| s.secure_boot).unwrap_or(true),
+        tpm_status: static_info_ref.map(|s| s.tpm_status).unwrap_or(true),
+        hvci_status: static_info_ref.map(|s| s.hvci_status).unwrap_or(true),
         disks: disks_info,
     }
 }
 
-fn get_uefi_status() -> bool {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "if ($env:firmware_type -eq 'UEFI') { 'true' } else { 'false' }"])
-        .output();
-    if let Ok(out) = output {
-        return String::from_utf8_lossy(&out.stdout).trim() == "true";
-    }
-    false
-}
+// Helper to gather static info once
+fn prefetch_static_info() {
+    tauri::async_runtime::spawn(async move {
+        // GPU
+        let gpu = std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name"])
+            .output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("Unknown GPU".to_string());
+            
+        // Mobo
+        let mb = std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", "Get-CimInstance Win32_BaseBoard | ForEach-Object { \"$($_.Manufacturer) $($_.Product)\" }"])
+            .output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("Unknown Motherboard".to_string());
 
-fn get_secureboot_status() -> bool {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "try { Confirm-SecureBootUEFI } catch { 'false' }"])
-        .output();
-    if let Ok(out) = output {
-        return String::from_utf8_lossy(&out.stdout).trim() == "True";
-    }
-    false
-}
+        // BIOS
+        let bios = std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", "Get-CimInstance Win32_BIOS | Select-Object -ExpandProperty SMBIOSBIOSVersion"])
+            .output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("Unknown BIOS".to_string());
 
-fn get_tpm_status() -> bool {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "try { (Get-Tpm).TpmPresent } catch { 'false' }"])
-        .output();
-    if let Ok(out) = output {
-        return String::from_utf8_lossy(&out.stdout).trim() == "True";
-    }
-    false
-}
+        // Features (UEFI, SecureBoot, TPM, HVCI)
+        let f_script = r#"
+            $uefi = $false; if (Test-Path "HKLM:\System\CurrentControlSet\Control\SecureBoot\State") { $uefi = $true }
+            $sb = $false; if ($uefi) { $sb = (Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\SecureBoot\State").UEFISecureBootEnabled -eq 1 }
+            $tpm = $false; if (Get-Tpm -ErrorAction SilentlyContinue | Select-Object -ExpandProperty TpmPresent -ErrorAction SilentlyContinue) { $tpm = $true }
+            $hvci = $false; if ((Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -ErrorAction SilentlyContinue).Enabled -eq 1) { $hvci = $true }
+            "$uefi|$sb|$tpm|$hvci"
+        "#;
+        let features = std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", f_script])
+            .output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("false|false|false|false".to_string());
+        
+        let f_parts: Vec<&str> = features.split('|').collect();
+        let uefi = f_parts.get(0).unwrap_or(&"false").parse().unwrap_or(false);
+        let sb = f_parts.get(1).unwrap_or(&"false").parse().unwrap_or(false);
+        let tpm = f_parts.get(2).unwrap_or(&"false").parse().unwrap_or(false);
+        let hvci = f_parts.get(3).unwrap_or(&"false").parse().unwrap_or(false);
 
-fn get_hvci_status() -> bool {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "try { (Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity').Enabled -eq 1 } catch { 'false' }"])
-        .output();
-    if let Ok(out) = output {
-        return String::from_utf8_lossy(&out.stdout).trim() == "True";
-    }
-    false
-}
-
-fn get_gpu_info() -> String {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name"])
-        .output();
-    
-    if let Ok(out) = output {
-        let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if !s.is_empty() { return s; }
-    }
-    "Unknown GPU".to_string()
-}
-
-fn get_motherboard_info() -> String {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "Get-CimInstance Win32_BaseBoard | ForEach-Object { \"$($_.Manufacturer) $($_.Product)\" }"])
-        .output();
-    
-    if let Ok(out) = output {
-        let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if !s.is_empty() { return s; }
-    }
-    "Unknown Motherboard".to_string()
-}
-
-fn get_bios_info() -> String {
-    let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "Get-CimInstance Win32_BIOS | ForEach-Object { \"$($_.Manufacturer) $($_.SMBIOSBIOSVersion) ($($_.ReleaseDate.ToString('dd.MM.yyyy')))\" }"])
-        .output();
-    
-    if let Ok(out) = output {
-        let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if !s.is_empty() { return s; }
-    }
-    "Unknown BIOS".to_string()
-}
-
-// Disk usage removed as it is folder context sensitive
-
-#[tauri::command]
-async fn install_winget_package(window: TauriWindow, package_id: String) -> Result<String, String> {
-    // winget install <id> --accept-package-agreements --accept-source-agreements
-    // winget install <id> --accept-package-agreements --accept-source-agreements
-    let mut child = tokio::process::Command::new("winget")
-        .args(["install", "--id", &package_id, "--exact", "--accept-package-agreements", "--accept-source-agreements"])
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("Winget başlatılamadı: {}", e))?;
-
-    let stdout = child.stdout.take().unwrap();
-    let stderr = child.stderr.take().unwrap();
-
-    let mut stdout_reader = BufReader::new(stdout).lines();
-    let mut stderr_reader = BufReader::new(stderr).lines();
-
-    // Read stdout and stderr concurrently
-    let window_clone = window.clone();
-    let package_id_clone = package_id.clone();
-    let stdout_task = tokio::spawn(async move {
-        while let Ok(Some(line)) = stdout_reader.next_line().await {
-            // Parse progress percentage from line
-            if let Some(caps) = regex::Regex::new(r"(\d+)%").unwrap().captures(&line) {
-                if let Ok(percentage) = caps[1].parse::<u32>() {
-                    let _ = window_clone.emit("install-progress", serde_json::json!({
-                        "package_id": package_id_clone,
-                        "percentage": percentage,
-                        "message": line
-                    }));
+        // Advanced Disk Map (Physical -> Logical)
+        let phys_script = r#"
+            Get-CimInstance Win32_DiskDrive | ForEach-Object {
+                $disk = $_
+                $parts = Get-CimInstance -Query "ASSOCIATORS OF {Win32_DiskDrive.DeviceID='$($disk.DeviceID)'} WHERE AssocClass=Win32_DiskDriveToDiskPartition"
+                $logical = $parts | ForEach-Object { Get-CimInstance -Query "ASSOCIATORS OF {Win32_DiskPartition.DeviceID='$($_.DeviceID)'} WHERE AssocClass=Win32_LogicalDiskToPartition" }
+                "$($disk.Index)|$($disk.Model)|$($disk.InterfaceType)|$($logical.DeviceID -join ',')"
+            }
+        "#;
+        let phys_output = std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", phys_script])
+            .output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or("".to_string());
+        
+        let mut phys_map = std::collections::HashMap::new();
+        let mut drive_to_disk = std::collections::HashMap::new();
+        for line in phys_output.lines() {
+            let p: Vec<&str> = line.split('|').collect();
+            if p.len() >= 3 {
+                let index = p[0].to_string();
+                let model = p[1].to_string();
+                let bus = p[2].to_string();
+                let drives = p.get(3).unwrap_or(&"").split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>();
+                
+                for d in &drives {
+                    if !d.is_empty() {
+                        drive_to_disk.insert(d.clone(), index.clone());
+                    }
                 }
-            } else if line.contains("Downloading") || line.contains("Installing") || line.contains("Successfully") {
-                let _ = window_clone.emit("install-progress", serde_json::json!({
-                    "package_id": package_id_clone,
-                    "percentage": null,
-                    "message": line
-                }));
+                phys_map.insert(index, (model, bus, drives.join(", ")));
             }
         }
+
+        let mut guard = STATIC_SYS_INFO.lock().unwrap();
+        *guard = Some(StaticSystemInfo {
+            gpu_model: gpu,
+            motherboard: mb,
+            bios_info: bios,
+            uefi_boot: uefi,
+            secure_boot: sb,
+            tpm_status: tpm,
+            hvci_status: hvci,
+            phys_map,
+            drive_to_disk,
+        });
     });
+}
 
-    let stderr_task = tokio::spawn(async move {
-        while let Ok(Some(line)) = stderr_reader.next_line().await {
-            // Log errors if any
-            let _ = window.emit("install-progress", format!("Error: {}", line));
-        }
-    });
+#[tauri::command]
+async fn uninstall_software(path: String) -> Result<String, String> {
+    if !std::path::Path::new(&path).exists() {
+        return Err(format!("Kaldırma aracı bulunamadı: {}", path));
+    }
 
-    // Wait for process to complete
-    let status = child.wait().await.map_err(|e| format!("Process wait error: {}", e))?;
+    let mut uninstall_cmd = tokio::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args([
+            "-NoProfile",
+            "-WindowStyle", "Normal",
+            "-Command",
+            &format!("Start-Process -FilePath '{}' -Wait -Verb RunAs", path)
+        ])
+        .spawn()
+        .map_err(|e| format!("Kaldırma başlatılamadı: {}", e))?;
 
-    // Wait for readers to finish
-    let _ = stdout_task.await;
-    let _ = stderr_task.await;
-
+    let status = uninstall_cmd.wait().await.map_err(|e| format!("Kaldırma process error: {}", e))?;
     if status.success() {
-        Ok(format!("{} başarıyla kuruldu", package_id))
+        Ok("Uygulama başarıyla kaldırıldı.".to_string())
     } else {
-        Err(format!("Winget hatası: Exit code {}", status.code().unwrap_or(-1)))
+        Err(format!("Kaldırma hatası: Exit code {}", status.code().unwrap_or(-1)))
     }
 }
 
 #[tauri::command]
-async fn uninstall_winget_package(window: TauriWindow, package_id: String) -> Result<String, String> {
-    let mut child = tokio::process::Command::new("winget")
-        .args(["uninstall", "--id", &package_id, "--exact", "--silent", "--accept-source-agreements"])
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("Winget başlatılamadı: {}", e))?;
-
-    let stdout = child.stdout.take().unwrap();
-    let stderr = child.stderr.take().unwrap();
-
-    let mut stdout_reader = tokio::io::BufReader::new(stdout).lines();
-    let mut stderr_reader = tokio::io::BufReader::new(stderr).lines();
-
-    let window_clone = window.clone();
-    let package_id_clone = package_id.clone();
+async fn uninstall_portable(url: String) -> Result<String, String> {
+    let file_name = url.split('/').last().unwrap_or("rufus.exe");
+    let home = std::env::var("USERPROFILE").map_err(|_| "Desktop konumu bulunamadı".to_string())?;
+    let path = std::path::PathBuf::from(home).join("Desktop").join(file_name);
     
-    let stdout_task = tokio::spawn(async move {
-        while let Ok(Some(line)) = stdout_reader.next_line().await {
-            if let Some(caps) = regex::Regex::new(r"(\d+)%").unwrap().captures(&line) {
-                if let Ok(percentage) = caps[1].parse::<u32>() {
-                    let _ = window_clone.emit("install-progress", serde_json::json!({
-                        "package_id": package_id_clone,
-                        "percentage": percentage,
-                        "message": format!("Kaldırılıyor: {}...", percentage)
-                    }));
-                }
-            } else if line.contains("Uninstalling") || line.contains("Successfully") || line.contains("Kaldırılıyor") {
-                let _ = window_clone.emit("install-progress", serde_json::json!({
-                    "package_id": package_id_clone,
-                    "percentage": null,
-                    "message": line
-                }));
-            }
-        }
-    });
-
-    let window_clone_err = window.clone();
-    let package_id_err = package_id.clone();
-    let stderr_task = tokio::spawn(async move {
-        while let Ok(Some(line)) = stderr_reader.next_line().await {
-            let _ = window_clone_err.emit("install-progress", serde_json::json!({
-                "package_id": package_id_err,
-                "percentage": null,
-                "message": format!("Error: {}", line)
-            }));
-        }
-    });
-
-    let status = child.wait().await.map_err(|e| format!("Process wait error: {}", e))?;
-    let _ = stdout_task.await;
-    let _ = stderr_task.await;
-
-    if status.success() {
-        Ok(format!("{} başarıyla kaldırıldı", package_id))
+    if path.exists() {
+        std::fs::remove_file(&path).map_err(|e| format!("Dosya silinemedi: {}", e))?;
+        Ok("Dosya masaüstünden başarıyla silindi.".to_string())
     } else {
-        Err(format!("Winget hatası: Exit code {}", status.code().unwrap_or(-1)))
+        Err(format!("Dosya bulunamadı: {:?}", path))
     }
+}
+
+#[tauri::command]
+async fn launch_portable(url: String) -> Result<(), String> {
+    let file_name = url.split('/').last().unwrap_or("rufus.exe");
+    let home = std::env::var("USERPROFILE").map_err(|_| "Desktop konumu bulunamadı".to_string())?;
+    let path = std::path::PathBuf::from(home).join("Desktop").join(file_name);
+    
+    if path.exists() {
+        std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", &format!("Start-Process -FilePath '{}'", path.to_str().unwrap())])
+            .spawn()
+            .map_err(|e| format!("Uygulama başlatılamadı: {}", e))?;
+        Ok(())
+    } else {
+        Err("Dosya bulunamadı.".to_string())
+    }
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
+        .setup(|_app| {
+            prefetch_static_info();
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            get_system_info,
+            get_installed_winget_ids,
+            install_exe_from_url,
+            uninstall_software,
+            uninstall_portable,
+            launch_portable,
+            close_splashscreen
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
 
 #[tauri::command]
 async fn get_installed_winget_ids() -> Result<Vec<String>, String> {
-    // Instead of using 'winget list' which is notoriously slow and fragile (e.g., throwing 0x8007139f if sources are corrupt),
-    // we use a highly robust PowerShell one-liner to query the Windows Uninstall Registry keys for all installed DisplayNames.
-    // This perfectly reflects what is actually installed on the system.
     let ps_script = r#"
         $paths = @(
             "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -580,6 +415,7 @@ async fn get_installed_winget_ids() -> Result<Vec<String>, String> {
     "#;
 
     let output = tokio::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
         .args(["-NoProfile", "-Command", ps_script])
         .output()
         .await
@@ -587,29 +423,132 @@ async fn get_installed_winget_ids() -> Result<Vec<String>, String> {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut names = Vec::new();
-    
     for line in stdout.lines() {
         let trimmed = line.trim();
-        if !trimmed.is_empty() {
-            names.push(trimmed.to_string());
+        if !trimmed.is_empty() { names.push(trimmed.to_string()); }
+    }
+    
+    // Also check for portable Rufus on Desktop to show/hide the trash icon accurately
+    if let Ok(home) = std::env::var("USERPROFILE") {
+        let desktop_rufus = std::path::PathBuf::from(home).join("Desktop").join("rufus-4.13.exe");
+        if desktop_rufus.exists() {
+            names.push("rufus".to_string()); // Adds "rufus" so the frontend marks it as installed
         }
     }
     
     Ok(names)
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![
-            get_system_info,
-            install_winget_package,
-            uninstall_winget_package,
-            get_installed_winget_ids
+#[tauri::command]
+async fn install_exe_from_url(window: TauriWindow, url: String, package_id: String, app_name: String, is_portable: bool) -> Result<String, String> {
+    let _ = window.emit("install-progress", serde_json::json!({
+        "package_id": package_id,
+        "percentage": 10,
+        "message": format!("{} indiriliyor...", app_name)
+    }));
+
+    let file_name = url.split('/').last().unwrap_or("setup.exe");
+    let target_path = if is_portable {
+        let home = std::env::var("USERPROFILE").map_err(|_| "Desktop konumu bulunamadı".to_string())?;
+        std::path::PathBuf::from(home).join("Desktop").join(file_name)
+    } else {
+        std::env::temp_dir().join(file_name)
+    };
+
+    let mut curl_cmd = tokio::process::Command::new("curl")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-L", "-o", target_path.to_str().unwrap(), &url])
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Curl başlatılamadı: {}", e))?;
+
+    if let Some(stderr) = curl_cmd.stderr.take() {
+        let window_clone = window.clone();
+        let package_id_clone = package_id.clone();
+        let app_name_clone = app_name.clone();
+
+        tokio::spawn(async move {
+            use tokio::io::AsyncBufReadExt;
+            let mut reader = tokio::io::BufReader::new(stderr);
+            let mut buffer = Vec::new();
+            let mut last_message = String::new();
+            
+            while let Ok(n) = reader.read_until(b'\r', &mut buffer).await {
+                if n == 0 { break; }
+                let line = String::from_utf8_lossy(&buffer).to_string();
+                buffer.clear();
+
+                let clean_line = line.replace('\r', "").replace('\n', "");
+                let parts: Vec<&str> = clean_line.split_whitespace().collect();
+                
+                if parts.len() >= 7 {
+                    if let Ok(pct) = parts[0].parse::<u32>() {
+                        let total_size = parts.get(1).unwrap_or(&"");
+                        let received = parts.get(3).unwrap_or(&"");
+                        let speed = parts.get(6).unwrap_or(&"");
+                        
+                        if total_size == &"0" && received == &"0" {
+                            continue;
+                        }
+
+                        let current_message = format!("{} indiriliyor... %{} | Boyut: {} | Alınan: {} | Hız: {}", 
+                            app_name_clone, pct, total_size, received, speed);
+                        
+                        if current_message != last_message {
+                            let _ = window_clone.emit("install-progress", serde_json::json!({
+                                "package_id": package_id_clone,
+                                "percentage": pct,
+                                "message": current_message.clone()
+                            }));
+                            last_message = current_message;
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    let status = curl_cmd.wait().await.map_err(|e| format!("Curl process error: {}", e))?;
+    if !status.success() {
+        return Err(format!("İndirme başarısız: Exit code {}", status.code().unwrap_or(-1)));
+    }
+
+    if is_portable {
+        let _ = window.emit("install-progress", serde_json::json!({
+            "package_id": package_id,
+            "percentage": 100,
+            "message": format!("{} başarıyla masaüstüne indirildi (Portable).", app_name)
+        }));
+        return Ok(format!("{} başarıyla masaüstüne indirildi.", app_name));
+    }
+
+    let _ = window.emit("install-progress", serde_json::json!({
+        "package_id": package_id,
+        "percentage": null,
+        "message": format!("{} kuruluyor...", app_name)
+    }));
+
+    let target_str = target_path.to_str().unwrap();
+    let mut install_cmd = tokio::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args([
+            "-NoProfile",
+            "-WindowStyle", "Hidden",
+            "-Command",
+            &format!("Start-Process -FilePath '{}' -ArgumentList '/S' -Wait -Verb RunAs", target_str)
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .spawn()
+        .map_err(|e| format!("Kurulum başlatılamadı: {}", e))?;
+
+    let install_status = install_cmd.wait().await.map_err(|e| format!("Kurulum process error: {}", e))?;
+    if install_status.success() {
+        let _ = window.emit("install-progress", serde_json::json!({
+            "package_id": package_id,
+            "percentage": 100,
+            "message": format!("{} başarıyla kuruldu.", app_name)
+        }));
+        Ok(format!("{} başarıyla kuruldu.", app_name))
+    } else {
+        Err(format!("Kurulum hatası: Exit code {}", install_status.code().unwrap_or(-1)))
+    }
 }

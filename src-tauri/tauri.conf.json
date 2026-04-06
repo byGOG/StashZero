@@ -12,12 +12,24 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Stash Zero",
         "width": 1200,
         "height": 800,
         "resizable": true,
         "fullscreen": false,
-        "maximized": true
+        "visible": false
+      },
+      {
+        "label": "splash",
+        "url": "splashscreen.html",
+        "width": 400,
+        "height": 300,
+        "decorations": false,
+        "center": true,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visible": true
       }
     ],
     "security": {

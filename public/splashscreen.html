@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      background-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Hide scrollbars */
+    ::-webkit-scrollbar { display: none; }
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    .splash-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 400px;
+      height: 300px;
+      background-color: #0c0c0c;
+      border-radius: 40px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.8), 0 0 40px rgba(0, 255, 159, 0.05);
+      border: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      animation: zoomIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .logo-wrapper {
+      position: relative;
+      z-index: 2;
+    }
+    .logo-glow {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(0, 255, 159, 0.15) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      filter: blur(15px);
+      animation: pulseGlow 1.5s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    }
+    .logo-main {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container">
+    <div class="logo-wrapper">
+      <div class="logo-glow"></div>
+      <svg width="120" height="120" viewBox="0 0 100 100" class="logo-main">
+        <defs>
+          <linearGradient id="logo-grad-splash" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#00ff9f" />
+            <stop offset="100%" stopColor="#00c9ff" />
+          </linearGradient>
+          <filter id="glow-splash">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logo-grad-splash)" strokeWidth="1" opacity="0.2" strokeDasharray="5 5" />
+        <path d="M50 15 A35 35 0 0 1 85 50 A35 35 0 0 1 50 85 A35 35 0 0 1 15 50 A35 35 0 0 1 50 15" fill="none" stroke="url(#logo-grad-splash)" strokeWidth="3" filter="url(#glow-splash)" />
+        <path d="M35 45 C35 35, 45 35, 50 50 S65 65, 65 55" fill="none" stroke="url(#logo-grad-splash)" strokeWidth="10" strokeLinecap="round" filter="url(#glow-splash)" />
+        <path d="M35 45 C35 35, 45 35, 50 50 S65 65, 65 55" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
