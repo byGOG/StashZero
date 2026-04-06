@@ -33,6 +33,20 @@ static NET_STATE: Lazy<Mutex<NetState>> = Lazy::new(|| {
     })
 });
 
+struct StaticSystemInfo {
+    gpu_model: String,
+    motherboard: String,
+    bios_info: String,
+    uefi_boot: bool,
+    secure_boot: bool,
+    tpm_status: bool,
+    hvci_status: bool,
+    phys_map: std::collections::HashMap<String, (String, String, String)>,
+    drive_to_disk: std::collections::HashMap<String, String>,
+}
+
+static STATIC_SYS_INFO: Lazy<Mutex<Option<StaticSystemInfo>>> = Lazy::new(|| Mutex::new(None));
+
 #[derive(Serialize, Clone)]
 pub struct Installer {
     name: String,         // Display name
@@ -49,12 +63,23 @@ pub struct Installer {
 }
 
 #[derive(Serialize)]
+pub struct DiskInfo {
+    name: String,
+    mount_point: String,
+    total_space: u64,
+    available_space: u64,
+    model: String,
+    bus_type: String,
+    media_type: String,
+}
+
+#[derive(Serialize)]
 pub struct SystemInfo {
     cpu_usage: f32,
     total_memory: u64,
     used_memory: u64,
     os_version: String,
-    disk_usage: f32,
+    disk_usage: f32, // Overall or first disk
     cpu_model: String,
     hostname: String,
     uptime: u64,
@@ -65,6 +90,14 @@ pub struct SystemInfo {
     local_ip: String,
     swap_total: u64,
     swap_used: u64,
+    gpu_model: String,
+    motherboard: String,
+    bios_info: String,
+    uefi_boot: bool,
+    secure_boot: bool,
+    tpm_status: bool,
+    hvci_status: bool,
+    disks: Vec<DiskInfo>,
 }
 
 #[derive(Serialize)]
@@ -173,13 +206,95 @@ fn get_system_info() -> SystemInfo {
     sys.refresh_disks_list();
     sys.refresh_networks_list();
     
-    // Disk info
     let mut disk_pct = 0.0;
-    if let Some(disk) = sys.disks().first() {
-        let total = disk.total_space() as f32;
-        let available = disk.available_space() as f32;
-        if total > 0.0 {
-            disk_pct = ((total - available) / total) * 100.0;
+    let mut disks_info = Vec::new();
+    
+    let mut static_info_guard = STATIC_SYS_INFO.lock().unwrap();
+    if static_info_guard.is_none() {
+        // Run PowerShell queries once to prevent app freezes on interval checks
+        let mut phys_map: std::collections::HashMap<String, (String, String, String)> = std::collections::HashMap::new();
+        
+        let physical_disks_raw = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", "Get-PhysicalDisk | Select-Object FriendlyName, BusType, MediaType, Size, DeviceId | ConvertTo-Json"])
+            .output();
+
+        if let Ok(out) = physical_disks_raw {
+            if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
+                let items = if json.is_array() { json.as_array().unwrap().clone() } else { vec![json] };
+                for item in items {
+                    let name = item["FriendlyName"].as_str().unwrap_or("Unknown").to_string();
+                    let bus = item["BusType"].as_str().unwrap_or("Unknown").to_string();
+                    let media = item["MediaType"].as_str().unwrap_or("Unknown").to_string();
+                    let id = item["DeviceId"].as_str().unwrap_or("0").to_string();
+                    phys_map.insert(id, (name, bus, media));
+                }
+            }
+        }
+        
+        let mut drive_to_disk: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+        let partitions_raw = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", "Get-Partition | Where-Object DriveLetter | Select-Object @{N='Letter';E={[string]$_.DriveLetter}}, @{N='DiskNumber';E={[string]$_.DiskNumber}} | ConvertTo-Json"])
+            .output();
+
+        if let Ok(out) = partitions_raw {
+            if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
+                let items = if json.is_array() { json.as_array().unwrap().clone() } else { vec![json] };
+                for item in items {
+                    let letter = item["Letter"].as_str().unwrap_or("").to_string();
+                    let dnum = item["DiskNumber"].as_str().unwrap_or("").to_string();
+                    if !letter.is_empty() {
+                        drive_to_disk.insert(letter, dnum);
+                    }
+                }
+            }
+        }
+        
+        *static_info_guard = Some(StaticSystemInfo {
+
+            gpu_model: get_gpu_info(),
+            motherboard: get_motherboard_info(),
+            bios_info: get_bios_info(),
+            uefi_boot: get_uefi_status(),
+            secure_boot: get_secureboot_status(),
+            tpm_status: get_tpm_status(),
+            hvci_status: get_hvci_status(),
+            phys_map,
+            drive_to_disk,
+        });
+    }
+    
+    let static_info = static_info_guard.as_ref().unwrap();
+
+    // Also get mapping of Drive Letter to Physical Disk to enrich logical disks
+    // For simplicity and matching the user request, we'll list logical labels but with physical hardware info if possible
+    for disk in sys.disks() {
+        let total = disk.total_space();
+        let available = disk.available_space();
+        let name = disk.name().to_string_lossy().to_string();
+        let mount_point = disk.mount_point().to_string_lossy().to_string();
+        
+        // Extract drive letter from mount point (e.g., "C:\")
+        let letter = mount_point.chars().next().unwrap_or(' ').to_string().to_uppercase();
+        let disk_id = static_info.drive_to_disk.get(&letter).cloned().unwrap_or("Unknown".to_string());
+        
+        // Try to find a physical match
+        let (model, bus, media) = static_info.phys_map.get(&disk_id).cloned().unwrap_or_else(|| {
+            // For virtual drives like Google Drive or unrecognized removable drives
+            ("Virtual/Network Drive".to_string(), "Virtual".to_string(), "Cloud".to_string())
+        });
+
+        disks_info.push(DiskInfo {
+            name: if name.is_empty() { mount_point.clone() } else { name },
+            mount_point,
+            total_space: total,
+            available_space: available,
+            model,
+            bus_type: bus,
+            media_type: media,
+        });
+
+        if disk_pct == 0.0 && total > 0 {
+            disk_pct = ((total - available) as f32 / total as f32) * 100.0;
         }
     }
 
@@ -236,7 +351,91 @@ fn get_system_info() -> SystemInfo {
         local_ip,
         swap_total: sys.total_swap(),
         swap_used: sys.used_swap(),
+        gpu_model: static_info.gpu_model.clone(),
+        motherboard: static_info.motherboard.clone(),
+        bios_info: static_info.bios_info.clone(),
+        uefi_boot: static_info.uefi_boot,
+        secure_boot: static_info.secure_boot,
+        tpm_status: static_info.tpm_status,
+        hvci_status: static_info.hvci_status,
+        disks: disks_info,
     }
+}
+
+fn get_uefi_status() -> bool {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "if ($env:firmware_type -eq 'UEFI') { 'true' } else { 'false' }"])
+        .output();
+    if let Ok(out) = output {
+        return String::from_utf8_lossy(&out.stdout).trim() == "true";
+    }
+    false
+}
+
+fn get_secureboot_status() -> bool {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "try { Confirm-SecureBootUEFI } catch { 'false' }"])
+        .output();
+    if let Ok(out) = output {
+        return String::from_utf8_lossy(&out.stdout).trim() == "True";
+    }
+    false
+}
+
+fn get_tpm_status() -> bool {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "try { (Get-Tpm).TpmPresent } catch { 'false' }"])
+        .output();
+    if let Ok(out) = output {
+        return String::from_utf8_lossy(&out.stdout).trim() == "True";
+    }
+    false
+}
+
+fn get_hvci_status() -> bool {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "try { (Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity').Enabled -eq 1 } catch { 'false' }"])
+        .output();
+    if let Ok(out) = output {
+        return String::from_utf8_lossy(&out.stdout).trim() == "True";
+    }
+    false
+}
+
+fn get_gpu_info() -> String {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name"])
+        .output();
+    
+    if let Ok(out) = output {
+        let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !s.is_empty() { return s; }
+    }
+    "Unknown GPU".to_string()
+}
+
+fn get_motherboard_info() -> String {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "Get-CimInstance Win32_BaseBoard | ForEach-Object { \"$($_.Manufacturer) $($_.Product)\" }"])
+        .output();
+    
+    if let Ok(out) = output {
+        let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !s.is_empty() { return s; }
+    }
+    "Unknown Motherboard".to_string()
+}
+
+fn get_bios_info() -> String {
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", "Get-CimInstance Win32_BIOS | ForEach-Object { \"$($_.Manufacturer) $($_.SMBIOSBIOSVersion) ($($_.ReleaseDate.ToString('dd.MM.yyyy')))\" }"])
+        .output();
+    
+    if let Ok(out) = output {
+        let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !s.is_empty() { return s; }
+    }
+    "Unknown BIOS".to_string()
 }
 
 // Disk usage removed as it is folder context sensitive

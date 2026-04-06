@@ -185,7 +185,7 @@ function App() {
   const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
   const [appProgress, setAppProgress] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentTheme, setCurrentTheme] = useState("neon");
+  const [currentTheme, setCurrentTheme] = useState("studio");
   const [showSettings, setShowSettings] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState([]);
@@ -574,10 +574,25 @@ function App() {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-wrapper">
-            <img src="/logo.png" alt="StashZero Logo" className="project-logo-img" />
+            <svg width="80" height="80" viewBox="0 0 100 100" className="project-logo-svg">
+              <defs>
+                <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#00ff9f" />
+                  <stop offset="100%" stopColor="#00c9ff" />
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3.5" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logo-grad)" strokeWidth="1.5" opacity="0.3" strokeDasharray="10 5" />
+              <path d="M50 15 A35 35 0 0 1 85 50 A35 35 0 0 1 50 85 A35 35 0 0 1 15 50 A35 35 0 0 1 50 15" fill="none" stroke="url(#logo-grad)" strokeWidth="3" filter="url(#glow)" />
+              <path d="M40 35 C35 35 32 38 32 42 C32 46 35 48 40 50 C45 52 48 54 48 58 C48 62 45 65 40 65" fill="none" stroke="url(#logo-grad)" strokeWidth="6" strokeLinecap="round" transform="translate(10, 0)" />
+              <path d="M40 35 C35 35 32 38 32 42 C32 46 35 48 40 50 C45 52 48 54 48 58 C48 62 45 65 40 65" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" transform="translate(10, 0)" opacity="0.5" />
+            </svg>
             <div className="logo-glow" />
           </div>
-          <h1>STASH<span>ZERO</span></h1>
+          <h1>STASH<span>ZERO</span><span>STUDIO EDITION</span></h1>
         </div>
         
         <div className="sidebar-nav">
@@ -791,7 +806,7 @@ function App() {
       {showControlCenter && (
         <aside className="control-center">
           <div className="cc-header">
-            <h2>Telemetry Hub</h2>
+            <h2>System Telemetry</h2>
             <button className="close-btn circle" onClick={() => setShowControlCenter(false)} title="Paneli Kapat">
                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -801,14 +816,14 @@ function App() {
             {/* App Selection / Details Area */}
             <div className="cc-section">
               <h3 className="cc-section-title">Aktif Dosya Durumu</h3>
-              <div className="net-monitor">
-                <div className="net-stat">
-                  <span>Seçili</span>
-                  <span>{selected.size} Uygulama</span>
+              <div className="file-status-list">
+                <div className="file-status-item">
+                  <span className="file-status-label">Seçilen</span>
+                  <span className="file-status-value">{selected.size} Uygulama</span>
                 </div>
-                <div className="net-stat">
-                  <span>Toplam Boyut</span>
-                  <span>{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0 
+                <div className="file-status-item">
+                  <span className="file-status-label">Toplam Boyut</span>
+                  <span className="file-status-value">{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0 
                     ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024*1024)).toFixed(1) + " MB"
                     : "0 MB"}</span>
                 </div>
@@ -844,18 +859,30 @@ function App() {
                       <div className="tel-fill" style={{ width: `${(systemInfo.used_memory/systemInfo.total_memory)*100}%` }} />
                     </div>
                   </div>
-                  <div className="telemetry-card">
-                    <div className="tel-header">
-                      <div className="tel-label-group">
-                        <TelemetryIcon type="disk" />
-                        <span className="tel-label">Disk Durumu</span>
+                  {systemInfo.disks && systemInfo.disks.map((disk, idx) => {
+                    const used = disk.total_space - disk.available_space;
+                    const pct = Math.round((used / disk.total_space) * 100);
+                    return (
+                      <div className="telemetry-card" key={idx}>
+                        <div className="tel-header">
+                          <div className="tel-label-group">
+                            <TelemetryIcon type="disk" />
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                               <span className="tel-label">{disk.name || disk.mount_point}</span>
+                               <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{disk.model} ({disk.bus_type})</span>
+                            </div>
+                          </div>
+                          <span className="tel-value">{pct}%</span>
+                        </div>
+                        <div className="tel-progress">
+                          <div className="tel-fill" style={{ width: `${pct}%`, background: pct > 90 ? '#ff4757' : 'var(--accent-primary)' }} />
+                        </div>
+                        <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
+                          {Math.round(used / (1024*1024*1024))} GB / {Math.round(disk.total_space / (1024*1024*1024))} GB
+                        </div>
                       </div>
-                      <span className="tel-value">{Math.round(systemInfo.disk_usage)}%</span>
-                    </div>
-                    <div className="tel-progress">
-                      <div className="tel-fill" style={{ width: `${systemInfo.disk_usage}%` }} />
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -890,21 +917,35 @@ function App() {
               <div className="cc-section">
                 <h3 className="cc-section-title">Sistem Özellikleri</h3>
                 <div className="specs-list">
-                  <div className="spec-item">
-                    <span className="spec-key">İşletim Sistemi</span>
-                    <span className="spec-val" title={systemInfo.os_version}>{systemInfo.os_version}</span>
+                  <div className="spec-item os-section">
+                    <div className="os-header">
+                      <span className="spec-key">İşletim Sistemi</span>
+                      <div className="os-statuses">
+                        <span className={`status-badge ${systemInfo.uefi_boot ? 'on' : 'off'}`} title="Modern sistem önyükleme standardı.">UEFI Boot</span>
+                        <span className={`status-badge ${systemInfo.secure_boot ? 'on' : 'off'}`} title="Güvenli önyükleme; sadece dijital imzalı yazılımların başlamasına izin verir.">Secure Boot</span>
+                      </div>
+                    </div>
+                    <span className="spec-val large" title={systemInfo.os_version}>{systemInfo.os_version}</span>
                   </div>
                   <div className="spec-item">
                     <span className="spec-key">İşlemci</span>
                     <span className="spec-val" title={systemInfo.cpu_model}>{systemInfo.cpu_model}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="spec-key">Toplam Bellek</span>
-                    <span className="spec-val">{Math.round(systemInfo.total_memory / (1024*1024*1024))} GB</span>
+                    <span className="spec-key">Ekran Kartı</span>
+                    <span className="spec-val" title={systemInfo.gpu_model}>{systemInfo.gpu_model}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="spec-key">Çalışma Süresi</span>
-                    <span className="spec-val">{Math.floor(systemInfo.uptime / 3600)}s {Math.floor((systemInfo.uptime % 3600) / 60)}d</span>
+                    <span className="spec-key">Anakart</span>
+                    <span className="spec-val" title={systemInfo.motherboard}>{systemInfo.motherboard}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-key">BIOS</span>
+                    <span className="spec-val" title={systemInfo.bios_info}>{systemInfo.bios_info}</span>
+                  </div>
+                  <div className="spec-item">
+                    <span className="spec-key">Toplam Bellek</span>
+                    <span className="spec-val">{Math.round(systemInfo.total_memory / (1024*1024*1024))} GB</span>
                   </div>
                   <div className="spec-item">
                     <span className="spec-key">Yerel IP</span>
