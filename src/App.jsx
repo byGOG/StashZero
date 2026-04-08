@@ -181,8 +181,8 @@ const SPECIAL_LOGOS = {
   officetoolplus: "https://officetool.plus/favicon.ico",
   cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
   sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png",
-  ninite: "https://ninite.com/static/img/brand-8a2e7c6ad769d6bc457c5c2b1a9743e8.png",
-  fmhy: "https://fmhy.net/pwa_icon.png"
+  ninite: "https://www.vectorlogo.zone/logos/ninite/ninite-icon.svg",
+  fmhy: "https://fmhy.net/fmhy.ico"
 };
 
 const AppLogo = ({ id, className, ...props }) => {
