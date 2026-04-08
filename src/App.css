@@ -2260,3 +2260,12 @@ button {
   transform: scale(1.1) rotate(5deg);
   filter: drop-shadow(0 0 15px var(--accent-glow));
 }
+
+.app-card.resource-vibe {
+  cursor: pointer;
+}
+
+.app-card.resource-vibe:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 255, 157, 0.05);
+}

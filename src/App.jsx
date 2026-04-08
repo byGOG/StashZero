@@ -288,8 +288,8 @@ const LEGENDARY_APPS = [
   { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "1.4.x", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1024.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" },
   
   // Resources
-  { id: "ninite", name: "Ninite", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Toplu uygulama yükleme servisi.", download_url: "https://ninite.com/", official_url: "https://ninite.com/" },
-  { id: "fmhy", name: "FMHY", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Devasa internet araçları rehberi.", download_url: "https://fmhy.net/", official_url: "https://fmhy.net/" }
+  { id: "ninite", name: "Ninite", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Toplu uygulama yükleme servisi.", official_url: "https://ninite.com/", is_resource: true },
+  { id: "fmhy", name: "FMHY", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Devasa internet araçları rehberi.", official_url: "https://fmhy.net/", is_resource: true }
 ];
 
 function App() {
@@ -850,12 +850,19 @@ function App() {
                 if (status === "done" && !app.script_cmd) cardClass += " done";
                 if (status === "error") cardClass += " error";
                 if (installedApps[app.id] && !app.script_cmd) cardClass += " installed";
+                if (app.is_resource) cardClass += " resource-vibe";
 
                 return (
                   <div 
                     key={app.path} 
                     className={cardClass} 
-                    onClick={() => toggleSelect(app.path)}
+                    onClick={() => {
+                      if (app.is_resource && app.official_url) {
+                        openUrl(app.official_url);
+                      } else {
+                        toggleSelect(app.path);
+                      }
+                    }}
                     onMouseMove={handleMouseMove}
                   >
                     <div className="app-icon">
@@ -873,13 +880,13 @@ function App() {
                       
                       <div className="badges-row">
                         {app.portable && <span className="app-badge badge-portable">Taşınabilir</span>}
-                        {installedApps[app.id] && <span className="app-badge badge-installed">Kurulu</span>}
+                        {(!app.is_resource && installedApps[app.id]) && <span className="app-badge badge-installed">Kurulu</span>}
                         <span className="app-badge badge-version">
                           {installedApps[app.id] && installedApps[app.id] !== "Portable" && installedApps[app.id] !== "Kurulu" 
                             ? installedApps[app.id] 
                             : app.version}
                         </span>
-                        {!app.script_cmd && app.size_bytes && <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>}
+                        {!app.is_resource && !app.script_cmd && app.size_bytes && <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>}
                       </div>
 
                       <div className="app-description">
