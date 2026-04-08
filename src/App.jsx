@@ -180,7 +180,7 @@ const SPECIAL_LOGOS = {
   mas: "https://massgrave.dev/img/logo.png",
   officetoolplus: "https://officetool.plus/favicon.ico",
   cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
-  sdi: "https://img.utdstc.com/icon/843/1f7/8431f70c1819e74a710a72426a82494307628cf08ef545fd9b972a4c35bbb710:100",
+  sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png",
   ninite: "https://ninite.com/static/img/brand-8a2e7c6ad769d6bc457c5c2b1a9743e8.png",
   fmhy: "https://fmhy.net/pwa_icon.png"
 };
