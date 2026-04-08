@@ -180,7 +180,9 @@ const SPECIAL_LOGOS = {
   mas: "https://massgrave.dev/img/logo.png",
   officetoolplus: "https://officetool.plus/favicon.ico",
   cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
-  sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png"
+  sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png",
+  ninite: "https://ninite.com/static/images/ninite-logo.png",
+  fmhy: "https://fmhy.net/assets/img/fmhy-logo.png"
 };
 
 const AppLogo = ({ id, className, ...props }) => {
@@ -283,7 +285,11 @@ const LEGENDARY_APPS = [
   // More Utilities
   { id: "teamviewer", name: "TeamViewer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*35, version: "15.x", description: "Uzaktan masaüstü erişmi.", download_url: "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe", official_url: "https://www.teamviewer.com/tr/" },
   { id: "anydesk", name: "AnyDesk", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*5, version: "8.0.x", description: "Hızlı uzaktan erişim.", download_url: "https://download.anydesk.com/AnyDesk.exe", official_url: "https://anydesk.com/tr" },
-  { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "1.4.x", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1024.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" }
+  { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "1.4.x", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1024.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" },
+  
+  // Resources
+  { id: "ninite", name: "Ninite", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Toplu uygulama yükleme servisi.", download_url: "https://ninite.com/", official_url: "https://ninite.com/" },
+  { id: "fmhy", name: "FMHY", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Devasa internet araçları rehberi.", download_url: "https://fmhy.net/", official_url: "https://fmhy.net/" }
 ];
 
 function App() {
