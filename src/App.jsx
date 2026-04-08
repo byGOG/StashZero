@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from '@tauri-apps/api/event';
 import { open, save } from "@tauri-apps/plugin-dialog";
+import { open as openUrl } from "@tauri-apps/plugin-shell";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { sounds } from "./utils/audio";
 import "./App.css";
@@ -10,48 +11,72 @@ const SidebarIcon = ({ type }) => {
   switch (type) {
     case "globe": return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" strokeOpacity="0.2"/>
-        <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
-        <circle cx="12" cy="10" r="3" strokeOpacity="0.5"/>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
       </svg>
     );
     case "terminal": return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="18" rx="2" strokeOpacity="0.2"/>
-        <path d="m7 8 5 5-5 5" strokeWidth="2.5"/>
-        <path d="M13 17h4" strokeWidth="2.5"/>
+        <polyline points="4 17 10 11 4 5" />
+        <line x1="12" y1="19" x2="20" y2="19" />
       </svg>
     );
     case "message": return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-        <path d="M8 12h.01" strokeWidth="3" strokeLinecap="round"/>
-        <path d="M12 12h.01" strokeWidth="3" strokeLinecap="round"/>
-        <path d="M16 12h.01" strokeWidth="3" strokeLinecap="round"/>
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.7 8.5 8.5 0 0 1 8.5 7.9Z" />
+        <path d="M16 12h.01M12 12h.01M8 12h.01" strokeWidth="3" />
       </svg>
     );
     case "monitor": return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="20" height="15" x="2" y="3" rx="2" strokeOpacity="0.2"/>
-        <path d="M12 18v3"/>
-        <path d="M8 21h8"/>
-        <path d="m9 8 6 3-6 3V8z" fill="currentColor" fillOpacity="0.2"/>
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
       </svg>
     );
     case "file-text": return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-        <path d="M14 2v6h6" strokeOpacity="0.3"/>
-        <path d="M8 13h8M8 17h8M8 9h2" strokeOpacity="0.5"/>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
       </svg>
     );
     case "settings": return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-        <circle cx="12" cy="12" r="3" strokeOpacity="0.4"/>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
       </svg>
     );
-    default: return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>;
+    case "gaming": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="6" y1="12" x2="10" y2="12" />
+        <line x1="8" y1="10" x2="8" y2="14" />
+        <line x1="15" y1="13" x2="15.01" y2="13" />
+        <line x1="18" y1="11" x2="18.01" y2="11" />
+        <rect x="2" y="6" width="20" height="12" rx="2" />
+      </svg>
+    );
+    case "security": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    );
+    case "script": return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+        <polyline points="13 2 13 9 20 9" />
+        <path d="m8 13 2 2-2 2" />
+        <path d="M12 17h3" />
+      </svg>
+    );
+    default: return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+      </svg>
+    );
   }
 };
 
@@ -87,37 +112,75 @@ const TelemetryIcon = ({ type }) => {
   }
 };
 
+const formatSpeed = (kbps) => {
+  if (kbps >= 1024 * 1024) return `${(kbps / (1024 * 1024)).toFixed(1)} GB/s`;
+  if (kbps >= 1024) return `${(kbps / 1024).toFixed(1)} MB/s`;
+  return `${kbps.toFixed(1)} KB/s`;
+};
+
+const POPULAR_DNS = [
+  { name: "Google", ips: ["8.8.8.8", "8.8.4.4"], slug: "google" },
+  { name: "Cloudflare", ips: ["1.1.1.1", "1.0.0.1"], slug: "cloudflare" },
+  { name: "OpenDNS", ips: ["208.67.222.222", "208.67.220.220"], slug: "cisco" }, // OpenDNS is by Cisco
+  { name: "Quad9", ips: ["9.9.9.9", "149.112.112.112"], slug: "quad9" },
+  { name: "AdGuard", ips: ["94.140.14.14", "94.140.15.15"], slug: "adguard" }
+];
+
 const APP_ICON_MAP = {
-  chrome: "googlechrome",
-  firefox: "firefoxbrowser",
-  brave: "brave",
-  vscode: "visualstudiocode",
-  git: "git",
-  nodejs: "nodedotjs",
-  python: "python",
-  discord: "discord",
-  telegram: "telegram",
-  slack: "slack",
-  whatsapp: "whatsapp",
-  zoom: "zoom",
-  spotify: "spotify",
-  vlc: "vlcmediaplayer",
-  obs: "obsstudio",
-  steam: "steam",
-  archive: "7zip",
-  winrar: "winrar",
-  adobe: "adobeacrobatreader",
-  notion: "notion",
-  rufus: "rufus"
+  chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
+  discord: "discord", slack: "slack", telegram: "telegram", whatsapp: "whatsapp",
+  zoom: "zoom", teams: "microsoftteams", signal: "signal", skype: "skype",
+  vscode: "visualstudiocode", git: "git", nodejs: "nodedotjs", python: "python",
+  docker: "docker", postman: "postman", putty: "putty", winscp: "winscp",
+  vlc: "vlcmediaplayer", spotify: "spotify", obs: "obsstudio", handbrake: "handbrake",
+  audacity: "audacity", potplayer: "podplayer", kodi: "kodi", plex: "plex",
+  archive: "7zip", winrar: "winrar", rufus: "rufus", notepad: "notepadplusplus",
+  powertoys: "microsoftpowertoys", hwinfo: "hwinfo", cpuz: "cpuid", gpuz: "techpowerup",
+  blender: "blender", gimp: "gimp", inkscape: "inkscape", figma: "figma",
+  steam: "steam", epic: "epicgames", gog: "gogdotcom", origin: "origin",
+  notion: "notion", evernote: "evernote", obsidian: "obsidian", adobe: "adobeacrobatreader",
+  malwarebytes: "malwarebytes", bitwarden: "bitwarden", keepass: "keepassxc", qbittorrent: "qbittorrent",
+  github: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller"
 };
 
 const SPECIAL_LOGOS = {
-  vscode: "https://img.icons8.com/color/48/visual-studio-code-2019.png",
-  adobe: "https://img.icons8.com/color/48/adobe-acrobat.png",
-  rufus: "https://cdn.brandfetch.io/idrMrJarjv/w/512/h/512/theme/dark/logo.png?c=1dxbfHSJFAPEGdCLU4o5B",
+  chrome: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/chrome.svg",
+  firefox: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/firefox.svg",
+  brave: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/brave.svg",
+  vscode: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vscode.svg",
+  git: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/git.svg",
+  github: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/github-light.svg",
+  python: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/python.svg",
+  adobe: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adobe.svg",
+  rufus: "https://rufus.ie/pics/rufus-128.png",
   winrar: "https://img.icons8.com/?size=48&id=PLvn50bVGAlA&format=png&color=000000",
   archive: "https://img.icons8.com/?size=48&id=9ha2laDO6EkM&format=png&color=000000",
-  vlc: "https://img.icons8.com/color/48/vlc.png"
+  vlc: "https://img.icons8.com/color/48/vlc.png",
+  handbrake: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/handbrake.svg",
+  spotify: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/spotify.svg",
+  powertoys: "https://img.icons8.com/?size=100&id=9CRu43eXe5Pp&format=png&color=000000",
+  hwinfo: "https://www.hwinfo.com/wp-content/themes/hwinfo/img/logo-sm.png",
+  cpuz: "https://www.cpuid.com/medias/images/softwares/cpu-z.svg",
+  gpuz: "https://tpucdn.com/download/images/37_icon-v1775026065.png",
+  teamviewer: "https://img.icons8.com/?size=100&id=bClIoRlXM2zu&format=png&color=000000",
+  anydesk: "https://img.icons8.com/?size=100&id=cDG2YNX6xhA6&format=png&color=000000",
+  everything: "https://www.voidtools.com/Everything.ico",
+  google: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google.svg",
+  cloudflare: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cloudflare.svg",
+  mullvad: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mullvad-browser.svg",
+  zen: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zen-browser-dark.svg",
+  tor: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tor.png",
+  discord: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/discord.svg",
+  whatsapp: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/whatsapp.svg",
+  telegram: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/telegram.svg",
+  steam: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/steam.svg",
+  epic: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/epic-games-light.svg",
+  bitwarden: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bitwarden.svg",
+  qbittorrent: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg",
+  mas: "https://massgrave.dev/img/logo.png",
+  officetoolplus: "https://officetool.plus/favicon.ico",
+  cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
+  sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png"
 };
 
 const AppLogo = ({ id, className, ...props }) => {
@@ -164,9 +227,63 @@ const AppLogo = ({ id, className, ...props }) => {
 };
 
 const LEGENDARY_APPS = [
-  { id: "archive", name: "7-Zip", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, description: "Yüksek sıkıştırma oranlı dosya arşivleyici.", download_url: "https://github.com/ip7z/7zip/releases/download/26.00/7z2600-x64.exe", version: "26.00", uninstall_path: "C:\\Program Files\\7-Zip\\Uninstall.exe" },
-  { id: "rufus", name: "Rufus", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, description: "Önyüklenebilir USB sürücü oluşturma aracı.", download_url: "https://github.com/pbatard/rufus/releases/download/v4.13/rufus-4.13.exe", version: "4.13", portable: true },
-  { id: "winrar", name: "WinRAR", category: "Sistem & Araçlar", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, description: "Güçlü arşiv yönetimi aracı.", download_url: "https://www.rarlab.com/rar/winrar-x64-720tr.exe", version: "7.20 TR", uninstall_path: "C:\\Program Files\\WinRAR\\Uninstall.exe" },
+  // Tarayıcılar
+  { id: "chrome", name: "Google Chrome", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*95, version: "123.0", description: "Hızlı ve güvenli web tarayıcısı.", download_url: "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B104F5E68-9A74-4C7D-8E14-4197B8233C92%7D%26lang%3Dtr%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dtrue%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe", official_url: "https://www.google.com/chrome/" },
+  { id: "firefox", name: "Firefox", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*55, version: "124.0", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/" },
+  { id: "brave", name: "Brave", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*105, version: "1.64.x", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/latest/winx64", official_url: "https://brave.com/tr/" },
+  { id: "mullvad", name: "Mullvad Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*90, version: "13.0.x", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/en/download/browser/windows/latest", official_url: "https://mullvad.net/en/browser" },
+  { id: "zen", name: "Zen Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*110, version: "1.0.x", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/" },
+  { id: "tor", name: "Tor Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*95, version: "13.0.x", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/13.0.14/torbrowser-install-win64-13.0.14_ALL.exe", official_url: "https://www.torproject.org/" },
+
+  // Communication
+  { id: "discord", name: "Discord", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024*1024*85, version: "1.0.x", description: "Oyuncular için iletişim platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
+  { id: "whatsapp", name: "WhatsApp", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024*1024*120, version: "2.24.x", description: "Mesajlaşma uygulaması.", download_url: "https://web.whatsapp.com/desktop/windows/release/x64/WhatsAppSetup.exe", official_url: "https://www.whatsapp.com/" },
+  { id: "telegram", name: "Telegram", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024*1024*35, version: "4.15.x", description: "Güvenli ve hızlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://telegram.org/" },
+
+  // Media
+  { id: "vlc", name: "VLC Player", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024*1024*42, version: "3.0.20", description: "Her türlü medyayı oynatın.", download_url: "https://get.videolan.org/vlc/last/win64/vlc-3.0.18-win64.exe", official_url: "https://www.videolan.org/vlc/" },
+  { id: "spotify", name: "Spotify", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024*1024*88, version: "1.2.x", description: "Sınırsız müzik ve podcast.", download_url: "https://download.scdn.co/SpotifySetup.exe", official_url: "https://www.spotify.com/" },
+  { id: "handbrake", name: "HandBrake", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024*1024*22, version: "1.7.x", description: "Video format dönüştürücü.", download_url: "https://github.com/HandBrake/HandBrake/releases/download/1.6.1/HandBrake-1.6.1-x86_64-Win_GUI.exe", official_url: "https://handbrake.fr/" },
+
+  // Development
+  { id: "vscode", name: "VS Code", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*90, version: "1.89.x", description: "En popüler kod editörü.", download_url: "https://update.code.visualstudio.com/latest/win32-x64-user/stable", official_url: "https://code.visualstudio.com/" },
+  { id: "git", name: "Git", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*55, version: "2.44.x", description: "Versiyon kontrol sistemi.", download_url: "https://github.com/git-for-windows/git/releases/download/v2.41.0.windows.1/Git-2.41.0-64-bit.exe", official_url: "https://git-scm.com/" },
+  { id: "github", name: "GitHub Desktop", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*110, version: "3.3.x", description: "Görsel Git istemcisi.", download_url: "https://central.github.com/deployments/desktop/desktop/latest/win32/x64", official_url: "https://desktop.github.com/" },
+  { id: "python", name: "Python", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*25, version: "3.12.x", description: "Çok amaçlı programlama dili.", download_url: "https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe", official_url: "https://www.python.org/" },
+
+  // System & Tools
+  { id: "archive", name: "7-Zip", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "23.01", description: "Gelişmiş dosya sıkıştırıcı.", download_url: "https://www.7-zip.org/a/7z2301-x64.exe", official_url: "https://www.7-zip.org/" },
+  { id: "winrar", name: "WinRAR", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*3, version: "7.0.x", description: "Profesyonel arşiv yönetimi.", download_url: "https://www.rarlab.com/rar/winrar-x64-624.exe", official_url: "https://www.rarlab.com/" },
+  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*1, version: "4.4.x", description: "Format USB hazırlama aracı.", download_url: "https://github.com/pbatard/rufus/releases/download/v4.2/rufus-4.2.exe", launch_file: "rufus.exe", portable: true, official_url: "https://rufus.ie/tr/" },
+  { id: "notepad", name: "Notepad++", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*4, version: "8.6.x", description: "Gelişmiş metin düzenleyici.", download_url: "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.7/npp.8.5.7.Installer.x64.exe", official_url: "https://notepad-plus-plus.org/" },
+  { id: "powertoys", name: "PowerToys", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*150, version: "0.80.x", description: "Windows üretkenlik araçları.", download_url: "https://github.com/microsoft/PowerToys/releases/download/v0.74.0/PowerToysSetup-0.74.0-x64.exe", official_url: "https://learn.microsoft.com/en-us/windows/powertoys/" },
+  { id: "hwinfo", name: "HWiNFO", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*10, version: "8.00", description: "Donanım analiz ve izleme.", download_url: "https://www.hwinfo.com/files/hwi_764.exe", official_url: "https://www.hwinfo.com/" },
+  { id: "cpuz", name: "CPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "2.09", description: "İşlemci bilgi aracı.", download_url: "https://www.cpuid.com/downloads/cpu-z/cpu-z_2.07-en.exe", official_url: "https://www.cpuid.com/softwares/cpu-z.html" },
+  { id: "gpuz", name: "GPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*9, version: "2.58", description: "Ekran kartı bilgi aracı.", download_url: "https://www.techpowerup.com/download/techpowerup-gpu-z/", official_url: "https://www.techpowerup.com/gpuz/" },
+  { id: "sdi", name: "Snappy Driver Installer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*5, version: "1.17.8", description: "Gelişmiş sürücü yükleme ve güncelleme aracı.", download_url: "https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.17.8.829.zip", launch_file: "SDIO_auto.bat", portable: true, official_url: "https://snappy-driver-installer.org/" },
+  
+  // Scripts
+  { id: "mas", name: "Microsoft Activation Script", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "2.5.x", description: "Windows ve Office aktivasyon betiği.", script_cmd: "irm https://get.activated.win | iex", official_url: "https://massgrave.dev/" },
+  { id: "officetoolplus", name: "Office Tool Plus", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "10.10", description: "Office indirme ve yönetim aracı.", script_cmd: "irm https://officetool.plus | iex", official_url: "https://officetool.plus/" },
+  { id: "cttwin", name: "Chris Titus Tech's Windows Utility", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "2024.x", description: "Windows optimizasyon ve debloat aracı.", script_cmd: 'irm "https://christitus.com/win" | iex', official_url: "https://winutil.christitus.com/" },
+
+  // Gaming
+  { id: "steam", name: "Steam", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024*1024*2, version: "Latest", description: "Dijital oyun kütüphanesi.", download_url: "https://repo.steampowered.com/windows/SteamSetup.exe", official_url: "https://store.steampowered.com/" },
+  { id: "epic", name: "Epic Games", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024*1024*150, version: "Latest", description: "Epic Games mağazası.", download_url: "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", official_url: "https://store.epicgames.com/tr" },
+  { id: "gog", name: "GOG Galaxy", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024*1024*220, version: "2.0.x", description: "Oyunı birleştiren platform.", download_url: "https://cdn.gog.com/open/galaxy/client/2.0.71.2/setup_galaxy_2.0.71.2.exe", official_url: "https://www.gog.com/galaxy" },
+
+  // Office
+  { id: "adobe", name: "Adobe Reader", category: "Ofis & Verimlilik", category_order: 30, icon: "file-text", size_bytes: 1024*1024*200, version: "2024.x", description: "PDF okuma ve düzenleme.", download_url: "https://get.adobe.com/tr/reader/", official_url: "https://www.adobe.com/tr/acrobat/pdf-reader.html" },
+
+  // Security
+  { id: "malwarebytes", name: "Malwarebytes", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024*1024*120, version: "5.0.x", description: "Güçlü antivirüs ve temizleyici.", download_url: "https://downloads.malwarebytes.com/file/mb-windows", official_url: "https://www.malwarebytes.com/" },
+  { id: "bitwarden", name: "Bitwarden", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024*1024*85, version: "2024.x", description: "Şifre yönetim çözümü.", download_url: "https://vault.bitwarden.com/download/?app=desktop&platform=windows", official_url: "https://bitwarden.com/" },
+  { id: "qbittorrent", name: "qBittorrent", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024*1024*28, version: "4.6.x", description: "Hızlı torrent istemcisi.", download_url: "https://github.com/qbittorrent/qBittorrent/releases/download/release-4.5.5/qbittorrent_4.5.5_x64_setup.exe", official_url: "https://www.qbittorrent.org/" },
+
+  // More Utilities
+  { id: "teamviewer", name: "TeamViewer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*35, version: "15.x", description: "Uzaktan masaüstü erişmi.", download_url: "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe", official_url: "https://www.teamviewer.com/tr/" },
+  { id: "anydesk", name: "AnyDesk", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*5, version: "8.0.x", description: "Hızlı uzaktan erişim.", download_url: "https://download.anydesk.com/AnyDesk.exe", official_url: "https://anydesk.com/tr" },
+  { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "1.4.x", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1024.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" }
 ];
 
 function App() {
@@ -175,7 +292,7 @@ function App() {
   const [installing, setInstalling] = useState(false);
   const [currentInstall, setCurrentInstall] = useState(null);
   const [installStatus, setInstallStatus] = useState({});
-  const [installedIds, setInstalledIds] = useState(new Set());
+  const [installedApps, setInstalledApps] = useState({}); // id -> version
   const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
   const [appProgress, setAppProgress] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -184,16 +301,21 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [terminalInput, setTerminalInput] = useState("");
+  const [isSessionActive, setIsSessionActive] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [menuHover, setMenuHover] = useState(false);
   const [systemInfo, setSystemInfo] = useState(null);
   const [diskUsage, setDiskUsage] = useState(null);
 
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(() => {
+    return localStorage.getItem("stash-zero-active-category") || null;
+  });
   const [customArgs, setCustomArgs] = useState({});
   const [autoCleanup, setAutoCleanup] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showControlCenter, setShowControlCenter] = useState(false);
+  const [showControlCenter, setShowControlCenter] = useState(true);
+  const [dnsOpen, setDnsOpen] = useState(false);
   const [logPanelHeight, setLogPanelHeight] = useState(220);
   const menuBarRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -201,6 +323,11 @@ function App() {
   const isResizingLog = useRef(false);
   const startY = useRef(0);
   const startHeight = useRef(220);
+  
+  // Sync installers if LEGENDARY_APPS changes (Dev/HMR)
+  useEffect(() => {
+    setInstallers(LEGENDARY_APPS.map(a => ({...a, path: a.id, dependencies: []})));
+  }, []);
 
   // Auto-scroll logs
   useEffect(() => {
@@ -251,6 +378,9 @@ function App() {
 
     const savedSound = localStorage.getItem("stash-zero-sound");
     if (savedSound) setSoundEnabled(JSON.parse(savedSound));
+
+    const savedCategory = localStorage.getItem("stash-zero-active-category");
+    if (savedCategory) setActiveCategory(savedCategory);
 
     // Handle Splashscreen: Initial load + 3.5s buffer for professional feel
     const timer = setTimeout(() => {
@@ -312,10 +442,41 @@ function App() {
       }
     });
 
+    const unlistenScript = listen('script-log', (event) => {
+      const { msg, log_type, session_active } = event.payload;
+      addLog(msg, log_type || "process");
+      if (session_active !== undefined) {
+        setIsSessionActive(session_active);
+      }
+    });
+
     return () => {
       unlisten.then(f => f());
+      unlistenScript.then(f => f());
     };
   }, []);
+
+  const sendTerminalCommand = async () => {
+    if (!terminalInput.trim()) return;
+    try {
+      addLog(`> ${terminalInput}`, "command");
+      const cmd = terminalInput;
+      setTerminalInput("");
+      await invoke("send_script_input", { input: cmd });
+    } catch (err) {
+      addLog(`Girdi hatası: ${err}`, "error");
+    }
+  };
+
+  const killActiveSession = async () => {
+    try {
+      await invoke("kill_script");
+      setIsSessionActive(false);
+      addLog("Oturum kullanıcı tarafından sonlandırıldı.", "info");
+    } catch (err) {
+      addLog(`Durdurma hatası: ${err}`, "error");
+    }
+  };
 
   // System Info Polling
   useEffect(() => {
@@ -341,9 +502,17 @@ function App() {
       map.get(cat).count++;
     }
     const list = Array.from(map.values()).sort((a, b) => a.order - b.order);
-    if (list.length > 0 && !activeCategory) setActiveCategory(list[0].name);
+    
+    // Auto-set first category if none active or current one disappeared
+    if (list.length > 0) {
+      const exists = list.some(c => c.name === activeCategory);
+      if (!activeCategory || !exists) {
+        setActiveCategory(list[0].name);
+        localStorage.setItem("stash-zero-active-category", list[0].name);
+      }
+    }
     return list;
-  }, [installers]);
+  }, [installers, activeCategory]);
 
   const filteredApps = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -379,28 +548,24 @@ function App() {
 
   const refreshInstalledStatus = async () => {
     try {
-      const displayNames = await invoke("get_installed_winget_ids");
-      const newInstalledIds = new Set();
+      const systemApps = await invoke("get_installed_winget_ids"); // Array of [name, version]
+      const newInstalledApps = {};
       
       for (const app of installers) {
         const lowerName = app.name.toLowerCase();
-        let isInstalled = displayNames.some(d => {
-           const lowerD = d.toLowerCase();
-           return lowerD.includes(lowerName) || lowerD.includes(app.id.toLowerCase());
+        const lowerId = app.id.toLowerCase();
+        
+        let match = systemApps.find(([name, _]) => {
+           const lowerN = name.toLowerCase();
+           return lowerN === lowerName || lowerN === lowerId || lowerN.includes(lowerName);
         });
         
-        // For portable apps, also check if the file exists on Desktop
-        if (app.portable) {
-           // We'll rely on the backend to tell us eventually, but for now we'll assume it's "installed" if we just downloaded it
-           // A better check would be a dedicated command, but for now name check might suffice or just keep it as is
-        }
-        
-        if (isInstalled) {
-          newInstalledIds.add(app.id);
+        if (match) {
+          newInstalledApps[app.id] = match[1] || "Kurulu";
         }
       }
       
-      setInstalledIds(newInstalledIds);
+      setInstalledApps(newInstalledApps);
     } catch (e) {
       console.error("Installation status check failed", e);
     }
@@ -418,8 +583,8 @@ function App() {
     
     try {
       if (app.portable) {
-        await invoke("uninstall_portable", { url: app.download_url });
-        addLog(`Başarılı: ${app.name} masaüstünden silindi.`, "success");
+        await invoke("uninstall_portable", { url: app.download_url, appName: app.name });
+        addLog(`Başarılı: ${app.name} silindi.`, "success");
       } else if (app.uninstall_path) {
         addLog(`> ${app.uninstall_path}`, "command");
         await invoke("uninstall_software", { path: app.uninstall_path });
@@ -454,7 +619,16 @@ function App() {
       addLog(`İşlem başlatılıyor: ${app.name}`, "process");
       
       try {
-        if (app.download_url) {
+        if (app.script_cmd) {
+          addLog(`> Betik çalıştırılıyor: ${app.script_cmd}`, "command");
+          if (app.id === "officetoolplus") {
+            await invoke("run_ps_script_logged", { script: app.script_cmd });
+          } else {
+            await invoke("run_ps_script", { script: app.script_cmd });
+          }
+          setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
+          addLog(`Başlatıldı: ${app.name}`, "success");
+        } else if (app.download_url) {
           addLog(`> curl ile indiriliyor: ${app.download_url}`, "command");
           await invoke("install_exe_from_url", { 
             url: app.download_url,
@@ -590,7 +764,7 @@ function App() {
             </svg>
             <div className="logo-glow" />
           </div>
-          <h1>STASH<span>ZERO</span><span>STUDIO EDITION</span></h1>
+          <h1>STASH<span>ZERO</span><span>STUDIO MASTER SÜRÜMÜ</span></h1>
         </div>
         
         <div className="sidebar-nav">
@@ -598,7 +772,11 @@ function App() {
             <div 
               key={cat.name} 
               className={`sidebar-item ${activeCategory === cat.name ? 'active' : ''}`}
-              onClick={() => { setActiveCategory(cat.name); sounds.playClick(); }}
+              onClick={() => { 
+                setActiveCategory(cat.name); 
+                localStorage.setItem("stash-zero-active-category", cat.name);
+                sounds.playClick(); 
+              }}
             >
               <div className="sidebar-item-left">
                  <SidebarIcon type={cat.icon} />
@@ -628,29 +806,23 @@ function App() {
       <main className="main-content">
         <header className="top-bar">
           <div className="top-left">
-             <div className="search-container">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Uygulama ara... (Ctrl+F)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-             </div>
-              <div className="path-display">
-                 Legendary Application Store
-              </div>
+             {/* Left side reserved or for branding */}
+          </div>
+
+          <div className="search-container">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+             <input
+               ref={searchInputRef}
+               type="text"
+               placeholder="Uygulama ara..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
+             {!searchTerm && <div className="search-shortcut">CTRL + F</div>}
           </div>
 
           <div className="top-right">
-             <button 
-               className={`panel-toggle ${showControlCenter ? 'active' : ''}`}
-               onClick={() => { setShowControlCenter(!showControlCenter); sounds.playClick(); }}
-               title="Kontrol Merkezini Aç/Kapat"
-             >
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-             </button>
+             {/* Telemetry is now persistent */}
           </div>
         </header>
 
@@ -669,9 +841,9 @@ function App() {
                 let cardClass = "app-card";
                 if (isSelected) cardClass += " selected";
                 if (status === "installing") cardClass += " installing";
-                if (status === "done") cardClass += " done";
+                if (status === "done" && !app.script_cmd) cardClass += " done";
                 if (status === "error") cardClass += " error";
-                if (installedIds.has(app.id)) cardClass += " installed";
+                if (installedApps[app.id] && !app.script_cmd) cardClass += " installed";
 
                 return (
                   <div 
@@ -682,7 +854,7 @@ function App() {
                   >
                     <div className="app-icon">
                       <AppLogo id={app.id} className="brand-logo" />
-                      {installedIds.has(app.id) && (
+                      {(installedApps[app.id] && !app.script_cmd) && (
                         <div className="installed-badge">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
@@ -691,45 +863,51 @@ function App() {
                     <div className="app-info">
                       <div className="app-name-row">
                         <span className="app-name">{app.name}</span>
-                        {app.portable && <span className="app-portable-badge" style={{ fontSize: '10px', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', padding: '2px 6px', borderRadius: '4px', color: '#34d399', fontWeight: 'bold' }}>Portable</span>}
-                        {app.version && <span className="app-version-badge">{app.version}</span>}
-                        {installedIds.has(app.id) && <span className="app-installed-tag">Kurulu</span>}
                       </div>
-                      <div className="app-meta">
-                        <span className="app-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-                        <div style={{display: "flex", gap: "8px", alignItems: "center"}}>
-                          {installedIds.has(app.id) && (
-                            <>
-                              {app.portable && (
-                                <div className="info-btn launch-btn" style={{color: "#34d399"}} onClick={(e) => { e.stopPropagation(); invoke("launch_portable", {url: app.download_url}).then(() => addLog(`${app.name} başlatılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error")); }} title="Uygulamayı Başlat / Aç">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                </div>
-                              )}
-                              <div className="info-btn uninstall-btn" style={{color: "var(--text-secondary)"}} onClick={(e) => { e.stopPropagation(); startUninstall(app); }} title="Sistemden Kaldır / Sil">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                              </div>
-                            </>
-                          )}
-                          <div className="info-btn" onClick={(e) => e.stopPropagation()}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                            <div className="info-tooltip">
-                            <div className="tooltip-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
-                              <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '4px' }}>
-                                <AppLogo id={app.id} className="brand-logo" />
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span className="tooltip-title">{app.name}</span>
-                                  {app.version && <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-secondary)' }}>{app.version}</span>}
-                                </div>
-                                <span style={{ fontSize: '9.5px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>Bağımsız Kurulum</span>
-                              </div>
-                            </div>
-                            <div className="tooltip-desc">{app.description}</div>
-                            <div className="tooltip-meta">Kategori: {app.category}</div>
-                          </div>
-                        </div>
-                        </div>
+                      
+                      <div className="badges-row">
+                        {app.portable && <span className="app-badge badge-portable">Taşınabilir</span>}
+                        {installedApps[app.id] && <span className="app-badge badge-installed">Kurulu</span>}
+                        <span className="app-badge badge-version">
+                          {installedApps[app.id] && installedApps[app.id] !== "Portable" && installedApps[app.id] !== "Kurulu" 
+                            ? installedApps[app.id] 
+                            : app.version}
+                        </span>
+                        {!app.script_cmd && app.size_bytes && <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>}
+                      </div>
+
+                      <div className="app-description">
+                        {app.description}
+                      </div>
+
+                      <div className="app-actions-top">
+                        {app.official_url && (
+                           <button className="icon-action-btn" onClick={(e) => { e.stopPropagation(); openUrl(app.official_url); }} title="Web Sitesi">
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                           </button>
+                        )}
+                        {(installedApps[app.id] && !app.script_cmd) && (
+                          <button className="icon-action-btn delete-vibe" onClick={(e) => { e.stopPropagation(); startUninstall(app); }} title="Kaldır">
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          </button>
+                        )}
+                        {((installedApps[app.id] && app.portable && !app.script_cmd) || app.script_cmd) && (
+                           <button 
+                             className={`primary-launch-btn ${app.script_cmd ? 'script-vibe' : ''}`}
+                             onClick={(e) => { 
+                               e.stopPropagation(); 
+                               if(app.script_cmd) {
+                                 const cmd = app.id === "officetoolplus" ? "run_ps_script_logged" : "run_ps_script";
+                                 invoke(cmd, {script: app.script_cmd}).then(() => addLog(`${app.name} çalıştırılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error"));
+                                 setShowLogs(true);
+                               } else {
+                                 invoke("launch_portable", {url: app.download_url, appName: app.name, launchFile: app.launch_file}).then(() => addLog(`${app.name} başlatılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error"));
+                               }
+                             }}
+                           >
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                           </button>
+                        )}
                       </div>
                     </div>
                     {status === "installing" && (
@@ -786,6 +964,12 @@ function App() {
             <div className="log-header">
               <span>Yükleme Günlüğü</span>
               <div className="log-actions">
+                {isSessionActive && (
+                  <>
+                    <div className="session-badge">AKTİF OTURUM</div>
+                    <button className="kill-session-btn" onClick={killActiveSession}>DURDUR</button>
+                  </>
+                )}
                 <button className="icon-btn-sm" onClick={() => setLogs([])} title="Kayıtları Temizle">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
@@ -794,18 +978,38 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="log-content">
-              {logs.length === 0 ? (
-                <div className="log-empty">Henüz bir kayıt yok.</div>
-              ) : (
-                logs.slice().reverse().map((log, i) => (
-                  <div key={i} className={`log-entry ${log.type}`}>
-                    <span className="log-time">[{log.time}]</span>
-                    <span className="log-msg">{log.msg}</span>
-                  </div>
-                ))
+            <div className="log-panel-inner" style={{ display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' }}>
+              <div className="log-content">
+                {logs.length === 0 ? (
+                  <div className="log-empty">Henüz bir kayıt yok.</div>
+                ) : (
+                  logs.slice().reverse().map((log, i) => (
+                    <div key={i} className={`log-entry ${log.type}`}>
+                      <span className="log-time">[{log.time}]</span>
+                      <span className="log-msg">{log.msg}</span>
+                    </div>
+                  ))
+                )}
+                <div ref={logEndRef} />
+              </div>
+              
+              {isSessionActive && (
+                <div className="terminal-input-row" onClick={() => document.getElementById('term-input')?.focus()}>
+                  <span className="terminal-prompt">PS &gt;</span>
+                  <input 
+                    id="term-input"
+                    type="text" 
+                    className="terminal-input" 
+                    placeholder="Komut yazın ve Enter'a basın..."
+                    value={terminalInput}
+                    onChange={(e) => setTerminalInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") sendTerminalCommand();
+                    }}
+                    autoFocus
+                  />
+                </div>
               )}
-              <div ref={logEndRef} />
             </div>
           </div>
         )}
@@ -815,10 +1019,7 @@ function App() {
       {showControlCenter && (
         <aside className="control-center">
           <div className="cc-header">
-            <h2>System Telemetry</h2>
-            <button className="close-btn circle" onClick={() => setShowControlCenter(false)} title="Paneli Kapat">
-               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+            <h2>Sistem Telemetrisi</h2>
           </div>
           
           <div className="cc-content">
@@ -848,7 +1049,7 @@ function App() {
                     <div className="tel-header">
                       <div className="tel-label-group">
                         <TelemetryIcon type="cpu" />
-                        <span className="tel-label">CPU Kullanımı</span>
+                        <span className="tel-label">İşlemci (CPU)</span>
                       </div>
                       <span className="tel-value">{Math.round(systemInfo.cpu_usage)}%</span>
                     </div>
@@ -872,7 +1073,15 @@ function App() {
                     const used = disk.total_space - disk.available_space;
                     const pct = Math.round((used / disk.total_space) * 100);
                     return (
-                      <div className="telemetry-card" key={idx}>
+                      <div 
+                        className="telemetry-card clickable" 
+                        key={idx}
+                        onClick={() => {
+                          invoke("open_drive", { path: disk.mount_point });
+                          sounds.playClick();
+                        }}
+                        title={`${disk.mount_point} Klasörünü Aç`}
+                      >
                         <div className="tel-header">
                           <div className="tel-label-group">
                             <TelemetryIcon type="disk" />
@@ -906,7 +1115,7 @@ function App() {
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                       <span>İndirme</span>
                     </div>
-                    <span>{systemInfo.net_in.toFixed(1)} KB/s</span>
+                    <span>{formatSpeed(systemInfo.net_in)}</span>
                     <div className="net-activity"><div className="net-activity-bar" style={{width: `${Math.min(100, systemInfo.net_in / 10)}%`}}></div></div>
                   </div>
                   <div className="net-stat upload">
@@ -914,7 +1123,7 @@ function App() {
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                       <span>Yükleme</span>
                     </div>
-                    <span>{systemInfo.net_out.toFixed(1)} KB/s</span>
+                    <span>{formatSpeed(systemInfo.net_out)}</span>
                     <div className="net-activity"><div className="net-activity-bar" style={{width: `${Math.min(100, systemInfo.net_out / 10)}%`}}></div></div>
                   </div>
                 </div>
@@ -937,11 +1146,11 @@ function App() {
                     <span className="spec-val large" title={systemInfo.os_version}>{systemInfo.os_version}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="spec-key">İşlemci</span>
+                    <span className="spec-key">İşlemci Modeli</span>
                     <span className="spec-val" title={systemInfo.cpu_model}>{systemInfo.cpu_model}</span>
                   </div>
                   <div className="spec-item">
-                    <span className="spec-key">Ekran Kartı</span>
+                    <span className="spec-key">Grafik Kartı (GPU)</span>
                     <span className="spec-val" title={systemInfo.gpu_model}>{systemInfo.gpu_model}</span>
                   </div>
                   <div className="spec-item">
@@ -959,6 +1168,86 @@ function App() {
                   <div className="spec-item">
                     <span className="spec-key">Yerel IP</span>
                     <span className="spec-val">{systemInfo.local_ip}</span>
+                  </div>
+                  <div className="spec-item" style={{ position: 'relative' }}>
+                    <span className="spec-key">DNS Sunucuları</span>
+                    <span 
+                      className="spec-val" 
+                      style={{ fontSize: '10px', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} 
+                      title={systemInfo.dns_servers}
+                      onClick={(e) => { e.stopPropagation(); setDnsOpen(!dnsOpen); }}
+                    >
+                      {(() => {
+                        const activeDns = POPULAR_DNS.find(d => systemInfo.dns_servers.includes(d.ips[0]));
+                        return activeDns && (
+                          <img 
+                            src={SPECIAL_LOGOS[activeDns.slug] || `https://cdn.simpleicons.org/${activeDns.slug}`} 
+                            alt={activeDns.name} 
+                            style={{ width: '12px', height: '12px', filter: 'drop-shadow(0 0 5px var(--accent-glow))' }} 
+                          />
+                        );
+                      })()}
+                      {systemInfo.dns_servers}
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ opacity: 0.5, transform: dnsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                    
+                    {dnsOpen && (
+                      <div className="dns-quick-list" onClick={(e) => e.stopPropagation()}>
+                        <div className="dns-quick-header">
+                           <span>DNS Değiştirici</span>
+                           <button onClick={() => setDnsOpen(false)}>&times;</button>
+                        </div>
+                        {POPULAR_DNS.map(dns => (
+                          <div 
+                            key={dns.name} 
+                            className="dns-quick-item"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                addLog(`${dns.name} DNS uygulanıyor...`, "process");
+                                await invoke("set_dns", { dns: dns.ips });
+                                addLog(`${dns.name} DNS başarıyla ayarlandı.`, "success");
+                                sounds.playSuccess();
+                                // Immediate UI update
+                                setSystemInfo(prev => prev ? { ...prev, dns_servers: dns.ips.join(", ") } : prev);
+                                setDnsOpen(false);
+                              } catch (err) {
+                                addLog(`DNS Hatası: ${err}`, "error");
+                                sounds.playError();
+                              }
+                            }}
+                          >
+                            <div className="dns-q-header-row">
+                              <img src={SPECIAL_LOGOS[dns.slug] || `https://cdn.simpleicons.org/${dns.slug}`} alt={dns.name} className="dns-q-icon" />
+                              <span className="dns-q-name">{dns.name}</span>
+                            </div>
+                            <span className="dns-q-ips">{dns.ips[0]}</span>
+                          </div>
+                        ))}
+                        <div 
+                          className="dns-quick-item reset"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              addLog("DNS ayarları sıfırlanıyor...", "process");
+                              await invoke("reset_dns");
+                              addLog("DNS ayarları otomatiğe döndürüldü.", "success");
+                              sounds.playSuccess();
+                              // Refresh DNS in UI
+                              setTimeout(async () => {
+                                const info = await invoke("get_system_info");
+                                setSystemInfo(info);
+                              }, 500);
+                              setDnsOpen(false);
+                            } catch (err) {
+                              addLog(`DNS Hatası: ${err}`, "error");
+                            }
+                          }}
+                        >
+                          Otomatik DNS'e Dön
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1028,6 +1317,8 @@ function App() {
                 </div>
               </div>
 
+
+
             </div>
             <div className="modal-footer">
               <button className="neon-button primary custom-save-btn" onClick={() => setShowSettings(false)}>Değişiklikleri Kaydet</button>
@@ -1049,7 +1340,7 @@ function App() {
                 </svg>
                 <div className="about-title">
                   <h3>STASH<span>ZERO</span></h3>
-                  <p>Studio Master Edition</p>
+                  <p>Studio Master Sürümü</p>
                 </div>
               </div>
               <div className="about-info-grid">
@@ -1063,11 +1354,11 @@ function App() {
                 </div>
                 <div className="info-item">
                   <span className="label">Mimari</span>
-                  <span className="value">Tauri 2.5 + React 18</span>
+                  <span className="value">Tauri 2.5 + React 18 (Turbo)</span>
                 </div>
                 <div className="info-item">
                   <span className="label">Motor</span>
-                  <span className="value">Rust (High Performance)</span>
+                  <span className="value">Rust (Yüksek Performans)</span>
                 </div>
               </div>
               <div className="about-desc">

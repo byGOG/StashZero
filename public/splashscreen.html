@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
+    
     body {
       margin: 0;
       background-color: transparent;
@@ -11,76 +13,150 @@
       justify-content: center;
       height: 100vh;
       overflow: hidden;
+      font-family: 'Outfit', sans-serif;
     }
-    /* Hide scrollbars */
+    
     ::-webkit-scrollbar { display: none; }
     * { scrollbar-width: none; -ms-overflow-style: none; }
+    
     .splash-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       width: 400px;
-      height: 300px;
+      height: 350px;
       background-color: #0c0c0c;
       border-radius: 40px;
-      box-shadow: 0 20px 80px rgba(0,0,0,0.8), 0 0 40px rgba(0, 255, 159, 0.05);
-      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.9), 0 0 50px rgba(0, 255, 159, 0.05);
+      border: 1px solid rgba(255,255,255,0.08);
       position: relative;
       animation: zoomIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    
     @keyframes zoomIn {
       from { opacity: 0; transform: scale(0.85); }
       to { opacity: 1; transform: scale(1); }
     }
-    .logo-wrapper {
+    
+    .logo-section {
       position: relative;
-      z-index: 2;
+      margin-bottom: 25px;
     }
+    
+    .logo-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
     .logo-glow {
       position: absolute;
-      width: 120px;
-      height: 120px;
-      background: radial-gradient(circle, rgba(0, 255, 159, 0.15) 0%, transparent 70%);
+      width: 130px;
+      height: 130px;
+      background: radial-gradient(circle, rgba(0, 255, 159, 0.2) 0%, transparent 70%);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       filter: blur(15px);
-      animation: pulseGlow 1.5s ease-in-out infinite;
+      animation: pulseGlow 2s ease-in-out infinite;
     }
+    
     @keyframes pulseGlow {
       0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
     }
+    
     .logo-main {
-      animation: float 3s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 159, 0.5));
     }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
+    
+    .text-section {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
+    
+    .brand-main {
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      margin: 0;
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(255,255,255,0.1);
+    }
+    
+    .brand-sub {
+      color: #00ff9f;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 8px;
+      margin: 0;
+      opacity: 0.9;
+    }
+    
+    .brand-edition {
+      color: #00ff9f;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
+
   </style>
 </head>
 <body>
   <div class="splash-container">
-    <div class="logo-wrapper">
+    <div class="logo-section">
       <div class="logo-glow"></div>
-      <svg width="120" height="120" viewBox="0 0 100 100" class="logo-main">
-        <defs>
-          <linearGradient id="logo-grad-splash" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00ff9f" />
-            <stop offset="100%" stopColor="#00c9ff" />
-          </linearGradient>
-          <filter id="glow-splash">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logo-grad-splash)" strokeWidth="1" opacity="0.2" strokeDasharray="5 5" />
-        <path d="M50 15 A35 35 0 0 1 85 50 A35 35 0 0 1 50 85 A35 35 0 0 1 15 50 A35 35 0 0 1 50 15" fill="none" stroke="url(#logo-grad-splash)" strokeWidth="3" filter="url(#glow-splash)" />
-        <path d="M35 45 C35 35, 45 35, 50 50 S65 65, 65 55" fill="none" stroke="url(#logo-grad-splash)" strokeWidth="10" strokeLinecap="round" filter="url(#glow-splash)" />
-        <path d="M35 45 C35 35, 45 35, 50 50 S65 65, 65 55" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
-      </svg>
+      <div class="logo-container">
+        <svg width="90" height="90" viewBox="0 0 100 100" class="logo-main">
+          <defs>
+            <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00f3ff" />
+              <stop offset="100%" stop-color="#00ff9f" />
+            </linearGradient>
+            <filter id="logo-glow-filter">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          
+          <circle cx="50" cy="50" r="46" fill="none" stroke="url(#logo-grad)" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3" />
+          
+          <circle cx="50" cy="50" r="38" fill="none" stroke="url(#logo-grad)" stroke-width="4" filter="url(#logo-glow-filter)" />
+          
+          <path d="M30 50 C 30 35, 45 35, 50 50 S 70 65, 70 50" 
+                fill="none" 
+                stroke="url(#logo-grad)" 
+                stroke-width="10" 
+                stroke-linecap="round" 
+                filter="url(#logo-glow-filter)" />
+          
+          <path d="M30 50 C 30 35, 45 35, 50 50 S 70 65, 70 50" 
+                fill="none" 
+                stroke="white" 
+                stroke-width="2.5" 
+                stroke-linecap="round" 
+                opacity="0.4" />
+        </svg>
+      </div>
+    </div>
+    
+    <div class="text-section">
+      <h1 class="brand-main">STASH</h1>
+      <h2 class="brand-sub">ZERO</h2>
+      <h3 class="brand-edition">STUDIO EDITION</h3>
     </div>
   </div>
 </body>
 </html>
+
