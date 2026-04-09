@@ -84,28 +84,28 @@ const TelemetryIcon = ({ type }) => {
   switch (type) {
     case "cpu": return (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="4" y="4" width="16" height="16" rx="2"/>
-        <path d="M9 9h6v6H9z" fill="currentColor" fillOpacity="0.2"/>
-        <path d="M15 2v2M9 2v2M20 15h2M20 9h2M15 20v2M9 20v2M2 15h2M2 9h2"/>
+        <rect x="4" y="4" width="16" height="16" rx="2" />
+        <path d="M9 9h6v6H9z" fill="currentColor" fillOpacity="0.2" />
+        <path d="M15 2v2M9 2v2M20 15h2M20 9h2M15 20v2M9 20v2M2 15h2M2 9h2" />
       </svg>
     );
     case "ram": return (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 19v-3M10 19v-3M14 19v-3M18 19v-3M2 6v12h20V6H2z"/>
-        <path d="M21 10h-2M21 14h-2"/>
+        <path d="M6 19v-3M10 19v-3M14 19v-3M18 19v-3M2 6v12h20V6H2z" />
+        <path d="M21 10h-2M21 14h-2" />
       </svg>
     );
     case "disk": return (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="4" y="2" width="16" height="20" rx="2"/>
-        <path d="M12 18h.01" strokeWidth="3"/>
-        <circle cx="12" cy="8" r="3" strokeOpacity="0.4"/>
+        <rect x="4" y="2" width="16" height="20" rx="2" />
+        <path d="M12 18h.01" strokeWidth="3" />
+        <circle cx="12" cy="8" r="3" strokeOpacity="0.4" />
       </svg>
     );
     case "net": return (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 12h14l-4 4-4-4M19 12l-4-4-4 4"/>
-        <path d="M12 2v20" strokeOpacity="0.2"/>
+        <path d="M5 12h14l-4 4-4-4M19 12l-4-4-4 4" />
+        <path d="M12 2v20" strokeOpacity="0.2" />
       </svg>
     );
     default: return null;
@@ -140,7 +140,8 @@ const APP_ICON_MAP = {
   steam: "steam", epic: "epicgames", gog: "gogdotcom", origin: "origin",
   notion: "notion", evernote: "evernote", obsidian: "obsidian", adobe: "adobeacrobatreader",
   malwarebytes: "malwarebytes", bitwarden: "bitwarden", keepass: "keepassxc", qbittorrent: "qbittorrent",
-  github: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller"
+  github: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller", etcher: "balenaetcher", ventoy: "ventoy",
+  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge"
 };
 
 const SPECIAL_LOGOS = {
@@ -181,8 +182,35 @@ const SPECIAL_LOGOS = {
   officetoolplus: "https://officetool.plus/favicon.ico",
   cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
   sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png",
-  ninite: "https://www.vectorlogo.zone/logos/ninite/ninite-icon.svg",
-  fmhy: "https://fmhy.net/fmhy.ico"
+  ninite: "https://files.catbox.moe/gc2nyw.png",
+  fmhy: "https://i.postimg.cc/DwX0TKS3/fmhy.png",
+  powershell7: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/powershell.svg",
+  uupdump: "https://uupdump.net/favicon.ico",
+  atlasos: "https://atlasos.net/favicon.ico",
+  revios: "https://www.revi.cc/favicon.ico",
+  burnintest: "https://www.passmark.com/products/burnintest/img/bit_logo_sm.png",
+  furmark2: "https://geeks3d.com/furmark/i/20240220-furmark-logo-02.png",
+  occt: "https://www.ocbase.com/favicon.ico",
+  performancetest: "https://www.passmark.com/products/performancetest/img/pt_logo_sm.png",
+  processlasso: "https://bitsum.com/wp-content/uploads/2016/09/lasso_logo_200.png",
+  sysinternals: "https://img.icons8.com/fluency/48/000000/microsoft.png",
+  "amd-adrenalin": "https://img.icons8.com/color/48/amd.png",
+  rapr: "https://img.icons8.com/fluency/48/000000/system-task.png",
+  "intel-dsa": "https://img.icons8.com/color/48/intel.png",
+  "nvidia-app": "https://img.icons8.com/color/48/nvidia.png",
+  bcuninstaller: "https://www.bcuninstaller.com/favicon.ico",
+  bleachbit: "https://www.bleachbit.org/favicon.ico",
+  ooappbuster: "https://www.oo-software.com/favicon.ico",
+  sophia: "https://sophia.team/favicon.ico",
+  sophiaapp: "https://sophia.team/favicon.ico",
+  unigetui: "https://unigetui.com/favicon.ico",
+  wiztree: "https://diskanalyzer.com/favicon.ico",
+  optimizer: "https://github.com/hellzerg/optimizer/raw/master/optimizer/Resources/icon.png",
+  teracopy: "https://www.codesector.com/favicon.ico",
+  hashcheck: "https://img.icons8.com/fluency/48/000000/fingerprint.png",
+  winconfigs: "https://fr0st.xyz/favicon.ico",
+  onecommander: "https://www.onecommander.com/favicon.ico",
+  raphidebloat: "https://raphi.re/favicon.ico"
 };
 
 const AppLogo = ({ id, className, ...props }) => {
@@ -196,32 +224,15 @@ const AppLogo = ({ id, className, ...props }) => {
 
   const slug = APP_ICON_MAP[id] || "windowsterminal";
   const iconUrl = `https://cdn.simpleicons.org/${slug}`;
-  
+
   return (
     <div className={`${className} logo-container`} {...props}>
-      <img 
-        src={iconUrl} 
-        alt={id} 
+      <img
+        src={iconUrl}
+        alt={id}
         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         onError={(e) => {
-          e.target.src = `https://i    body {
-      margin: 0;
-      background-color: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-    .splash-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 120px;
-      height: 120px;
-      position: relative;
-      animation: zoomIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }  `;
+          e.target.src = "https://img.icons8.com/color/48/software.png";
         }}
       />
     </div>
@@ -230,70 +241,102 @@ const AppLogo = ({ id, className, ...props }) => {
 
 const LEGENDARY_APPS = [
   // Tarayıcılar
-  { id: "chrome", name: "Google Chrome", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*95, version: "123.0", description: "Hızlı ve güvenli web tarayıcısı.", download_url: "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B104F5E68-9A74-4C7D-8E14-4197B8233C92%7D%26lang%3Dtr%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dtrue%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe", official_url: "https://www.google.com/chrome/" },
-  { id: "firefox", name: "Firefox", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*55, version: "124.0", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/" },
-  { id: "brave", name: "Brave", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*105, version: "1.64.x", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/latest/winx64", official_url: "https://brave.com/tr/" },
-  { id: "mullvad", name: "Mullvad Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*90, version: "13.0.x", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/en/download/browser/windows/latest", official_url: "https://mullvad.net/en/browser" },
-  { id: "zen", name: "Zen Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*110, version: "1.0.x", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/" },
-  { id: "tor", name: "Tor Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024*1024*95, version: "13.0.x", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/13.0.14/torbrowser-install-win64-13.0.14_ALL.exe", official_url: "https://www.torproject.org/" },
+  { id: "chrome", name: "Google Chrome", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "123.0", description: "Hızlı ve güvenli web tarayıcısı.", download_url: "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B104F5E68-9A74-4C7D-8E14-4197B8233C92%7D%26lang%3Dtr%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dtrue%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe", official_url: "https://www.google.com/chrome/" },
+  { id: "firefox", name: "Firefox", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, version: "124.0", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/" },
+  { id: "brave", name: "Brave", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 105, version: "1.64.x", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/latest/winx64", official_url: "https://brave.com/tr/" },
+  { id: "mullvad", name: "Mullvad Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, version: "13.0.x", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/en/download/browser/windows/latest", official_url: "https://mullvad.net/en/browser" },
+  { id: "zen", name: "Zen Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 110, version: "1.0.x", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/" },
+  { id: "tor", name: "Tor Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "13.0.x", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/13.0.14/torbrowser-install-win64-13.0.14_ALL.exe", official_url: "https://www.torproject.org/" },
 
   // Communication
-  { id: "discord", name: "Discord", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024*1024*85, version: "1.0.x", description: "Oyuncular için iletişim platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
-  { id: "whatsapp", name: "WhatsApp", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024*1024*120, version: "2.24.x", description: "Mesajlaşma uygulaması.", download_url: "https://web.whatsapp.com/desktop/windows/release/x64/WhatsAppSetup.exe", official_url: "https://www.whatsapp.com/" },
-  { id: "telegram", name: "Telegram", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024*1024*35, version: "4.15.x", description: "Güvenli ve hızlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://telegram.org/" },
+  { id: "discord", name: "Discord", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024 * 1024 * 85, version: "1.0.x", description: "Oyuncular için iletişim platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
+  { id: "whatsapp", name: "WhatsApp", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024 * 1024 * 120, version: "2.24.x", description: "Mesajlaşma uygulaması.", download_url: "https://web.whatsapp.com/desktop/windows/release/x64/WhatsAppSetup.exe", official_url: "https://www.whatsapp.com/" },
+  { id: "telegram", name: "Telegram", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024 * 1024 * 35, version: "4.15.x", description: "Güvenli ve hızlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://telegram.org/" },
 
   // Media
-  { id: "vlc", name: "VLC Player", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024*1024*42, version: "3.0.20", description: "Her türlü medyayı oynatın.", download_url: "https://get.videolan.org/vlc/last/win64/vlc-3.0.18-win64.exe", official_url: "https://www.videolan.org/vlc/" },
-  { id: "spotify", name: "Spotify", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024*1024*88, version: "1.2.x", description: "Sınırsız müzik ve podcast.", download_url: "https://download.scdn.co/SpotifySetup.exe", official_url: "https://www.spotify.com/" },
-  { id: "handbrake", name: "HandBrake", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024*1024*22, version: "1.7.x", description: "Video format dönüştürücü.", download_url: "https://github.com/HandBrake/HandBrake/releases/download/1.6.1/HandBrake-1.6.1-x86_64-Win_GUI.exe", official_url: "https://handbrake.fr/" },
+  { id: "vlc", name: "VLC Player", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024 * 1024 * 42, version: "3.0.20", description: "Her türlü medyayı oynatın.", download_url: "https://get.videolan.org/vlc/last/win64/vlc-3.0.18-win64.exe", official_url: "https://www.videolan.org/vlc/" },
+  { id: "spotify", name: "Spotify", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024 * 1024 * 88, version: "1.2.x", description: "Sınırsız müzik ve podcast.", download_url: "https://download.scdn.co/SpotifySetup.exe", official_url: "https://www.spotify.com/" },
+  { id: "handbrake", name: "HandBrake", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024 * 1024 * 22, version: "1.7.x", description: "Video format dönüştürücü.", download_url: "https://github.com/HandBrake/HandBrake/releases/download/1.6.1/HandBrake-1.6.1-x86_64-Win_GUI.exe", official_url: "https://handbrake.fr/" },
 
   // Development
-  { id: "vscode", name: "VS Code", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*90, version: "1.89.x", description: "En popüler kod editörü.", download_url: "https://update.code.visualstudio.com/latest/win32-x64-user/stable", official_url: "https://code.visualstudio.com/" },
-  { id: "git", name: "Git", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*55, version: "2.44.x", description: "Versiyon kontrol sistemi.", download_url: "https://github.com/git-for-windows/git/releases/download/v2.41.0.windows.1/Git-2.41.0-64-bit.exe", official_url: "https://git-scm.com/" },
-  { id: "github", name: "GitHub Desktop", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*110, version: "3.3.x", description: "Görsel Git istemcisi.", download_url: "https://central.github.com/deployments/desktop/desktop/latest/win32/x64", official_url: "https://desktop.github.com/" },
-  { id: "python", name: "Python", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024*1024*25, version: "3.12.x", description: "Çok amaçlı programlama dili.", download_url: "https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe", official_url: "https://www.python.org/" },
+  { id: "vscode", name: "VS Code", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 90, version: "1.89.x", description: "En popüler kod editörü.", download_url: "https://update.code.visualstudio.com/latest/win32-x64-user/stable", official_url: "https://code.visualstudio.com/" },
+  { id: "git", name: "Git", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 55, version: "2.44.x", description: "Versiyon kontrol sistemi.", download_url: "https://github.com/git-for-windows/git/releases/download/v2.41.0.windows.1/Git-2.41.0-64-bit.exe", official_url: "https://git-scm.com/" },
+  { id: "github", name: "GitHub Desktop", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 110, version: "3.3.x", description: "Görsel Git istemcisi.", download_url: "https://central.github.com/deployments/desktop/desktop/latest/win32/x64", official_url: "https://desktop.github.com/" },
+  { id: "python", name: "Python", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 25, version: "3.12.x", description: "Çok amaçlı programlama dili.", download_url: "https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe", official_url: "https://www.python.org/" },
+  { id: "powershell7", name: "PowerShell 7", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 110, version: "7.6.0", description: "Modern, güçlü ve çapraz platform kabuk.", download_url: "https://github.com/PowerShell/PowerShell/releases/download/v7.6.0/PowerShell-7.6.0-win-x64.msi", official_url: "https://learn.microsoft.com/tr-tr/powershell/" },
+  { id: "winmerge", name: "WinMerge", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 20, version: "2.16.54.2", description: "Dosya ve dizin karşılaştırma/birleştirme aracı.", download_url: "https://downloads.sourceforge.net/winmerge/WinMerge-2.16.54.2-x64-Setup.exe", official_url: "https://winmerge.org/" },
 
   // System & Tools
-  { id: "archive", name: "7-Zip", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "23.01", description: "Gelişmiş dosya sıkıştırıcı.", download_url: "https://www.7-zip.org/a/7z2301-x64.exe", official_url: "https://www.7-zip.org/" },
-  { id: "winrar", name: "WinRAR", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*3, version: "7.0.x", description: "Profesyonel arşiv yönetimi.", download_url: "https://www.rarlab.com/rar/winrar-x64-624.exe", official_url: "https://www.rarlab.com/" },
-  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*1, version: "4.4.x", description: "Format USB hazırlama aracı.", download_url: "https://github.com/pbatard/rufus/releases/download/v4.2/rufus-4.2.exe", launch_file: "rufus.exe", portable: true, official_url: "https://rufus.ie/tr/" },
-  { id: "notepad", name: "Notepad++", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*4, version: "8.6.x", description: "Gelişmiş metin düzenleyici.", download_url: "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.7/npp.8.5.7.Installer.x64.exe", official_url: "https://notepad-plus-plus.org/" },
-  { id: "powertoys", name: "PowerToys", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*150, version: "0.80.x", description: "Windows üretkenlik araçları.", download_url: "https://github.com/microsoft/PowerToys/releases/download/v0.74.0/PowerToysSetup-0.74.0-x64.exe", official_url: "https://learn.microsoft.com/en-us/windows/powertoys/" },
-  { id: "hwinfo", name: "HWiNFO", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*10, version: "8.00", description: "Donanım analiz ve izleme.", download_url: "https://www.hwinfo.com/files/hwi_764.exe", official_url: "https://www.hwinfo.com/" },
-  { id: "cpuz", name: "CPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "2.09", description: "İşlemci bilgi aracı.", download_url: "https://www.cpuid.com/downloads/cpu-z/cpu-z_2.07-en.exe", official_url: "https://www.cpuid.com/softwares/cpu-z.html" },
-  { id: "gpuz", name: "GPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*9, version: "2.58", description: "Ekran kartı bilgi aracı.", download_url: "https://www.techpowerup.com/download/techpowerup-gpu-z/", official_url: "https://www.techpowerup.com/gpuz/" },
-  { id: "sdi", name: "Snappy Driver Installer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*5, version: "1.17.8", description: "Gelişmiş sürücü yükleme ve güncelleme aracı.", download_url: "https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.17.8.829.zip", launch_file: "SDIO_auto.bat", portable: true, official_url: "https://snappy-driver-installer.org/" },
-  
+  { id: "archive", name: "7-Zip", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "26.00", description: "Gelişmiş dosya sıkıştırıcı.", download_url: "https://github.com/ip7z/7zip/releases/download/26.00/7z2600-x64.exe", official_url: "https://www.7-zip.org/" },
+  { id: "winrar", name: "WinRAR", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, version: "7.20 TR", description: "Profesyonel arşiv yönetimi.", download_url: "https://www.rarlab.com/rar/winrar-x64-720tr.exe", official_url: "https://www.rarlab.com/" },
+  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, version: "4.4.x", description: "Format USB hazırlama aracı.", download_url: "https://github.com/pbatard/rufus/releases/download/v4.2/rufus-4.2.exe", launch_file: "rufus.exe", portable: true, official_url: "https://rufus.ie/tr/" },
+  { id: "etcher", name: "balenaEtcher", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 150, version: "2.1.4", description: "OS kalıplarını USB/SD kartlara yazdırın.", download_url: "https://github.com/balena-io/etcher/releases/download/v2.1.4/balenaEtcher-2.1.4.Setup.exe", official_url: "https://www.balena.io/etcher/" },
+  { id: "ventoy", name: "Ventoy", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 15, version: "1.1.11", description: "Çoklu ISO önyüklemeli USB oluşturma aracı.", download_url: "https://sourceforge.net/projects/ventoy/files/v1.1.11/ventoy-1.1.11-windows.zip/download", launch_file: "Ventoy2Disk.exe", portable: true, official_url: "https://www.ventoy.net/" },
+  { id: "win10mct", name: "Windows 10 Media Creation Tool", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 18, version: "Latest", description: "Windows 10 ISO indirme ve kurulum aracı.", download_url: "https://go.microsoft.com/fwlink/?LinkId=2265055", official_url: "https://www.microsoft.com/tr-tr/software-download/windows10" },
+  { id: "win11mct", name: "Windows 11 Media Creation Tool", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 10, version: "Latest", description: "Windows 11 ISO indirme ve kurulum aracı.", download_url: "https://go.microsoft.com/fwlink/?linkid=2156295", official_url: "https://www.microsoft.com/tr-tr/software-download/windows11" },
+  { id: "notepad", name: "Notepad++", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 4, version: "8.6.x", description: "Gelişmiş metin düzenleyici.", download_url: "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.7/npp.8.5.7.Installer.x64.exe", official_url: "https://notepad-plus-plus.org/" },
+  { id: "powertoys", name: "PowerToys", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 150, version: "0.80.x", description: "Windows üretkenlik araçları.", download_url: "https://github.com/microsoft/PowerToys/releases/download/v0.74.0/PowerToysSetup-0.74.0-x64.exe", official_url: "https://learn.microsoft.com/en-us/windows/powertoys/" },
+  { id: "hwinfo", name: "HWiNFO", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 10, version: "8.44", description: "Donanım analiz ve izleme.", download_url: "https://www.hwinfo.com/files/hwi64_844.exe", official_url: "https://www.hwinfo.com/" },
+  { id: "cpuz", name: "CPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "2.19", description: "İşlemci bilgi aracı.", download_url: "https://www.cpuid.com/downloads/cpu-z/cpu-z_2.19-en.exe", official_url: "https://www.cpuid.com/softwares/cpu-z.html" },
+  { id: "gpuz", name: "GPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 9, version: "2.58", description: "Ekran kartı bilgi aracı.", download_url: "https://www.techpowerup.com/download/techpowerup-gpu-z/", official_url: "https://www.techpowerup.com/gpuz/" },
+  { id: "sdi", name: "Snappy Driver Installer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 5, version: "1.17.8", description: "Gelişmiş sürücü yükleme ve güncelleme aracı.", download_url: "https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.17.8.829.zip", launch_file: "SDIO_auto.bat", portable: true, official_url: "https://snappy-driver-installer.org/" },
+  { id: "burnintest", name: "BurnInTest", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 60, version: "11.0", description: "Kapsamlı sistem kararlılık ve yük testi aracı.", download_url: "https://www.passmark.com/downloads/BurnInTest_Windows_x86-64.exe", official_url: "https://www.passmark.com/products/burnintest/index.php" },
+  { id: "performancetest", name: "PerformanceTest", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 70, version: "11.0", description: "Donanım benchmark ve performans değerlendirme aracı.", download_url: "https://www.passmark.com/downloads/PerformanceTest_Windows_x86-64.exe", official_url: "https://www.passmark.com/products/performancetest/index.php" },
+  { id: "furmark2", name: "FurMark 2", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 12, version: "2.1.0", description: "Ekran kartı stres testi ve benchmark aracı.", download_url: "https://geeks3d.com/dl/get/831", official_url: "https://geeks3d.com/furmark/" },
+  { id: "occt", name: "OCCT", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 35, version: "Latest", description: "Hepsi bir arada sistem kararlılık testi ve donanım izleme aracı.", download_url: "https://www.ocbase.com/download/edition:Personal/os:Windows", official_url: "https://www.ocbase.com/" },
+  { id: "processlasso", name: "Process Lasso", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, version: "Latest", description: "Gelişmiş işlem önceliği optimizasyonu ve sistem otomasyonu.", download_url: "https://dl.bitsum.com/files/processlassosetup64.exe", official_url: "https://bitsum.com/" },
+  { id: "sysinternals", name: "Sysinternals Suite", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 50, version: "Latest", description: "Microsoft'un gelişmiş sistem yönetim ve hata ayıklama araçları paketi.", download_url: "https://download.sysinternals.com/files/SysinternalsSuite.zip", official_url: "https://learn.microsoft.com/en-us/sysinternals/", portable: true },
+  { id: "amd-adrenalin", name: "AMD Software: Adrenalin Edition", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 60, version: "26.3.1", description: "AMD ekran kartları için sürücü ve kontrol paneli (Minimal Kurulum).", download_url: "https://drivers.amd.com/drivers/installer/25.30/whql/amd-software-adrenalin-edition-26.3.1-minimalsetup-260317_web.exe", official_url: "https://www.amd.com/en/support" },
+  { id: "rapr", name: "DriverStore Explorer (RAPR)", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "1.0.26", description: "Sürücü mağazasını temizlemek ve yönetmek için gelişmiş araç.", download_url: "https://github.com/lostindark/DriverStoreExplorer/releases/download/v1.0.26/DriverStoreExplorer-v1.0.26.zip", launch_file: "Rapr.exe", portable: true, official_url: "https://github.com/lostindark/DriverStoreExplorer" },
+  { id: "intel-dsa", name: "Intel Driver & Support Assistant", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "Intel donanımlarınız için sürücü güncelleme ve sistem tarama aracı.", download_url: "https://dsadata.intel.com/installer", official_url: "https://www.intel.com/content/www/us/en/support/detect.html" },
+  { id: "nvidia-app", name: "NVIDIA App", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 120, version: "11.0.6", description: "NVIDIA ekran kartları için modern sürücü ve kontrol merkezi.", download_url: "https://tr.download.nvidia.com/nvapp/client/11.0.6.383/NVIDIA_app_v11.0.6.383.exe", official_url: "https://www.nvidia.com/tr-tr/software/nvidia-app/" },
+  { id: "bcuninstaller", name: "Bulk Crap Uninstaller (BCU)", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 100, version: "6.1", description: "Gelişmiş toplu uygulama kaldırma ve artık temizleme aracı.", download_url: "https://github.com/Klocman/Bulk-Crap-Uninstaller/releases/download/v6.1/BCUninstaller_6.1.0.1_setup.exe", official_url: "https://www.bcuninstaller.com/" },
+  { id: "bleachbit", name: "BleachBit", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 15, version: "5.0.2", description: "Sistem temizleyici ve gizlilik koruma aracı.", download_url: "https://www.bleachbit.org/download/file/t?file=BleachBit-5.0.2-setup.exe", official_url: "https://www.bleachbit.org/" },
+  { id: "ooappbuster", name: "O&O AppBuster", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "Latest", description: "Windows ile gelen istenmeyen uygulamaları kolayca kaldırın.", download_url: "https://dl5.oo-software.com/files/ooappbuster/OOAPB.exe", official_url: "https://www.oo-software.com/en/ooappbuster", portable: true },
+  { id: "sophiaapp", name: "SophiApp (GUI)", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Sophia Script'in modern grafik arayüzlü versiyonu.", download_url: "https://github.com/Sophia-Community/SophiApp/releases/latest/download/SophiApp.zip", launch_file: "SophiApp.exe", portable: true, official_url: "https://sophia.team/" },
+  { id: "unigetui", name: "UniGetUI", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 50, version: "Latest", description: "Winget, Scoop ve Chocolatey için evrensel arayüz.", download_url: "https://github.com/marticliment/UniGetUI/releases/latest/download/UniGetUI.Installer.exe", official_url: "https://www.unigetui.com/" },
+  { id: "wiztree", name: "WizTree", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 6, version: "4.31", description: "Dünyanın en hızlı disk alanı analiz aracı.", download_url: "https://diskanalyzer.com/files/wiztree_4_31_setup.exe", official_url: "https://diskanalyzer.com/" },
+  { id: "optimizer", name: "Optimizer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, version: "Latest", description: "Windows performans ve gizlilik optimizasyon aracı.", download_url: "https://github.com/hellzerg/optimizer/releases/latest/download/Optimizer.exe", portable: true, official_url: "https://github.com/hellzerg/optimizer" },
+  { id: "teracopy", name: "TeraCopy", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 8, version: "Latest", description: "Hızlı ve güvenilir dosya kopyalama/taşıma aracı.", download_url: "https://www.codesector.com/files/teracopy.exe", official_url: "https://www.codesector.com/teracopy" },
+  { id: "hashcheck", name: "HashCheck", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, version: "2.5.0", description: "Windows Shell için dosya doğrulama ve hash hesaplama aracı.", download_url: "https://github.com/idrassi/HashCheck/releases/download/v2.5.0/HashCheckSetup-v2.5.0.1.exe", official_url: "https://github.com/idrassi/HashCheck" },
+  { id: "onecommander", name: "OneCommander", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 45, version: "3.108", description: "Modern ve güçlü çift bölmeli dosya yöneticisi.", download_url: "https://www.onecommander.com/OneCommanderSetup3.108.0.0.msi", official_url: "https://www.onecommander.com/" },
+
   // Scripts
   { id: "mas", name: "Microsoft Activation Script", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "2.5.x", description: "Windows ve Office aktivasyon betiği.", script_cmd: "irm https://get.activated.win | iex", official_url: "https://massgrave.dev/" },
   { id: "officetoolplus", name: "Office Tool Plus", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "10.10", description: "Office indirme ve yönetim aracı.", script_cmd: "irm https://officetool.plus | iex", official_url: "https://officetool.plus/" },
   { id: "cttwin", name: "Chris Titus Tech's Windows Utility", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "2024.x", description: "Windows optimizasyon ve debloat aracı.", script_cmd: 'irm "https://christitus.com/win" | iex', official_url: "https://winutil.christitus.com/" },
+  { id: "sophia", name: "Sophia Script for Windows", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "Latest", description: "Windows ince ayar, optimizasyon ve debloat betiği.", script_cmd: "iwr script.sophia.team -useb | iex", official_url: "https://sophia.team/" },
+  { id: "winconfigs", name: "WinConfigs", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "Latest", description: "Fr0st'un Windows kişiselleştirme ve yapılandırma betiği.", script_cmd: 'iwr "https://fr0st.xyz/winconfigs" | iex', official_url: "https://fr0st.xyz/" },
+  { id: "raphidebloat", name: "Raphi's Windows Debloater", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "Latest", description: "Modern ve hafif Windows debloat/optimizasyon betiği.", script_cmd: '& ([scriptblock]::Create((irm "https://debloat.raphi.re/")))', official_url: "https://debloat.raphi.re/" },
 
   // Gaming
-  { id: "steam", name: "Steam", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024*1024*2, version: "Latest", description: "Dijital oyun kütüphanesi.", download_url: "https://repo.steampowered.com/windows/SteamSetup.exe", official_url: "https://store.steampowered.com/" },
-  { id: "epic", name: "Epic Games", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024*1024*150, version: "Latest", description: "Epic Games mağazası.", download_url: "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", official_url: "https://store.epicgames.com/tr" },
-  { id: "gog", name: "GOG Galaxy", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024*1024*220, version: "2.0.x", description: "Oyunı birleştiren platform.", download_url: "https://cdn.gog.com/open/galaxy/client/2.0.71.2/setup_galaxy_2.0.71.2.exe", official_url: "https://www.gog.com/galaxy" },
+  { id: "steam", name: "Steam", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024 * 1024 * 2, version: "Latest", description: "Dijital oyun kütüphanesi.", download_url: "https://repo.steampowered.com/windows/SteamSetup.exe", official_url: "https://store.steampowered.com/" },
+  { id: "epic", name: "Epic Games", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024 * 1024 * 150, version: "Latest", description: "Epic Games mağazası.", download_url: "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", official_url: "https://store.epicgames.com/tr" },
+  { id: "gog", name: "GOG Galaxy", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024 * 1024 * 220, version: "2.0.x", description: "Oyunı birleştiren platform.", download_url: "https://cdn.gog.com/open/galaxy/client/2.0.71.2/setup_galaxy_2.0.71.2.exe", official_url: "https://www.gog.com/galaxy" },
 
   // Office
-  { id: "adobe", name: "Adobe Reader", category: "Ofis & Verimlilik", category_order: 30, icon: "file-text", size_bytes: 1024*1024*200, version: "2024.x", description: "PDF okuma ve düzenleme.", download_url: "https://get.adobe.com/tr/reader/", official_url: "https://www.adobe.com/tr/acrobat/pdf-reader.html" },
+  { id: "adobe", name: "Adobe Reader", category: "Ofis & Verimlilik", category_order: 30, icon: "file-text", size_bytes: 1024 * 1024 * 200, version: "2024.x", description: "PDF okuma ve düzenleme.", download_url: "https://get.adobe.com/tr/reader/", official_url: "https://www.adobe.com/tr/acrobat/pdf-reader.html" },
 
   // Security
-  { id: "malwarebytes", name: "Malwarebytes", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024*1024*120, version: "5.0.x", description: "Güçlü antivirüs ve temizleyici.", download_url: "https://downloads.malwarebytes.com/file/mb-windows", official_url: "https://www.malwarebytes.com/" },
-  { id: "bitwarden", name: "Bitwarden", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024*1024*85, version: "2024.x", description: "Şifre yönetim çözümü.", download_url: "https://vault.bitwarden.com/download/?app=desktop&platform=windows", official_url: "https://bitwarden.com/" },
-  { id: "qbittorrent", name: "qBittorrent", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024*1024*28, version: "4.6.x", description: "Hızlı torrent istemcisi.", download_url: "https://github.com/qbittorrent/qBittorrent/releases/download/release-4.5.5/qbittorrent_4.5.5_x64_setup.exe", official_url: "https://www.qbittorrent.org/" },
+  { id: "malwarebytes", name: "Malwarebytes", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024 * 1024 * 120, version: "5.0.x", description: "Güçlü antivirüs ve temizleyici.", download_url: "https://downloads.malwarebytes.com/file/mb-windows", official_url: "https://www.malwarebytes.com/" },
+  { id: "bitwarden", name: "Bitwarden", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024 * 1024 * 85, version: "2024.x", description: "Şifre yönetim çözümü.", download_url: "https://vault.bitwarden.com/download/?app=desktop&platform=windows", official_url: "https://bitwarden.com/" },
+  { id: "qbittorrent", name: "qBittorrent", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024 * 1024 * 28, version: "4.6.x", description: "Hızlı torrent istemcisi.", download_url: "https://github.com/qbittorrent/qBittorrent/releases/download/release-4.5.5/qbittorrent_4.5.5_x64_setup.exe", official_url: "https://www.qbittorrent.org/" },
 
   // More Utilities
-  { id: "teamviewer", name: "TeamViewer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*35, version: "15.x", description: "Uzaktan masaüstü erişmi.", download_url: "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe", official_url: "https://www.teamviewer.com/tr/" },
-  { id: "anydesk", name: "AnyDesk", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*5, version: "8.0.x", description: "Hızlı uzaktan erişim.", download_url: "https://download.anydesk.com/AnyDesk.exe", official_url: "https://anydesk.com/tr" },
-  { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024*1024*2, version: "1.4.x", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1024.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" },
-  
+  { id: "teamviewer", name: "TeamViewer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 35, version: "15.x", description: "Uzaktan masaüstü erişmi.", download_url: "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe", official_url: "https://www.teamviewer.com/tr/" },
+  { id: "anydesk", name: "AnyDesk", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 5, version: "8.0.x", description: "Hızlı uzaktan erişim.", download_url: "https://download.anydesk.com/AnyDesk.exe", official_url: "https://anydesk.com/tr" },
+  { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "1.4.1.1032", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1032.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" },
+
   // Resources
   { id: "ninite", name: "Ninite", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Toplu uygulama yükleme servisi.", official_url: "https://ninite.com/", is_resource: true },
-  { id: "fmhy", name: "FMHY", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Devasa internet araçları rehberi.", official_url: "https://fmhy.net/", is_resource: true }
+  { id: "fmhy", name: "FMHY", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Devasa internet araçları rehberi.", official_url: "https://fmhy.net/", is_resource: true },
+  { id: "uupdump", name: "UUP dump", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Windows ISO dosyaları oluşturma ve indirme aracı.", official_url: "https://uupdump.net/", is_resource: true },
+  { id: "atlasos", name: "AtlasOS", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Oyun ve performans odaklı açık kaynak Windows modifiyesi.", official_url: "https://atlasos.net/", is_resource: true },
+  { id: "revios", name: "ReviOS", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Minimalist, performans odaklı Windows işletim sistemi.", official_url: "https://www.revi.cc/", is_resource: true }
 ];
 
 function App() {
-  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({...a, path: a.id, dependencies: []})));
+  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
   const [currentInstall, setCurrentInstall] = useState(null);
@@ -323,16 +366,17 @@ function App() {
   const [showControlCenter, setShowControlCenter] = useState(true);
   const [dnsOpen, setDnsOpen] = useState(false);
   const [logPanelHeight, setLogPanelHeight] = useState(220);
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const menuBarRef = useRef(null);
   const searchInputRef = useRef(null);
   const logEndRef = useRef(null);
   const isResizingLog = useRef(false);
   const startY = useRef(0);
   const startHeight = useRef(220);
-  
+
   // Sync installers if LEGENDARY_APPS changes (Dev/HMR)
   useEffect(() => {
-    setInstallers(LEGENDARY_APPS.map(a => ({...a, path: a.id, dependencies: []})));
+    setInstallers(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
   }, []);
 
   // Auto-scroll logs
@@ -391,7 +435,7 @@ function App() {
     // Handle Splashscreen: Initial load + 3.5s buffer for professional feel
     const timer = setTimeout(() => {
       invoke("close_splashscreen").catch(e => console.error("Splash error:", e));
-    }, 3500); 
+    }, 3500);
 
     const handleKeyDown = (e) => {
       // Search: Ctrl+F
@@ -428,7 +472,7 @@ function App() {
   useEffect(() => {
     const installersCount = installers.length;
     addLog(`${installersCount} adet efsane uygulama hazır.`, "info");
-    
+
     // Set initial category
     if (categories.length > 0 && !activeCategory) {
       setActiveCategory(categories[0].name);
@@ -508,7 +552,7 @@ function App() {
       map.get(cat).count++;
     }
     const list = Array.from(map.values()).sort((a, b) => a.order - b.order);
-    
+
     // Auto-set first category if none active or current one disappeared
     if (list.length > 0) {
       const exists = list.some(c => c.name === activeCategory);
@@ -539,7 +583,7 @@ function App() {
 
   const toggleSelect = async (path) => {
     if (installing) return;
-    
+
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(path)) {
@@ -556,21 +600,21 @@ function App() {
     try {
       const systemApps = await invoke("get_installed_winget_ids"); // Array of [name, version]
       const newInstalledApps = {};
-      
+
       for (const app of installers) {
         const lowerName = app.name.toLowerCase();
         const lowerId = app.id.toLowerCase();
-        
+
         let match = systemApps.find(([name, _]) => {
-           const lowerN = name.toLowerCase();
-           return lowerN === lowerName || lowerN === lowerId || lowerN.includes(lowerName);
+          const lowerN = name.toLowerCase();
+          return lowerN === lowerName || lowerN === lowerId || lowerN.includes(lowerName);
         });
-        
+
         if (match) {
           newInstalledApps[app.id] = match[1] || "Kurulu";
         }
       }
-      
+
       setInstalledApps(newInstalledApps);
     } catch (e) {
       console.error("Installation status check failed", e);
@@ -586,7 +630,7 @@ function App() {
     setInstalling(true);
     setShowLogs(true);
     addLog(`${app.name} kaldırılıyor...`, "process");
-    
+
     try {
       if (app.portable) {
         await invoke("uninstall_portable", { url: app.download_url, appName: app.name });
@@ -609,7 +653,7 @@ function App() {
 
   const startInstall = async () => {
     if (selected.size === 0 || installing) return;
-    
+
     setInstalling(true);
     setShowLogs(true);
     addLog("Kurulum oturumu başladı.", "info");
@@ -623,7 +667,7 @@ function App() {
       setCurrentInstall(app.name);
       setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
       addLog(`İşlem başlatılıyor: ${app.name}`, "process");
-      
+
       try {
         if (app.script_cmd) {
           addLog(`> Betik çalıştırılıyor: ${app.script_cmd}`, "command");
@@ -636,7 +680,7 @@ function App() {
           addLog(`Başlatıldı: ${app.name}`, "success");
         } else if (app.download_url) {
           addLog(`> curl ile indiriliyor: ${app.download_url}`, "command");
-          await invoke("install_exe_from_url", { 
+          await invoke("install_exe_from_url", {
             url: app.download_url,
             packageId: app.id,
             appName: app.name,
@@ -684,29 +728,29 @@ function App() {
             filters: [{ name: "Stash Bundle", extensions: ["stash"] }]
           });
           if (exportPath) {
-             const bundle = {
-               apps: Array.from(selected),
-               customArgs
-             };
-             await writeTextFile(exportPath, JSON.stringify(bundle));
-             addLog("Paket dışa aktarıldı.", "success");
+            const bundle = {
+              apps: Array.from(selected),
+              customArgs
+            };
+            await writeTextFile(exportPath, JSON.stringify(bundle));
+            addLog("Paket dışa aktarıldı.", "success");
           }
-        } catch(e) { addLog(`Dışa aktarma hatası: ${e}`, "error"); }
+        } catch (e) { addLog(`Dışa aktarma hatası: ${e}`, "error"); }
         break;
       case "import-bundle":
         try {
-           const importPath = await open({
-             multiple: false,
-             filters: [{ name: "Stash Bundle", extensions: ["stash"] }]
-           });
-           if (importPath) {
-              const content = await readTextFile(importPath);
-              const bundle = JSON.parse(content);
-              setSelected(new Set(bundle.apps));
-              if (bundle.customArgs) setCustomArgs(bundle.customArgs);
-              addLog("Paket içe aktarıldı.", "success");
-           }
-        } catch(e) { addLog(`İçe aktarma hatası: ${e}`, "error"); }
+          const importPath = await open({
+            multiple: false,
+            filters: [{ name: "Stash Bundle", extensions: ["stash"] }]
+          });
+          if (importPath) {
+            const content = await readTextFile(importPath);
+            const bundle = JSON.parse(content);
+            setSelected(new Set(bundle.apps));
+            if (bundle.customArgs) setCustomArgs(bundle.customArgs);
+            addLog("Paket içe aktarıldı.", "success");
+          }
+        } catch (e) { addLog(`İçe aktarma hatası: ${e}`, "error"); }
         break;
       case "select-all":
         selectAll();
@@ -746,6 +790,54 @@ function App() {
       ? Math.round((installProgress.done / installProgress.total) * 100)
       : 0;
 
+  const iframeRef = useRef(null);
+
+  const [currentTrackArt, setCurrentTrackArt] = useState(null);
+  const [currentTrackTitle, setCurrentTrackTitle] = useState('KEINEMUSIK');
+
+  useEffect(() => {
+    // Load SoundCloud Widget API
+    const script = document.createElement('script');
+    script.src = "https://w.soundcloud.com/player/api.js";
+    script.async = true;
+    script.onload = () => {
+      if (iframeRef.current) {
+        const widget = window.SC.Widget(iframeRef.current);
+        
+        const updateTrackInfo = () => {
+          widget.getCurrentSound((sound) => {
+            if (sound) {
+              const art = sound.artwork_url || sound.user.avatar_url;
+              setCurrentTrackArt(art);
+              setCurrentTrackTitle(sound.title);
+            }
+          });
+        };
+
+        widget.bind(window.SC.Widget.Events.READY, updateTrackInfo);
+        widget.bind(window.SC.Widget.Events.PLAY, () => {
+          setIsMusicPlaying(true);
+          updateTrackInfo();
+        });
+        widget.bind(window.SC.Widget.Events.PAUSE, () => setIsMusicPlaying(false));
+        widget.bind(window.SC.Widget.Events.FINISH, () => setIsMusicPlaying(false));
+      }
+    };
+    document.body.appendChild(script);
+    
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+
+  const handleIslandClick = () => {
+    setShowMusicPlayer(!showMusicPlayer);
+  };
+
   return (
     <div className={`app-layout theme-${currentTheme}`}>
       <div className="mesh-gradient" />
@@ -772,21 +864,21 @@ function App() {
           </div>
           <h1>STASH<span>ZERO</span><span>STUDIO MASTER SÜRÜMÜ</span></h1>
         </div>
-        
+
         <div className="sidebar-nav">
           {categories.map(cat => (
-            <div 
-              key={cat.name} 
+            <div
+              key={cat.name}
               className={`sidebar-item ${activeCategory === cat.name ? 'active' : ''}`}
-              onClick={() => { 
-                setActiveCategory(cat.name); 
+              onClick={() => {
+                setActiveCategory(cat.name);
                 localStorage.setItem("stash-zero-active-category", cat.name);
-                sounds.playClick(); 
+                sounds.playClick();
               }}
             >
               <div className="sidebar-item-left">
-                 <SidebarIcon type={cat.icon} />
-                 <span>{cat.name}</span>
+                <SidebarIcon type={cat.icon} />
+                <span>{cat.name}</span>
               </div>
               <span className="sidebar-count">{cat.count}</span>
             </div>
@@ -794,41 +886,68 @@ function App() {
         </div>
 
         <div className="sidebar-footer">
-           <div 
-             className="sidebar-item" 
-             onClick={() => handleMenuAction("show-settings")}
-           >
-             <span>Ayarlar</span>
-           </div>
-           <div 
-             className="sidebar-item" 
-             onClick={() => handleMenuAction("toggle-logs")}
-           >
-             <span>Loglar</span>
-           </div>
+          <div
+            className="sidebar-item"
+            onClick={() => handleMenuAction("show-settings")}
+          >
+            <span>Ayarlar</span>
+          </div>
+          <div
+            className="sidebar-item"
+            onClick={() => handleMenuAction("toggle-logs")}
+          >
+            <span>Loglar</span>
+          </div>
         </div>
       </aside>
 
       <main className="main-content">
         <header className="top-bar">
           <div className="top-left">
-             {/* Left side reserved or for branding */}
+            {/* Left side reserved or for branding */}
           </div>
 
           <div className="search-container">
-             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-             <input
-               ref={searchInputRef}
-               type="text"
-               placeholder="Uygulama ara..."
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-             />
-             {!searchTerm && <div className="search-shortcut">CTRL + F</div>}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Uygulama ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {!searchTerm && <div className="search-shortcut">CTRL + F</div>}
+          </div>
+
+          <div className={`music-island ${showMusicPlayer ? 'active' : ''}`}>
+             <div className="island-pill" onClick={handleIslandClick}>
+                <div className="island-icon-container">
+                   {currentTrackArt ? (
+                      <div className="art-wrapper">
+                         <img src={currentTrackArt.replace('large', 't500x500')} alt="Art" className="island-track-art" />
+                         {isMusicPlaying && (
+                            <div className="audio-visualizer-mini">
+                               <div className="bar"></div>
+                               <div className="bar"></div>
+                               <div className="bar"></div>
+                            </div>
+                         )}
+                      </div>
+                   ) : (
+                      <div className={`audio-visualizer ${isMusicPlaying ? 'playing' : ''}`}>
+                         <div className="bar"></div>
+                         <div className="bar"></div>
+                         <div className="bar"></div>
+                         <div className="bar"></div>
+                      </div>
+                   )}
+                </div>
+                <span className="island-text">{isMusicPlaying ? currentTrackTitle : 'KEINEMUSIK'}</span>
+             </div>
           </div>
 
           <div className="top-right">
-             {/* Telemetry is now persistent */}
+            {/* Telemetry is now persistent */}
           </div>
         </header>
 
@@ -853,9 +972,9 @@ function App() {
                 if (app.is_resource) cardClass += " resource-vibe";
 
                 return (
-                  <div 
-                    key={app.path} 
-                    className={cardClass} 
+                  <div
+                    key={app.path}
+                    className={cardClass}
                     onClick={() => {
                       if (app.is_resource && app.official_url) {
                         openUrl(app.official_url);
@@ -877,13 +996,13 @@ function App() {
                       <div className="app-name-row">
                         <span className="app-name">{app.name}</span>
                       </div>
-                      
+
                       <div className="badges-row">
                         {app.portable && <span className="app-badge badge-portable">Taşınabilir</span>}
                         {(!app.is_resource && installedApps[app.id]) && <span className="app-badge badge-installed">Kurulu</span>}
                         <span className="app-badge badge-version">
-                          {installedApps[app.id] && installedApps[app.id] !== "Portable" && installedApps[app.id] !== "Kurulu" 
-                            ? installedApps[app.id] 
+                          {installedApps[app.id] && installedApps[app.id] !== "Portable" && installedApps[app.id] !== "Kurulu"
+                            ? installedApps[app.id]
                             : app.version}
                         </span>
                         {!app.is_resource && !app.script_cmd && app.size_bytes && <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>}
@@ -895,31 +1014,31 @@ function App() {
 
                       <div className="app-actions-top">
                         {app.official_url && (
-                           <button className="icon-action-btn" onClick={(e) => { e.stopPropagation(); openUrl(app.official_url); }} title="Web Sitesi">
-                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                           </button>
+                          <button className="icon-action-btn" onClick={(e) => { e.stopPropagation(); openUrl(app.official_url); }} title="Web Sitesi">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                          </button>
                         )}
                         {(installedApps[app.id] && !app.script_cmd) && (
                           <button className="icon-action-btn delete-vibe" onClick={(e) => { e.stopPropagation(); startUninstall(app); }} title="Kaldır">
-                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                           </button>
                         )}
                         {((installedApps[app.id] && app.portable && !app.script_cmd) || app.script_cmd) && (
-                           <button 
-                             className={`primary-launch-btn ${app.script_cmd ? 'script-vibe' : ''}`}
-                             onClick={(e) => { 
-                               e.stopPropagation(); 
-                               if(app.script_cmd) {
-                                 const cmd = app.id === "officetoolplus" ? "run_ps_script_logged" : "run_ps_script";
-                                 invoke(cmd, {script: app.script_cmd}).then(() => addLog(`${app.name} çalıştırılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error"));
-                                 setShowLogs(true);
-                               } else {
-                                 invoke("launch_portable", {url: app.download_url, appName: app.name, launchFile: app.launch_file}).then(() => addLog(`${app.name} başlatılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error"));
-                               }
-                             }}
-                           >
-                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                           </button>
+                          <button
+                            className={`primary-launch-btn ${app.script_cmd ? 'script-vibe' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (app.script_cmd) {
+                                const cmd = app.id === "officetoolplus" ? "run_ps_script_logged" : "run_ps_script";
+                                invoke(cmd, { script: app.script_cmd }).then(() => addLog(`${app.name} çalıştırılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error"));
+                                setShowLogs(true);
+                              } else {
+                                invoke("launch_portable", { url: app.download_url, appName: app.name, launchFile: app.launch_file }).then(() => addLog(`${app.name} başlatılıyor...`, "success")).catch(err => addLog(`Hata: ${err}`, "error"));
+                              }
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -1005,14 +1124,14 @@ function App() {
                 )}
                 <div ref={logEndRef} />
               </div>
-              
+
               {isSessionActive && (
                 <div className="terminal-input-row" onClick={() => document.getElementById('term-input')?.focus()}>
                   <span className="terminal-prompt">PS &gt;</span>
-                  <input 
+                  <input
                     id="term-input"
-                    type="text" 
-                    className="terminal-input" 
+                    type="text"
+                    className="terminal-input"
                     placeholder="Komut yazın ve Enter'a basın..."
                     value={terminalInput}
                     onChange={(e) => setTerminalInput(e.target.value)}
@@ -1034,7 +1153,7 @@ function App() {
           <div className="cc-header">
             <h2>Sistem Telemetrisi</h2>
           </div>
-          
+
           <div className="cc-content">
             {/* App Selection / Details Area */}
             <div className="cc-section">
@@ -1046,8 +1165,8 @@ function App() {
                 </div>
                 <div className="file-status-item">
                   <span className="file-status-label">Toplam Boyut</span>
-                  <span className="file-status-value">{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0 
-                    ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024*1024)).toFixed(1) + " MB"
+                  <span className="file-status-value">{installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0
+                    ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024 * 1024)).toFixed(1) + " MB"
                     : "0 MB"}</span>
                 </div>
               </div>
@@ -1076,18 +1195,18 @@ function App() {
                         <TelemetryIcon type="ram" />
                         <span className="tel-label">Bellek (RAM)</span>
                       </div>
-                      <span className="tel-value">{Math.round((systemInfo.used_memory/systemInfo.total_memory)*100)}%</span>
+                      <span className="tel-value">{Math.round((systemInfo.used_memory / systemInfo.total_memory) * 100)}%</span>
                     </div>
                     <div className="tel-progress">
-                      <div className="tel-fill" style={{ width: `${(systemInfo.used_memory/systemInfo.total_memory)*100}%` }} />
+                      <div className="tel-fill" style={{ width: `${(systemInfo.used_memory / systemInfo.total_memory) * 100}%` }} />
                     </div>
                   </div>
                   {systemInfo.disks && systemInfo.disks.map((disk, idx) => {
                     const used = disk.total_space - disk.available_space;
                     const pct = Math.round((used / disk.total_space) * 100);
                     return (
-                      <div 
-                        className="telemetry-card clickable" 
+                      <div
+                        className="telemetry-card clickable"
                         key={idx}
                         onClick={() => {
                           invoke("open_drive", { path: disk.mount_point });
@@ -1099,8 +1218,8 @@ function App() {
                           <div className="tel-label-group">
                             <TelemetryIcon type="disk" />
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                               <span className="tel-label">{disk.name || disk.mount_point}</span>
-                               <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{disk.model} ({disk.bus_type})</span>
+                              <span className="tel-label">{disk.name || disk.mount_point}</span>
+                              <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{disk.model} ({disk.bus_type})</span>
                             </div>
                           </div>
                           <span className="tel-value">{pct}%</span>
@@ -1109,7 +1228,7 @@ function App() {
                           <div className="tel-fill" style={{ width: `${pct}%`, background: pct > 90 ? '#ff4757' : 'var(--accent-primary)' }} />
                         </div>
                         <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
-                          {Math.round(used / (1024*1024*1024))} GB / {Math.round(disk.total_space / (1024*1024*1024))} GB
+                          {Math.round(used / (1024 * 1024 * 1024))} GB / {Math.round(disk.total_space / (1024 * 1024 * 1024))} GB
                         </div>
                       </div>
                     );
@@ -1129,7 +1248,7 @@ function App() {
                       <span>İndirme</span>
                     </div>
                     <span>{formatSpeed(systemInfo.net_in)}</span>
-                    <div className="net-activity"><div className="net-activity-bar" style={{width: `${Math.min(100, systemInfo.net_in / 10)}%`}}></div></div>
+                    <div className="net-activity"><div className="net-activity-bar" style={{ width: `${Math.min(100, systemInfo.net_in / 10)}%` }}></div></div>
                   </div>
                   <div className="net-stat upload">
                     <div className="net-stat-header">
@@ -1137,7 +1256,7 @@ function App() {
                       <span>Yükleme</span>
                     </div>
                     <span>{formatSpeed(systemInfo.net_out)}</span>
-                    <div className="net-activity"><div className="net-activity-bar" style={{width: `${Math.min(100, systemInfo.net_out / 10)}%`}}></div></div>
+                    <div className="net-activity"><div className="net-activity-bar" style={{ width: `${Math.min(100, systemInfo.net_out / 10)}%` }}></div></div>
                   </div>
                 </div>
               </div>
@@ -1176,7 +1295,7 @@ function App() {
                   </div>
                   <div className="spec-item">
                     <span className="spec-key">Toplam Bellek</span>
-                    <span className="spec-val">{Math.round(systemInfo.total_memory / (1024*1024*1024))} GB</span>
+                    <span className="spec-val">{Math.round(systemInfo.total_memory / (1024 * 1024 * 1024))} GB</span>
                   </div>
                   <div className="spec-item">
                     <span className="spec-key">Yerel IP</span>
@@ -1184,35 +1303,35 @@ function App() {
                   </div>
                   <div className="spec-item" style={{ position: 'relative' }}>
                     <span className="spec-key">DNS Sunucuları</span>
-                    <span 
-                      className="spec-val" 
-                      style={{ fontSize: '10px', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} 
+                    <span
+                      className="spec-val"
+                      style={{ fontSize: '10px', color: 'var(--accent-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                       title={systemInfo.dns_servers}
                       onClick={(e) => { e.stopPropagation(); setDnsOpen(!dnsOpen); }}
                     >
                       {(() => {
                         const activeDns = POPULAR_DNS.find(d => systemInfo.dns_servers.includes(d.ips[0]));
                         return activeDns && (
-                          <img 
-                            src={SPECIAL_LOGOS[activeDns.slug] || `https://cdn.simpleicons.org/${activeDns.slug}`} 
-                            alt={activeDns.name} 
-                            style={{ width: '12px', height: '12px', filter: 'drop-shadow(0 0 5px var(--accent-glow))' }} 
+                          <img
+                            src={SPECIAL_LOGOS[activeDns.slug] || `https://cdn.simpleicons.org/${activeDns.slug}`}
+                            alt={activeDns.name}
+                            style={{ width: '12px', height: '12px', filter: 'drop-shadow(0 0 5px var(--accent-glow))' }}
                           />
                         );
                       })()}
                       {systemInfo.dns_servers}
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ opacity: 0.5, transform: dnsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="m6 9 6 6 6-6"/></svg>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ opacity: 0.5, transform: dnsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="m6 9 6 6 6-6" /></svg>
                     </span>
-                    
+
                     {dnsOpen && (
                       <div className="dns-quick-list" onClick={(e) => e.stopPropagation()}>
                         <div className="dns-quick-header">
-                           <span>DNS Değiştirici</span>
-                           <button onClick={() => setDnsOpen(false)}>&times;</button>
+                          <span>DNS Değiştirici</span>
+                          <button onClick={() => setDnsOpen(false)}>&times;</button>
                         </div>
                         {POPULAR_DNS.map(dns => (
-                          <div 
-                            key={dns.name} 
+                          <div
+                            key={dns.name}
                             className="dns-quick-item"
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -1237,7 +1356,7 @@ function App() {
                             <span className="dns-q-ips">{dns.ips[0]}</span>
                           </div>
                         ))}
-                        <div 
+                        <div
                           className="dns-quick-item reset"
                           onClick={async (e) => {
                             e.stopPropagation();
@@ -1287,13 +1406,13 @@ function App() {
                   <span className="setting-desc">Kurulum bittikten sonra inen kalıntı dosyaları otomatik siler.</span>
                 </div>
                 <label className="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    checked={autoCleanup} 
+                  <input
+                    type="checkbox"
+                    checked={autoCleanup}
                     onChange={(e) => {
-                       setAutoCleanup(e.target.checked);
-                       localStorage.setItem("stash-zero-cleanup", JSON.stringify(e.target.checked));
-                    }} 
+                      setAutoCleanup(e.target.checked);
+                      localStorage.setItem("stash-zero-cleanup", JSON.stringify(e.target.checked));
+                    }}
                   />
                   <span className="slider"></span>
                 </label>
@@ -1305,14 +1424,14 @@ function App() {
                   <span className="setting-desc">Etkileşimlerde ufak ses bildirimleri çalınsın.</span>
                 </div>
                 <label className="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    checked={soundEnabled} 
+                  <input
+                    type="checkbox"
+                    checked={soundEnabled}
                     onChange={(e) => {
-                       setSoundEnabled(e.target.checked);
-                       sounds.setEnabled(e.target.checked);
-                       localStorage.setItem("stash-zero-sound", JSON.stringify(e.target.checked));
-                    }} 
+                      setSoundEnabled(e.target.checked);
+                      sounds.setEnabled(e.target.checked);
+                      localStorage.setItem("stash-zero-sound", JSON.stringify(e.target.checked));
+                    }}
                   />
                   <span className="slider"></span>
                 </label>
@@ -1375,8 +1494,8 @@ function App() {
                 </div>
               </div>
               <div className="about-desc">
-                StashZero, modern ve hız odaklı bir çevrimdışı uygulama kütüphanesidir. 
-                Gelişmiş telemetri hub'ı ve tek tıkla kurulum özelliği ile 
+                StashZero, modern ve hız odaklı bir çevrimdışı uygulama kütüphanesidir.
+                Gelişmiş telemetri hub'ı ve tek tıkla kurulum özelliği ile
                 profesyonel kullanıcılar için tasarlanmış bir "Ninite" klonudur.
               </div>
               <div className="about-copyright">
@@ -1386,6 +1505,30 @@ function App() {
           </div>
         </div>
       )}
+      {/* ─── Global Music Player Layer ─── */}
+      <div 
+        className={`island-backdrop ${showMusicPlayer ? 'visible' : ''}`} 
+        onClick={() => setShowMusicPlayer(false)}
+      />
+
+      <div className={`island-player-dropdown global-layer ${showMusicPlayer ? 'visible' : 'hidden'}`}>
+        <div className="dropdown-header">
+           <div className="live-dot" />
+           <span>STASH RADIO: KEINEMUSIK</span>
+           <button className="island-close-btn" onClick={() => setShowMusicPlayer(false)}>&times;</button>
+        </div>
+        <iframe 
+           ref={iframeRef}
+           id="sc-widget-player"
+           className="soundcloud-full-player"
+           width="100%" 
+           height="450" 
+           scrolling="no" 
+           frameBorder="no" 
+           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+           src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true"
+         ></iframe>
+      </div>
     </div>
   );
 }
