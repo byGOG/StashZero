@@ -6,75 +6,111 @@ import { open as openUrl } from "@tauri-apps/plugin-shell";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { sounds } from "./utils/audio";
 import "./App.css";
+import { LEGENDARY_APPS, POPULAR_DNS, APP_ICON_MAP, SPECIAL_LOGOS } from "./data/library";
 
 const SidebarIcon = ({ type }) => {
+  const props = { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" };
+  
   switch (type) {
     case "globe": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg {...props}>
         <circle cx="12" cy="12" r="10" />
         <line x1="2" y1="12" x2="22" y2="12" />
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
       </svg>
     );
-    case "terminal": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    case "terminal":
+    case "code": return (
+      <svg {...props}>
         <polyline points="4 17 10 11 4 5" />
         <line x1="12" y1="19" x2="20" y2="19" />
       </svg>
     );
-    case "message": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.7 8.5 8.5 0 0 1 8.5 7.9Z" />
-        <path d="M16 12h.01M12 12h.01M8 12h.01" strokeWidth="3" />
+    case "message":
+    case "message-square":
+    case "message-circle": return (
+      <svg {...props}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     );
-    case "monitor": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    case "monitor":
+    case "tv": return (
+      <svg {...props}>
         <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
         <line x1="8" y1="21" x2="16" y2="21" />
         <line x1="12" y1="17" x2="12" y2="21" />
       </svg>
     );
     case "file-text": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg {...props}>
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
         <line x1="16" y1="13" x2="8" y2="13" />
         <line x1="16" y1="17" x2="8" y2="17" />
-        <polyline points="10 9 9 9 8 9" />
       </svg>
     );
     case "settings": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg {...props}>
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
       </svg>
     );
-    case "gaming": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="6" y1="12" x2="10" y2="12" />
-        <line x1="8" y1="10" x2="8" y2="14" />
-        <line x1="15" y1="13" x2="15.01" y2="13" />
-        <line x1="18" y1="11" x2="18.01" y2="11" />
-        <rect x="2" y="6" width="20" height="12" rx="2" />
+    case "gaming":
+    case "play-circle": return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="10 8 16 12 10 16 10 8" />
       </svg>
     );
-    case "security": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    case "security":
+    case "shield":
+    case "shield-check": return (
+      <svg {...props}>
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     );
     case "script": return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg {...props}>
         <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
         <polyline points="13 2 13 9 20 9" />
         <path d="m8 13 2 2-2 2" />
         <path d="M12 17h3" />
       </svg>
     );
+    case "music": return (
+      <svg {...props}>
+        <path d="M9 18V5l12-2v13" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
+      </svg>
+    );
+    case "video": return (
+      <svg {...props}>
+        <polygon points="23 7 16 12 23 17 23 7" />
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+      </svg>
+    );
+    case "mail": return (
+      <svg {...props}>
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+        <polyline points="22,6 12,13 2,6" />
+      </svg>
+    );
+    case "zap": return (
+      <svg {...props}>
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </svg>
+    );
+    case "cpu": return (
+      <svg {...props}>
+        <rect x="4" y="4" width="16" height="16" rx="2" />
+        <rect x="9" y="9" width="6" height="6" />
+        <path d="M15 2v2M9 2v2M20 15h2M20 9h2M15 20v2M9 20v2M2 15h2M2 9h2" />
+      </svg>
+    );
     default: return (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
+      <svg {...props}>
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
       </svg>
     );
   }
@@ -118,100 +154,24 @@ const formatSpeed = (kbps) => {
   return `${kbps.toFixed(1)} KB/s`;
 };
 
-const POPULAR_DNS = [
-  { name: "Google", ips: ["8.8.8.8", "8.8.4.4"], slug: "google" },
-  { name: "Cloudflare", ips: ["1.1.1.1", "1.0.0.1"], slug: "cloudflare" },
-  { name: "OpenDNS", ips: ["208.67.222.222", "208.67.220.220"], slug: "cisco" }, // OpenDNS is by Cisco
-  { name: "Quad9", ips: ["9.9.9.9", "149.112.112.112"], slug: "quad9" },
-  { name: "AdGuard", ips: ["94.140.14.14", "94.140.15.15"], slug: "adguard" }
-];
-
-const APP_ICON_MAP = {
-  chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
-  discord: "discord", slack: "slack", telegram: "telegram", whatsapp: "whatsapp",
-  zoom: "zoom", teams: "microsoftteams", signal: "signal", skype: "skype",
-  vscode: "visualstudiocode", git: "git", nodejs: "nodedotjs", python: "python",
-  docker: "docker", postman: "postman", putty: "putty", winscp: "winscp",
-  vlc: "vlcmediaplayer", spotify: "spotify", obs: "obsstudio", handbrake: "handbrake",
-  audacity: "audacity", potplayer: "podplayer", kodi: "kodi", plex: "plex",
-  archive: "7zip", winrar: "winrar", rufus: "rufus", notepad: "notepadplusplus",
-  powertoys: "microsoftpowertoys", hwinfo: "hwinfo", cpuz: "cpuid", gpuz: "techpowerup",
-  blender: "blender", gimp: "gimp", inkscape: "inkscape", figma: "figma",
-  steam: "steam", epic: "epicgames", gog: "gogdotcom", origin: "origin",
-  notion: "notion", evernote: "evernote", obsidian: "obsidian", adobe: "adobeacrobatreader",
-  malwarebytes: "malwarebytes", bitwarden: "bitwarden", keepass: "keepassxc", qbittorrent: "qbittorrent",
-  github: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller", etcher: "balenaetcher", ventoy: "ventoy",
-  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge"
-};
-
-const SPECIAL_LOGOS = {
-  chrome: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/chrome.svg",
-  firefox: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/firefox.svg",
-  brave: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/brave.svg",
-  vscode: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vscode.svg",
-  git: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/git.svg",
-  github: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/github-light.svg",
-  python: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/python.svg",
-  adobe: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adobe.svg",
-  rufus: "https://rufus.ie/pics/rufus-128.png",
-  winrar: "https://img.icons8.com/?size=48&id=PLvn50bVGAlA&format=png&color=000000",
-  archive: "https://img.icons8.com/?size=48&id=9ha2laDO6EkM&format=png&color=000000",
-  vlc: "https://img.icons8.com/color/48/vlc.png",
-  handbrake: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/handbrake.svg",
-  spotify: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/spotify.svg",
-  powertoys: "https://img.icons8.com/?size=100&id=9CRu43eXe5Pp&format=png&color=000000",
-  hwinfo: "https://www.hwinfo.com/wp-content/themes/hwinfo/img/logo-sm.png",
-  cpuz: "https://www.cpuid.com/medias/images/softwares/cpu-z.svg",
-  gpuz: "https://tpucdn.com/download/images/37_icon-v1775026065.png",
-  teamviewer: "https://img.icons8.com/?size=100&id=bClIoRlXM2zu&format=png&color=000000",
-  anydesk: "https://img.icons8.com/?size=100&id=cDG2YNX6xhA6&format=png&color=000000",
-  everything: "https://www.voidtools.com/Everything.ico",
-  google: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google.svg",
-  cloudflare: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cloudflare.svg",
-  mullvad: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mullvad-browser.svg",
-  zen: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zen-browser-dark.svg",
-  tor: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tor.png",
-  discord: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/discord.svg",
-  whatsapp: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/whatsapp.svg",
-  telegram: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/telegram.svg",
-  steam: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/steam.svg",
-  epic: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/epic-games-light.svg",
-  bitwarden: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bitwarden.svg",
-  qbittorrent: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg",
-  mas: "https://massgrave.dev/img/logo.png",
-  officetoolplus: "https://officetool.plus/favicon.ico",
-  cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
-  sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png",
-  ninite: "https://files.catbox.moe/gc2nyw.png",
-  fmhy: "https://i.postimg.cc/DwX0TKS3/fmhy.png",
-  powershell7: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/powershell.svg",
-  uupdump: "https://uupdump.net/favicon.ico",
-  atlasos: "https://atlasos.net/favicon.ico",
-  revios: "https://www.revi.cc/favicon.ico",
-  burnintest: "https://www.passmark.com/products/burnintest/img/bit_logo_sm.png",
-  furmark2: "https://geeks3d.com/furmark/i/20240220-furmark-logo-02.png",
-  occt: "https://www.ocbase.com/favicon.ico",
-  performancetest: "https://www.passmark.com/products/performancetest/img/pt_logo_sm.png",
-  processlasso: "https://bitsum.com/wp-content/uploads/2016/09/lasso_logo_200.png",
-  sysinternals: "https://img.icons8.com/fluency/48/000000/microsoft.png",
-  "amd-adrenalin": "https://img.icons8.com/color/48/amd.png",
-  rapr: "https://img.icons8.com/fluency/48/000000/system-task.png",
-  "intel-dsa": "https://img.icons8.com/color/48/intel.png",
-  "nvidia-app": "https://img.icons8.com/color/48/nvidia.png",
-  bcuninstaller: "https://www.bcuninstaller.com/favicon.ico",
-  bleachbit: "https://www.bleachbit.org/favicon.ico",
-  ooappbuster: "https://www.oo-software.com/favicon.ico",
-  sophia: "https://sophia.team/favicon.ico",
-  sophiaapp: "https://sophia.team/favicon.ico",
-  unigetui: "https://unigetui.com/favicon.ico",
-  wiztree: "https://diskanalyzer.com/favicon.ico",
-  optimizer: "https://github.com/hellzerg/optimizer/raw/master/optimizer/Resources/icon.png",
-  teracopy: "https://www.codesector.com/favicon.ico",
-  hashcheck: "https://img.icons8.com/fluency/48/000000/fingerprint.png",
-  winconfigs: "https://fr0st.xyz/favicon.ico",
-  onecommander: "https://www.onecommander.com/favicon.ico",
-  raphidebloat: "https://raphi.re/favicon.ico"
-};
+const ProjectLogo = ({ size = 80, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" className={`project-logo-svg ${className}`}>
+    <defs>
+      <linearGradient id="logo-grad-unified" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#00ff9f" />
+        <stop offset="100%" stopColor="#00c9ff" />
+      </linearGradient>
+      <filter id="glow-unified">
+        <feGaussianBlur stdDeviation="3.5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logo-grad-unified)" strokeWidth="1.5" opacity="0.3" strokeDasharray="10 5" />
+    <path d="M50 15 A35 35 0 0 1 85 50 A35 35 0 0 1 50 85 A35 35 0 0 1 15 50 A35 35 0 0 1 50 15" fill="none" stroke="url(#logo-grad-unified)" strokeWidth="3" filter="url(#glow-unified)" />
+    <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="url(#logo-grad-unified)" strokeWidth="10" strokeLinecap="round" filter="url(#glow-unified)" />
+    <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.5" />
+  </svg>
+);
 
 const AppLogo = ({ id, className, ...props }) => {
   if (SPECIAL_LOGOS[id]) {
@@ -232,108 +192,13 @@ const AppLogo = ({ id, className, ...props }) => {
         alt={id}
         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         onError={(e) => {
-          e.target.src = "https://img.icons8.com/color/48/software.png";
+          e.target.style.display = 'none';
+          e.target.parentElement.innerHTML = '<div class="fallback-logo-wrap"><svg width="24" height="24" viewBox="0 0 100 100"><path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#00ff9f" stroke-width="12" stroke-linecap="round" /></svg></div>';
         }}
       />
     </div>
   );
 };
-
-const LEGENDARY_APPS = [
-  // Tarayıcılar
-  { id: "chrome", name: "Google Chrome", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "123.0", description: "Hızlı ve güvenli web tarayıcısı.", download_url: "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B104F5E68-9A74-4C7D-8E14-4197B8233C92%7D%26lang%3Dtr%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dtrue%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe", official_url: "https://www.google.com/chrome/" },
-  { id: "firefox", name: "Firefox", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, version: "124.0", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/" },
-  { id: "brave", name: "Brave", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 105, version: "1.64.x", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/latest/winx64", official_url: "https://brave.com/tr/" },
-  { id: "mullvad", name: "Mullvad Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, version: "13.0.x", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/en/download/browser/windows/latest", official_url: "https://mullvad.net/en/browser" },
-  { id: "zen", name: "Zen Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 110, version: "1.0.x", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/" },
-  { id: "tor", name: "Tor Browser", category: "Tarayıcılar", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "13.0.x", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/13.0.14/torbrowser-install-win64-13.0.14_ALL.exe", official_url: "https://www.torproject.org/" },
-
-  // Communication
-  { id: "discord", name: "Discord", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024 * 1024 * 85, version: "1.0.x", description: "Oyuncular için iletişim platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
-  { id: "whatsapp", name: "WhatsApp", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024 * 1024 * 120, version: "2.24.x", description: "Mesajlaşma uygulaması.", download_url: "https://web.whatsapp.com/desktop/windows/release/x64/WhatsAppSetup.exe", official_url: "https://www.whatsapp.com/" },
-  { id: "telegram", name: "Telegram", category: "Sosyal & İletişim", category_order: 20, icon: "message", size_bytes: 1024 * 1024 * 35, version: "4.15.x", description: "Güvenli ve hızlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://telegram.org/" },
-
-  // Media
-  { id: "vlc", name: "VLC Player", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024 * 1024 * 42, version: "3.0.20", description: "Her türlü medyayı oynatın.", download_url: "https://get.videolan.org/vlc/last/win64/vlc-3.0.18-win64.exe", official_url: "https://www.videolan.org/vlc/" },
-  { id: "spotify", name: "Spotify", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024 * 1024 * 88, version: "1.2.x", description: "Sınırsız müzik ve podcast.", download_url: "https://download.scdn.co/SpotifySetup.exe", official_url: "https://www.spotify.com/" },
-  { id: "handbrake", name: "HandBrake", category: "Medya & Tasarım", category_order: 40, icon: "monitor", size_bytes: 1024 * 1024 * 22, version: "1.7.x", description: "Video format dönüştürücü.", download_url: "https://github.com/HandBrake/HandBrake/releases/download/1.6.1/HandBrake-1.6.1-x86_64-Win_GUI.exe", official_url: "https://handbrake.fr/" },
-
-  // Development
-  { id: "vscode", name: "VS Code", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 90, version: "1.89.x", description: "En popüler kod editörü.", download_url: "https://update.code.visualstudio.com/latest/win32-x64-user/stable", official_url: "https://code.visualstudio.com/" },
-  { id: "git", name: "Git", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 55, version: "2.44.x", description: "Versiyon kontrol sistemi.", download_url: "https://github.com/git-for-windows/git/releases/download/v2.41.0.windows.1/Git-2.41.0-64-bit.exe", official_url: "https://git-scm.com/" },
-  { id: "github", name: "GitHub Desktop", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 110, version: "3.3.x", description: "Görsel Git istemcisi.", download_url: "https://central.github.com/deployments/desktop/desktop/latest/win32/x64", official_url: "https://desktop.github.com/" },
-  { id: "python", name: "Python", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 25, version: "3.12.x", description: "Çok amaçlı programlama dili.", download_url: "https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe", official_url: "https://www.python.org/" },
-  { id: "powershell7", name: "PowerShell 7", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 110, version: "7.6.0", description: "Modern, güçlü ve çapraz platform kabuk.", download_url: "https://github.com/PowerShell/PowerShell/releases/download/v7.6.0/PowerShell-7.6.0-win-x64.msi", official_url: "https://learn.microsoft.com/tr-tr/powershell/" },
-  { id: "winmerge", name: "WinMerge", category: "Yazılım & Geliştirme", category_order: 50, icon: "terminal", size_bytes: 1024 * 1024 * 20, version: "2.16.54.2", description: "Dosya ve dizin karşılaştırma/birleştirme aracı.", download_url: "https://downloads.sourceforge.net/winmerge/WinMerge-2.16.54.2-x64-Setup.exe", official_url: "https://winmerge.org/" },
-
-  // System & Tools
-  { id: "archive", name: "7-Zip", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "26.00", description: "Gelişmiş dosya sıkıştırıcı.", download_url: "https://github.com/ip7z/7zip/releases/download/26.00/7z2600-x64.exe", official_url: "https://www.7-zip.org/" },
-  { id: "winrar", name: "WinRAR", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, version: "7.20 TR", description: "Profesyonel arşiv yönetimi.", download_url: "https://www.rarlab.com/rar/winrar-x64-720tr.exe", official_url: "https://www.rarlab.com/" },
-  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, version: "4.4.x", description: "Format USB hazırlama aracı.", download_url: "https://github.com/pbatard/rufus/releases/download/v4.2/rufus-4.2.exe", launch_file: "rufus.exe", portable: true, official_url: "https://rufus.ie/tr/" },
-  { id: "etcher", name: "balenaEtcher", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 150, version: "2.1.4", description: "OS kalıplarını USB/SD kartlara yazdırın.", download_url: "https://github.com/balena-io/etcher/releases/download/v2.1.4/balenaEtcher-2.1.4.Setup.exe", official_url: "https://www.balena.io/etcher/" },
-  { id: "ventoy", name: "Ventoy", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 15, version: "1.1.11", description: "Çoklu ISO önyüklemeli USB oluşturma aracı.", download_url: "https://sourceforge.net/projects/ventoy/files/v1.1.11/ventoy-1.1.11-windows.zip/download", launch_file: "Ventoy2Disk.exe", portable: true, official_url: "https://www.ventoy.net/" },
-  { id: "win10mct", name: "Windows 10 Media Creation Tool", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 18, version: "Latest", description: "Windows 10 ISO indirme ve kurulum aracı.", download_url: "https://go.microsoft.com/fwlink/?LinkId=2265055", official_url: "https://www.microsoft.com/tr-tr/software-download/windows10" },
-  { id: "win11mct", name: "Windows 11 Media Creation Tool", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 10, version: "Latest", description: "Windows 11 ISO indirme ve kurulum aracı.", download_url: "https://go.microsoft.com/fwlink/?linkid=2156295", official_url: "https://www.microsoft.com/tr-tr/software-download/windows11" },
-  { id: "notepad", name: "Notepad++", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 4, version: "8.6.x", description: "Gelişmiş metin düzenleyici.", download_url: "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.7/npp.8.5.7.Installer.x64.exe", official_url: "https://notepad-plus-plus.org/" },
-  { id: "powertoys", name: "PowerToys", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 150, version: "0.80.x", description: "Windows üretkenlik araçları.", download_url: "https://github.com/microsoft/PowerToys/releases/download/v0.74.0/PowerToysSetup-0.74.0-x64.exe", official_url: "https://learn.microsoft.com/en-us/windows/powertoys/" },
-  { id: "hwinfo", name: "HWiNFO", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 10, version: "8.44", description: "Donanım analiz ve izleme.", download_url: "https://www.hwinfo.com/files/hwi64_844.exe", official_url: "https://www.hwinfo.com/" },
-  { id: "cpuz", name: "CPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "2.19", description: "İşlemci bilgi aracı.", download_url: "https://www.cpuid.com/downloads/cpu-z/cpu-z_2.19-en.exe", official_url: "https://www.cpuid.com/softwares/cpu-z.html" },
-  { id: "gpuz", name: "GPU-Z", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 9, version: "2.58", description: "Ekran kartı bilgi aracı.", download_url: "https://www.techpowerup.com/download/techpowerup-gpu-z/", official_url: "https://www.techpowerup.com/gpuz/" },
-  { id: "sdi", name: "Snappy Driver Installer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 5, version: "1.17.8", description: "Gelişmiş sürücü yükleme ve güncelleme aracı.", download_url: "https://www.glenn.delahoy.com/downloads/sdio/SDIO_1.17.8.829.zip", launch_file: "SDIO_auto.bat", portable: true, official_url: "https://snappy-driver-installer.org/" },
-  { id: "burnintest", name: "BurnInTest", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 60, version: "11.0", description: "Kapsamlı sistem kararlılık ve yük testi aracı.", download_url: "https://www.passmark.com/downloads/BurnInTest_Windows_x86-64.exe", official_url: "https://www.passmark.com/products/burnintest/index.php" },
-  { id: "performancetest", name: "PerformanceTest", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 70, version: "11.0", description: "Donanım benchmark ve performans değerlendirme aracı.", download_url: "https://www.passmark.com/downloads/PerformanceTest_Windows_x86-64.exe", official_url: "https://www.passmark.com/products/performancetest/index.php" },
-  { id: "furmark2", name: "FurMark 2", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 12, version: "2.1.0", description: "Ekran kartı stres testi ve benchmark aracı.", download_url: "https://geeks3d.com/dl/get/831", official_url: "https://geeks3d.com/furmark/" },
-  { id: "occt", name: "OCCT", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 35, version: "Latest", description: "Hepsi bir arada sistem kararlılık testi ve donanım izleme aracı.", download_url: "https://www.ocbase.com/download/edition:Personal/os:Windows", official_url: "https://www.ocbase.com/" },
-  { id: "processlasso", name: "Process Lasso", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, version: "Latest", description: "Gelişmiş işlem önceliği optimizasyonu ve sistem otomasyonu.", download_url: "https://dl.bitsum.com/files/processlassosetup64.exe", official_url: "https://bitsum.com/" },
-  { id: "sysinternals", name: "Sysinternals Suite", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 50, version: "Latest", description: "Microsoft'un gelişmiş sistem yönetim ve hata ayıklama araçları paketi.", download_url: "https://download.sysinternals.com/files/SysinternalsSuite.zip", official_url: "https://learn.microsoft.com/en-us/sysinternals/", portable: true },
-  { id: "amd-adrenalin", name: "AMD Software: Adrenalin Edition", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 60, version: "26.3.1", description: "AMD ekran kartları için sürücü ve kontrol paneli (Minimal Kurulum).", download_url: "https://drivers.amd.com/drivers/installer/25.30/whql/amd-software-adrenalin-edition-26.3.1-minimalsetup-260317_web.exe", official_url: "https://www.amd.com/en/support" },
-  { id: "rapr", name: "DriverStore Explorer (RAPR)", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "1.0.26", description: "Sürücü mağazasını temizlemek ve yönetmek için gelişmiş araç.", download_url: "https://github.com/lostindark/DriverStoreExplorer/releases/download/v1.0.26/DriverStoreExplorer-v1.0.26.zip", launch_file: "Rapr.exe", portable: true, official_url: "https://github.com/lostindark/DriverStoreExplorer" },
-  { id: "intel-dsa", name: "Intel Driver & Support Assistant", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "Intel donanımlarınız için sürücü güncelleme ve sistem tarama aracı.", download_url: "https://dsadata.intel.com/installer", official_url: "https://www.intel.com/content/www/us/en/support/detect.html" },
-  { id: "nvidia-app", name: "NVIDIA App", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 120, version: "11.0.6", description: "NVIDIA ekran kartları için modern sürücü ve kontrol merkezi.", download_url: "https://tr.download.nvidia.com/nvapp/client/11.0.6.383/NVIDIA_app_v11.0.6.383.exe", official_url: "https://www.nvidia.com/tr-tr/software/nvidia-app/" },
-  { id: "bcuninstaller", name: "Bulk Crap Uninstaller (BCU)", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 100, version: "6.1", description: "Gelişmiş toplu uygulama kaldırma ve artık temizleme aracı.", download_url: "https://github.com/Klocman/Bulk-Crap-Uninstaller/releases/download/v6.1/BCUninstaller_6.1.0.1_setup.exe", official_url: "https://www.bcuninstaller.com/" },
-  { id: "bleachbit", name: "BleachBit", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 15, version: "5.0.2", description: "Sistem temizleyici ve gizlilik koruma aracı.", download_url: "https://www.bleachbit.org/download/file/t?file=BleachBit-5.0.2-setup.exe", official_url: "https://www.bleachbit.org/" },
-  { id: "ooappbuster", name: "O&O AppBuster", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "Latest", description: "Windows ile gelen istenmeyen uygulamaları kolayca kaldırın.", download_url: "https://dl5.oo-software.com/files/ooappbuster/OOAPB.exe", official_url: "https://www.oo-software.com/en/ooappbuster", portable: true },
-  { id: "sophiaapp", name: "SophiApp (GUI)", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Sophia Script'in modern grafik arayüzlü versiyonu.", download_url: "https://github.com/Sophia-Community/SophiApp/releases/latest/download/SophiApp.zip", launch_file: "SophiApp.exe", portable: true, official_url: "https://sophia.team/" },
-  { id: "unigetui", name: "UniGetUI", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 50, version: "Latest", description: "Winget, Scoop ve Chocolatey için evrensel arayüz.", download_url: "https://github.com/marticliment/UniGetUI/releases/latest/download/UniGetUI.Installer.exe", official_url: "https://www.unigetui.com/" },
-  { id: "wiztree", name: "WizTree", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 6, version: "4.31", description: "Dünyanın en hızlı disk alanı analiz aracı.", download_url: "https://diskanalyzer.com/files/wiztree_4_31_setup.exe", official_url: "https://diskanalyzer.com/" },
-  { id: "optimizer", name: "Optimizer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 3, version: "Latest", description: "Windows performans ve gizlilik optimizasyon aracı.", download_url: "https://github.com/hellzerg/optimizer/releases/latest/download/Optimizer.exe", portable: true, official_url: "https://github.com/hellzerg/optimizer" },
-  { id: "teracopy", name: "TeraCopy", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 8, version: "Latest", description: "Hızlı ve güvenilir dosya kopyalama/taşıma aracı.", download_url: "https://www.codesector.com/files/teracopy.exe", official_url: "https://www.codesector.com/teracopy" },
-  { id: "hashcheck", name: "HashCheck", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 1, version: "2.5.0", description: "Windows Shell için dosya doğrulama ve hash hesaplama aracı.", download_url: "https://github.com/idrassi/HashCheck/releases/download/v2.5.0/HashCheckSetup-v2.5.0.1.exe", official_url: "https://github.com/idrassi/HashCheck" },
-  { id: "onecommander", name: "OneCommander", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 45, version: "3.108", description: "Modern ve güçlü çift bölmeli dosya yöneticisi.", download_url: "https://www.onecommander.com/OneCommanderSetup3.108.0.0.msi", official_url: "https://www.onecommander.com/" },
-
-  // Scripts
-  { id: "mas", name: "Microsoft Activation Script", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "2.5.x", description: "Windows ve Office aktivasyon betiği.", script_cmd: "irm https://get.activated.win | iex", official_url: "https://massgrave.dev/" },
-  { id: "officetoolplus", name: "Office Tool Plus", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "10.10", description: "Office indirme ve yönetim aracı.", script_cmd: "irm https://officetool.plus | iex", official_url: "https://officetool.plus/" },
-  { id: "cttwin", name: "Chris Titus Tech's Windows Utility", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "2024.x", description: "Windows optimizasyon ve debloat aracı.", script_cmd: 'irm "https://christitus.com/win" | iex', official_url: "https://winutil.christitus.com/" },
-  { id: "sophia", name: "Sophia Script for Windows", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "Latest", description: "Windows ince ayar, optimizasyon ve debloat betiği.", script_cmd: "iwr script.sophia.team -useb | iex", official_url: "https://sophia.team/" },
-  { id: "winconfigs", name: "WinConfigs", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "Latest", description: "Fr0st'un Windows kişiselleştirme ve yapılandırma betiği.", script_cmd: 'iwr "https://fr0st.xyz/winconfigs" | iex', official_url: "https://fr0st.xyz/" },
-  { id: "raphidebloat", name: "Raphi's Windows Debloater", category: "Özel Betikler", category_order: 100, icon: "script", size_bytes: 0, version: "Latest", description: "Modern ve hafif Windows debloat/optimizasyon betiği.", script_cmd: '& ([scriptblock]::Create((irm "https://debloat.raphi.re/")))', official_url: "https://debloat.raphi.re/" },
-
-  // Gaming
-  { id: "steam", name: "Steam", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024 * 1024 * 2, version: "Latest", description: "Dijital oyun kütüphanesi.", download_url: "https://repo.steampowered.com/windows/SteamSetup.exe", official_url: "https://store.steampowered.com/" },
-  { id: "epic", name: "Epic Games", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024 * 1024 * 150, version: "Latest", description: "Epic Games mağazası.", download_url: "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", official_url: "https://store.epicgames.com/tr" },
-  { id: "gog", name: "GOG Galaxy", category: "Oyun & Mağazalar", category_order: 80, icon: "gaming", size_bytes: 1024 * 1024 * 220, version: "2.0.x", description: "Oyunı birleştiren platform.", download_url: "https://cdn.gog.com/open/galaxy/client/2.0.71.2/setup_galaxy_2.0.71.2.exe", official_url: "https://www.gog.com/galaxy" },
-
-  // Office
-  { id: "adobe", name: "Adobe Reader", category: "Ofis & Verimlilik", category_order: 30, icon: "file-text", size_bytes: 1024 * 1024 * 200, version: "2024.x", description: "PDF okuma ve düzenleme.", download_url: "https://get.adobe.com/tr/reader/", official_url: "https://www.adobe.com/tr/acrobat/pdf-reader.html" },
-
-  // Security
-  { id: "malwarebytes", name: "Malwarebytes", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024 * 1024 * 120, version: "5.0.x", description: "Güçlü antivirüs ve temizleyici.", download_url: "https://downloads.malwarebytes.com/file/mb-windows", official_url: "https://www.malwarebytes.com/" },
-  { id: "bitwarden", name: "Bitwarden", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024 * 1024 * 85, version: "2024.x", description: "Şifre yönetim çözümü.", download_url: "https://vault.bitwarden.com/download/?app=desktop&platform=windows", official_url: "https://bitwarden.com/" },
-  { id: "qbittorrent", name: "qBittorrent", category: "Güvenlik & Gizlilik", category_order: 90, icon: "security", size_bytes: 1024 * 1024 * 28, version: "4.6.x", description: "Hızlı torrent istemcisi.", download_url: "https://github.com/qbittorrent/qBittorrent/releases/download/release-4.5.5/qbittorrent_4.5.5_x64_setup.exe", official_url: "https://www.qbittorrent.org/" },
-
-  // More Utilities
-  { id: "teamviewer", name: "TeamViewer", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 35, version: "15.x", description: "Uzaktan masaüstü erişmi.", download_url: "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe", official_url: "https://www.teamviewer.com/tr/" },
-  { id: "anydesk", name: "AnyDesk", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 5, version: "8.0.x", description: "Hızlı uzaktan erişim.", download_url: "https://download.anydesk.com/AnyDesk.exe", official_url: "https://anydesk.com/tr" },
-  { id: "everything", name: "Everything", category: "Sistem Araçları", category_order: 70, icon: "settings", size_bytes: 1024 * 1024 * 2, version: "1.4.1.1032", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1032.x64-Setup.exe", official_url: "https://www.voidtools.com/tr-tr/" },
-
-  // Resources
-  { id: "ninite", name: "Ninite", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Toplu uygulama yükleme servisi.", official_url: "https://ninite.com/", is_resource: true },
-  { id: "fmhy", name: "FMHY", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Devasa internet araçları rehberi.", official_url: "https://fmhy.net/", is_resource: true },
-  { id: "uupdump", name: "UUP dump", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Windows ISO dosyaları oluşturma ve indirme aracı.", official_url: "https://uupdump.net/", is_resource: true },
-  { id: "atlasos", name: "AtlasOS", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Oyun ve performans odaklı açık kaynak Windows modifiyesi.", official_url: "https://atlasos.net/", is_resource: true },
-  { id: "revios", name: "ReviOS", category: "Faydalı Kaynaklar", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Minimalist, performans odaklı Windows işletim sistemi.", official_url: "https://www.revi.cc/", is_resource: true }
-];
 
 function App() {
   const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
@@ -345,7 +210,7 @@ function App() {
   const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
   const [appProgress, setAppProgress] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentTheme, setCurrentTheme] = useState("studio");
+  const [currentTheme, setCurrentTheme] = useState("obsidian");
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -844,25 +709,10 @@ function App() {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-wrapper">
-            <svg width="80" height="80" viewBox="0 0 100 100" className="project-logo-svg">
-              <defs>
-                <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00ff9f" />
-                  <stop offset="100%" stopColor="#00c9ff" />
-                </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3.5" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-              </defs>
-              <circle cx="50" cy="50" r="45" fill="none" stroke="url(#logo-grad)" strokeWidth="1.5" opacity="0.3" strokeDasharray="10 5" />
-              <path d="M50 15 A35 35 0 0 1 85 50 A35 35 0 0 1 50 85 A35 35 0 0 1 15 50 A35 35 0 0 1 50 15" fill="none" stroke="url(#logo-grad)" strokeWidth="3" filter="url(#glow)" />
-              <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="url(#logo-grad)" strokeWidth="10" strokeLinecap="round" filter="url(#glow)" />
-              <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.5" />
-            </svg>
+            <ProjectLogo className="project-logo-svg" />
             <div className="logo-glow" />
           </div>
-          <h1>STASH<span>ZERO</span><span>STUDIO MASTER SÜRÜMÜ</span></h1>
+          <h1>StashZero</h1>
         </div>
 
         <div className="sidebar-nav">
@@ -1394,7 +1244,7 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Stash Ayarları</h2>
+              <h2>StashZero Ayarları</h2>
               <button className="close-btn circle modern-modal-close" onClick={() => setShowSettings(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
@@ -1443,9 +1293,11 @@ function App() {
                   <span className="setting-desc">Uygulama arayüzünün estetiğini belirleyin.</span>
                 </div>
                 <div className="theme-selector modern">
-                  <button className={currentTheme === "neon" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "neon")}>Neon</button>
-                  <button className={currentTheme === "sleek" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "sleek")}>Sleek</button>
-                  <button className={currentTheme === "cyber" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "cyber")}>Cyber</button>
+                  <button className={currentTheme === "obsidian" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "obsidian")}>Obsidian</button>
+                  <button className={currentTheme === "violet" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "violet")}>Violet</button>
+                  <button className={currentTheme === "arctic" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "arctic")}>Arctic</button>
+                  <button className={currentTheme === "crimson" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "crimson")}>Crimson</button>
+                  <button className={currentTheme === "gold" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "gold")}>Gold</button>
                 </div>
               </div>
 
@@ -1467,12 +1319,9 @@ function App() {
             </div>
             <div className="modal-body about-body">
               <div className="about-branding">
-                <svg width="60" height="60" viewBox="0 0 100 100">
-                  <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#00ff9f" strokeWidth="10" strokeLinecap="round" />
-                </svg>
+                <ProjectLogo size={60} />
                 <div className="about-title">
-                  <h3>STASH<span>ZERO</span></h3>
-                  <p>Studio Master Sürümü</p>
+                  <h3>StashZero</h3>
                 </div>
               </div>
               <div className="about-info-grid">

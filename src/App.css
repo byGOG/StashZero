@@ -1,48 +1,75 @@
 :root {
   --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   
-  /* Modern Studio Theme - Base */
-  --bg-main: #02040a;
-  --bg-sidebar: rgba(8, 12, 24, 0.45);
-  --bg-card: rgba(255, 255, 255, 0.02);
-  --bg-card-hover: rgba(255, 255, 255, 0.05);
+  /* Frosted Obsidian - Modern Dark Theme */
+  --bg-main: radial-gradient(circle at top left, #0e101a 0%, #050608 100%);
+  --bg-sidebar: rgba(10, 11, 16, 0.85);
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
   
-  /* Accent System - Neon Mint & Sky */
-  --accent-primary: #00ff9f; /* Neon Mint */
-  --accent-secondary: #0ea5e9; /* Sky Blue */
-  --accent-glow: rgba(0, 255, 159, 0.4);
+  /* Accent System - Solar Mint & Cyan */
+  --accent-primary: #00ff9f;
+  --accent-secondary: #00e5ff;
+  --accent-glow: rgba(0, 255, 159, 0.3);
   
-  /* Text System */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* Text System - Pure Clarity */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
   
-  /* Glass & Borders */
-  --glass-blur: blur(24px);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(0, 255, 159, 0.3);
+  /* Glass & Borders - Ultra Soft */
+  --glass-blur: blur(50px);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(0, 255, 159, 0.35);
   
   /* Radii */
-  --radius-xl: 32px;
-  --radius-lg: 20px;
-  --radius-md: 12px;
+  --radius-xl: 40px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
   --radius-sm: 8px;
   
   /* Shadow & Depth */
-  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.2);
-  --shadow-glow: 0 0 30px var(--accent-glow);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 12px 24px -4px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 40px 80px -10px rgba(0, 0, 0, 0.9);
+  --shadow-glow: 0 0 50px var(--accent-glow);
 }
 
-.theme-studio {
-  --accent-primary: #8b5cf6;
-  --bg-main: #020617;
+/* ─── 5 Modern Themes ─── */
+.theme-obsidian {
+  /* Already default, but explicitly override if needed */
 }
 
-.theme-mint {
-  --accent-primary: #10b981;
-  --accent-glow: rgba(16, 185, 129, 0.3);
+.theme-violet {
+  --accent-primary: #a855f7;
+  --accent-secondary: #ec4899;
+  --accent-glow: rgba(168, 85, 247, 0.4);
+  --bg-main: radial-gradient(circle at top left, #120b24 0%, #050508 100%);
+  --glass-border-hover: rgba(168, 85, 247, 0.4);
+}
+
+.theme-arctic {
+  --accent-primary: #00d2ff;
+  --accent-secondary: #94a3b8;
+  --accent-glow: rgba(0, 210, 255, 0.4);
+  --bg-main: radial-gradient(circle at top right, #0a1118 0%, #05080a 100%);
+  --glass-border-hover: rgba(0, 210, 255, 0.4);
+}
+
+.theme-crimson {
+  --accent-primary: #ff4757;
+  --accent-secondary: #ff6b81;
+  --accent-glow: rgba(255, 71, 87, 0.4);
+  --bg-main: radial-gradient(circle at bottom left, #1a0a0a 0%, #080505 100%);
+  --glass-border-hover: rgba(255, 71, 87, 0.4);
+}
+
+.theme-gold {
+  --accent-primary: #fbbf24;
+  --accent-secondary: #d97706;
+  --accent-glow: rgba(251, 191, 36, 0.3);
+  --bg-main: radial-gradient(circle at center, #0f1016 0%, #050508 100%);
+  --glass-border-hover: rgba(251, 191, 36, 0.4);
 }
 
 * {
@@ -219,13 +246,18 @@ body {
 }
 
 .sidebar-logo h1 {
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 900;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   text-transform: uppercase;
   margin: 0;
   color: #fff;
   text-align: center;
+  font-family: 'Outfit', sans-serif;
+  background: linear-gradient(to bottom, #fff, #888);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 159, 0.2));
 }
 
 .sidebar-logo h1 span {
@@ -1008,8 +1040,8 @@ body {
   line-height: 1.4;
   margin-top: 4px;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-align: left;
@@ -1117,13 +1149,14 @@ body {
 /* ─── Action Bar ─── */
 .action-bar {
   padding: 32px 40px;
-  background: rgba(8, 12, 24, 0.6);
-  backdrop-filter: blur(32px);
-  border-top: 1px solid var(--glass-border);
+  background: #07080c;
+  backdrop-filter: var(--glass-blur);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 100;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .selection-info {
@@ -1549,9 +1582,9 @@ body {
 /* ─── Control Center (Right Sidebar) ─── */
 .control-center {
   width: 360px;
-  background: rgba(10, 15, 20, 0.4);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  background: var(--bg-sidebar);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-left: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
