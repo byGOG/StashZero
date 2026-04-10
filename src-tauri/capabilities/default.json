@@ -7,6 +7,16 @@
   ],
   "permissions": [
     "core:default",
-    "dialog:default"
+    "dialog:default",
+    "shell:default",
+    {
+      "identifier": "shell:allow-open",
+      "scope": [
+        {
+          "schemes": ["http", "https"]
+        }
+      ]
+    },
+    "fs:default"
   ]
 }
