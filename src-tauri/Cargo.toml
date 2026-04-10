@@ -33,5 +33,6 @@ hex = "0.4.3"
 windows-sys = { version = "0.52.0", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_LibraryLoader"] }
 sysinfo = "0.29.11"
 tokio = { version = "1", features = ["full"] }
+tauri-plugin-single-instance = "2"
 once_cell = "1.19"
 regex = "1.10"
