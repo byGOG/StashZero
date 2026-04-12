@@ -143,8 +143,8 @@ body {
 }
 
 .sidebar {
-  width: 240px;
-  min-width: 240px;
+  width: 300px;
+  min-width: 300px;
   background: var(--bg-sidebar);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -287,12 +287,26 @@ body {
   color: var(--text-secondary);
   border: 1px solid transparent;
   font-size: 12px;
+  min-width: 0;
+  gap: 12px;
 }
 
 .sidebar-item-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0; /* Allow the container to shrink */
+  flex: 1;
+}
+
+.sidebar-item-left span {
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.sidebar-count {
+  flex-shrink: 0; /* Ensure the number bubble never shrinks or cuts off */
+  margin-left: 8px;
 }
 
 .sidebar-item svg {
@@ -826,7 +840,7 @@ body {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  padding-right: 50px;
+  padding-right: 32px; /* Reduced from 50px */
 }
 
 .app-name-row {
@@ -834,7 +848,7 @@ body {
   align-items: center;
   gap: 8px;
   min-width: 0;
-  padding-right: 90px;
+  padding-right: 72px; /* Reduced from 90px to give more space for the name */
 }
 
 .app-name {
@@ -842,6 +856,10 @@ body {
   font-size: 13px;
   color: #fff;
   letter-spacing: -0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .badges-row {
@@ -1675,6 +1693,10 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
 }
 
 .tel-value {
@@ -1858,6 +1880,9 @@ body {
   font-size: 13px;
   color: var(--text-primary);
   opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .spec-val {

@@ -728,7 +728,7 @@ function App() {
             >
               <div className="sidebar-item-left">
                 <SidebarIcon type={cat.icon} />
-                <span>{cat.name}</span>
+                <span title={cat.name}>{cat.name}</span>
               </div>
               <span className="sidebar-count">{cat.count}</span>
             </div>
@@ -844,7 +844,7 @@ function App() {
                     </div>
                     <div className="app-info">
                       <div className="app-name-row">
-                        <span className="app-name">{app.name}</span>
+                        <span className="app-name" title={app.name}>{app.name}</span>
                       </div>
 
                       <div className="badges-row">

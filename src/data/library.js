@@ -8,8 +8,12 @@ export const POPULAR_DNS = [
 
 export const APP_ICON_MAP = {
   chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
-  discord: "discord", slack: "slack", telegram: "telegram", whatsapp: "whatsapp",
-  zoom: "zoom", teams: "microsoftteams", signal: "signal", skype: "skype",
+   discord: "discord", telegram: "telegram", whatsapp: "whatsapp",
+
+
+
+
+
   vscode: "visualstudiocode", git: "git", nodejs: "nodedotjs", python: "python",
   docker: "docker", postman: "postman", putty: "putty", winscp: "winscp",
   vlc: "vlcmediaplayer", spotify: "spotify", obs: "obsstudio", handbrake: "handbrake",
@@ -21,7 +25,7 @@ export const APP_ICON_MAP = {
   notion: "notion", evernote: "evernote", obsidian: "obsidian", adobe: "adobeacrobatreader",
   malwarebytes: "malwarebytes", bitwarden: "bitwarden", keepass: "keepassxc", qbittorrent: "qbittorrent",
   github: "github", gh: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller", etcher: "balenaetcher", ventoy: "ventoy",
-  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge", avira: "avira", bitdefender: "bitdefender", emsisoft: "emsisoft", eset: "eset", sandboxie: "sandboxieplus", dcontrol: "microsoft", defendnot: "shield", ooshutup: "microsoftexchange", privacysexy: "privacy-sexy", defenderremover: "microsoft", wub: "microsoft", zenprivacy: "shield", goodbyedpi: "cloud-off", "goodbyedpi-ui": "cloud-off", openvpn: "openvpn", protonvpn: "protonvpn", firefoxrelay: "firefoxrelay", dnsjumper: "microsoft", nextdns: "nextdns", packagepicker: "windowsterminal", portableapps: "portableappsdotcom", portableappz: "blogger", sordum: "microsoft", alternativeto: "alternativeto", softpedia: "browser", techspot: "browser", buster: "github", darkreader: "darkreader", greasyfork: "greasyfork", sponsorblock: "sponsorblock", twp: "windowsterminal", ublock: "ublockorigin", ytautohd: "youtube", bufferbloat: "globe", cloudflarespeed: "cloudflare", dnsspeedtest: "globe", fastcom: "globe", ooklaspeedtest: "speedtest", cracksurl: "globe", cybermania: "globe", fullprogramlarindir: "globe", silentall: "globe", solidshare: "globe", warezturkey: "globe", "1337x": "globe", extto: "globe", eztv: "globe", showrss: "globe", piratebay: "globe", therarbg: "globe", spotifydownloader: "spotify", aimp: "aimp", klite: "globe", foobar2000: "foobar2000", beatport: "beatport", beatstats: "globe", spotx: "spotify", daddyny: "globe", dojostreams: "globe", iptvnator: "globe", monochrome: "globe", streamedpk: "globe", famelack: "globe", idm: "globe", jdownloader: "jdownloader", opensubtitles: "globe", subloader: "globe", subtitleedit: "globe", cineby: "globe", dizi51: "globe", dizibox: "globe", dizipal: "globe", diziwatch: "globe", hdfilmcehennemi: "globe", seriesgraph: "globe", sezonlukdizi: "globe", stremio: "stremio", dropbox: "dropbox", googledrive: "googledrive", lucida: "globe", bibatacursor: "script", cursor: "cursor", antigravity: "ai", twitterpake: "twitter", grokpake: "x", deepseekpake: "deepseek", geminipake: "googlegemini", ytmusicpake: "youtubemusic", youtubepake: "youtube", reshacker: "globe", virtualbox: "virtualbox", vboxextpack: "virtualbox", adbtools: "android", java: "openjdk", inkscape: "inkscape", deepl: "deepl", antigravitymanager: "ai", arenaai: "globe", claude: "anthropic", perplexity: "perplexity", anydesk: "anydesk", teamviewer: "teamviewer", copyq: "copyq", imageglass: "imageglass", localsend: "localsend", sharex: "sharex", inattv: "globe", netvgold: "globe", premiertv: "globe", vanced: "youtube", xmanager: "spotify", sideloadly: "globe", neofreebird: "globe", regram: "globe", itunes: "itunes", turkanimu: "video"
+  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge", avira: "avira", bitdefender: "bitdefender", emsisoft: "emsisoft", eset: "eset", sandboxie: "sandboxieplus", dcontrol: "microsoft", defendnot: "shield", ooshutup: "microsoftexchange", privacysexy: "privacy-sexy", defenderremover: "microsoft", wub: "microsoft", zenprivacy: "shield", goodbyedpi: "cloud-off", "goodbyedpi-ui": "cloud-off", openvpn: "openvpn", protonvpn: "protonvpn", firefoxrelay: "firefoxrelay", dnsjumper: "microsoft", nextdns: "nextdns", packagepicker: "windowsterminal", portableapps: "portableappsdotcom", portableappz: "blogger", sordum: "microsoft", alternativeto: "alternativeto", softpedia: "browser", techspot: "browser", buster: "github", darkreader: "darkreader", greasyfork: "greasyfork", sponsorblock: "sponsorblock", twp: "windowsterminal", ublock: "ublockorigin", ytautohd: "youtube", bufferbloat: "globe", cloudflarespeed: "cloudflare", dnsspeedtest: "globe", fastcom: "globe", ooklaspeedtest: "speedtest", cracksurl: "globe", cybermania: "globe", fullprogramlarindir: "globe", silentall: "globe", solidshare: "globe", warezturkey: "globe", "1337x": "globe", extto: "globe", eztv: "globe", showrss: "globe", piratebay: "globe", therarbg: "globe", spotifydownloader: "spotify", aimp: "aimp", klite: "globe", foobar2000: "foobar2000", beatport: "beatport", beatstats: "globe", spotx: "spotify", daddyny: "globe", dojostreams: "globe", iptvnator: "globe", monochrome: "globe", streamedpk: "globe", famelack: "globe", idm: "globe", jdownloader: "jdownloader", opensubtitles: "globe", subloader: "globe", subtitleedit: "globe", cineby: "globe", dizi51: "globe", dizibox: "globe", dizipal: "globe", diziwatch: "globe", hdfilmcehennemi: "globe", seriesgraph: "globe", sezonlukdizi: "globe", stremio: "stremio", dropbox: "dropbox", googledrive: "googledrive", lucida: "globe", bibatacursor: "script", cursor: "cursor", antigravity: "ai", reshacker: "globe", virtualbox: "virtualbox", vboxextpack: "virtualbox", adbtools: "android", java: "openjdk", inkscape: "inkscape", deepl: "deepl", antigravitymanager: "ai", arenaai: "globe", claude: "anthropic", perplexity: "perplexity", anydesk: "anydesk", teamviewer: "teamviewer", copyq: "copyq", imageglass: "imageglass", localsend: "localsend", sharex: "sharex", inattv: "globe", netvgold: "globe", premiertv: "globe", vanced: "youtube", xmanager: "spotify", sideloadly: "globe", neofreebird: "globe", regram: "globe", itunes: "itunes", turkanimu: "video"
 };
 
 export const SPECIAL_LOGOS = {
@@ -173,12 +177,7 @@ export const SPECIAL_LOGOS = {
   bibatacursor: "https://bygog.github.io/Bibata-Cursor-Installer/favicon.ico",
   cursor: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cursor.svg",
   antigravity: "https://img.icons8.com/fluency/48/artificial-intelligence.png",
-  twitterpake: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/twitter.svg",
-  grokpake: "https://x.com/favicon.ico",
-  deepseekpake: "https://www.deepseek.com/favicon.ico",
-  geminipake: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google-gemini.svg",
-  ytmusicpake: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/youtube-music.svg",
-  youtubepake: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/youtube.svg",
+
   reshacker: "https://www.angusj.com/resourcehacker/reshacker.ico",
   virtualbox: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/virtualbox.svg",
   vboxextpack: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/virtualbox.svg",
@@ -247,13 +246,15 @@ export const LEGENDARY_APPS = [
   { id: "discord", name: "Discord", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "message-square", size_bytes: 1024 * 1024 * 85, version: "Latest", description: "Popüler sesli, görüntülü ve yazılı sohbet platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
   { id: "telegram", name: "Telegram Desktop", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "message-circle", size_bytes: 1024 * 1024 * 35, version: "Latest", description: "Hızlı, güvenli ve bulut tabanlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://desktop.telegram.org/" },
   { id: "whatsapp", name: "WhatsApp", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Popüler anlık mesajlaşma uygulaması.", download_url: "https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi", official_url: "https://www.whatsapp.com/" },
-  { id: "twitterpake", name: "Twitter (X) Pake", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "twitter", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Hafif ve hızlı masaüstü Twitter (X) uygulaması.", download_url: "https://github.com/tw93/Pake/releases/latest/download/Twitter_x64.msi", official_url: "https://github.com/tw93/Pake" },
-  { id: "grokpake", name: "Grok Pake", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "cpu", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "xAI Grok için hafif masaüstü istemcisi.", download_url: "https://github.com/tw93/Pake/releases/latest/download/Grok_x64.msi", official_url: "https://github.com/tw93/Pake" },
-  { id: "slack", name: "Slack", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "message-square", size_bytes: 1024 * 1024 * 80, version: "Latest", description: "Kurumsal ekip içi mesajlaşma ve iş birliği.", download_url: "https://slack.com/ssb/download-win64", official_url: "https://slack.com/" },
-  { id: "zoom", name: "Zoom", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "video", size_bytes: 1024 * 1024 * 30, version: "Latest", description: "Video konferans ve toplantı platformu.", download_url: "https://zoom.us/client/latest/ZoomInstaller.exe", official_url: "https://zoom.us/" },
-  { id: "teams", name: "Microsoft Teams", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "message-square", size_bytes: 1024 * 1024 * 120, version: "Latest", description: "Microsoft'un profesyonel ekib birliği aracı.", download_url: "https://www.microsoft.com/tr-tr/microsoft-teams/download-app", official_url: "https://www.microsoft.com/teams" },
-  { id: "signal", name: "Signal", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "message-circle", size_bytes: 1024 * 1024 * 115, version: "Latest", description: "Gizlilik odaklı, şifreli mesajlaşma uygulaması.", download_url: "https://updates.signal.org/desktop/signal-desktop-win-7.0.0.exe", official_url: "https://signal.org/" },
-  { id: "skype", name: "Skype", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 85, version: "Latest", description: "Görüntülü ve sesli arama platformu.", download_url: "https://go.skype.com/windows.desktop.download", official_url: "https://www.skype.com/" },
+
+
+
+
+
+
+
+
+
 
   // E-Posta & İletişim (25)
   { id: "gmail", name: "Gmail", category: "E-Posta & İletişim", category_order: 25, icon: "mail", size_bytes: 0, version: "Web", description: "Google'ın gelişmiş e-posta servisi.", official_url: "https://mail.google.com/", is_resource: true },
@@ -276,14 +277,14 @@ export const LEGENDARY_APPS = [
   { id: "handbrake", name: "HandBrake", category: "Video & Resim", category_order: 40, icon: "refresh-cw", size_bytes: 1024 * 1024 * 25, version: "Latest", description: "Açık kaynaklı video format dönüştürücü.", download_url: "https://handbrake.fr/rotation.php?file=HandBrake-1.11.1-x86_64-Win_GUI.exe", official_url: "https://handbrake.fr/" },
   { id: "imageglass", name: "ImageGlass", category: "Video & Resim", category_order: 40, icon: "image", size_bytes: 1024 * 1024 * 25, version: "Latest", description: "Modern ve hızlı resim görüntüleyici.", download_url: "https://imageglass.org/release/download/imageglass-9-4-1-15-172", official_url: "https://imageglass.org/" },
   { id: "sharex", name: "ShareX", category: "Video & Resim", category_order: 40, icon: "camera", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "Gelişmiş ekran yakalama ve paylaşım aracı.", download_url: "https://github.com/ShareX/ShareX/releases/latest/download/ShareX-setup.exe", official_url: "https://getsharex.com/" },
-  { id: "youtubepake", name: "YouTube Pake", category: "Video & Resim", category_order: 40, icon: "youtube", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "YouTube masaüstü istemcisi.", download_url: "https://github.com/tw93/Pake/releases/latest/download/YouTube_x64.msi", official_url: "https://github.com/tw93/Pake" },
+
 
   // Müzik & Ses (45)
   { id: "aimp", name: "AIMP", category: "Müzik & Ses", category_order: 45, icon: "music", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "Klasik ve güçlü müzik çalar.", download_url: "https://aimp.ru/?do=download.file&id=3", official_url: "https://aimp.ru/" },
   { id: "foobar2000", name: "foobar2000", category: "Müzik & Ses", category_order: 45, icon: "music", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Minimalist ve modüler ses oynatıcı.", download_url: "https://www.foobar2000.org/downloads/foobar2000-x64_v2.25.8.exe", official_url: "https://www.foobar2000.org/" },
   { id: "spotify", name: "Spotify", category: "Müzik & Ses", category_order: 45, icon: "music", size_bytes: 1024 * 1024 * 88, version: "Latest", description: "En popüler müzik akış servisi.", download_url: "https://download.scdn.co/SpotifySetup.exe", official_url: "https://www.spotify.com/" },
   { id: "spotifydownloader", name: "Spotify Downloader", category: "Müzik & Ses", category_order: 45, icon: "download", size_bytes: 1024 * 1024 * 75, version: "Latest", description: "Spotify şarkılarını yüksek kalitede indirin.", download_url: "https://github.com/WilliamSchack/Spotify-Downloader/releases/latest/download/Spotify.Downloader.Installer.Windows.exe", official_url: "https://github.com/WilliamSchack/Spotify-Downloader" },
-  { id: "ytmusicpake", name: "YouTube Music Pake", category: "Müzik & Ses", category_order: 45, icon: "music", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "YouTube Music masaüstü uygulaması.", download_url: "https://github.com/tw93/Pake/releases/latest/download/YouTubeMusic_x64.msi", official_url: "https://github.com/tw93/Pake" },
+
   { id: "itunes", name: "iTunes", category: "Müzik & Ses", category_order: 45, icon: "music", size_bytes: 1024 * 1024 * 200, version: "Latest", description: "Apple medya ve cihaz yönetim aracı.", download_url: "https://www.apple.com/itunes/download/win64", official_url: "https://www.apple.com/itunes/" },
 
   // Yazılım Geliştirme (50)
@@ -298,7 +299,7 @@ export const LEGENDARY_APPS = [
   { id: "cursor", name: "Cursor AI", category: "Yapay Zeka (AI)", category_order: 55, icon: "cpu", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Yapay zeka odaklı efsanevi kod düzenleyici.", download_url: "https://downloader.cursor.sh/windows/nsis/x64", official_url: "https://cursor.sh/" },
   { id: "antigravity", name: "Antigravity AI", category: "Yapay Zeka (AI)", category_order: 55, icon: "cpu", size_bytes: 0, version: "Master", description: "Gelecek nesil agentic kodlama ve otomasyon asistanı.", official_url: "https://github.com/bygog/StashZero", is_resource: true },
   { id: "claude", name: "Claude AI", category: "Yapay Zeka (AI)", category_order: 55, icon: "cpu", size_bytes: 0, version: "Web", description: "Anthropic'in gelişmiş yapay zeka modeli.", official_url: "https://claude.ai/", is_resource: true },
-  { id: "deepseekpake", name: "DeepSeek Pake", category: "Yapay Zeka (AI)", category_order: 55, icon: "cpu", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "DeepSeek için hafif masaüstü istemcisi.", download_url: "https://github.com/tw93/Pake/releases/latest/download/DeepSeek_x64.msi", official_url: "https://deepseek.com/" },
+
   { id: "perplexity", name: "Perplexity AI", category: "Yapay Zeka (AI)", category_order: 55, icon: "cpu", size_bytes: 0, version: "Web", description: "Yapay zeka tabanlı arama motoru.", official_url: "https://www.perplexity.ai/", is_resource: true },
   { id: "arenaai", name: "Arena AI", category: "Yapay Zeka (AI)", category_order: 55, icon: "cpu", size_bytes: 0, version: "Web", description: "Kurumsal performans ve optimizasyon AI platformu.", official_url: "https://arena.ai/", is_resource: true },
 
