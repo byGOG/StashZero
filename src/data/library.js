@@ -9,6 +9,7 @@ export const POPULAR_DNS = [
 export const APP_ICON_MAP = {
   chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
    discord: "discord", telegram: "telegram", whatsapp: "whatsapp",
+   gmail: "gmail", outlook: "microsoftoutlook", yahoo: "yahoo", thunderbird: "thunderbird",
 
 
 
@@ -25,7 +26,7 @@ export const APP_ICON_MAP = {
   notion: "notion", evernote: "evernote", obsidian: "obsidian", adobe: "adobeacrobatreader",
   malwarebytes: "malwarebytes", bitwarden: "bitwarden", keepass: "keepassxc", qbittorrent: "qbittorrent",
   github: "github", gh: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller", etcher: "balenaetcher", ventoy: "ventoy",
-  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge", avira: "avira", bitdefender: "bitdefender", emsisoft: "emsisoft", eset: "eset", sandboxie: "sandboxieplus", dcontrol: "microsoft", defendnot: "shield", ooshutup: "microsoftexchange", privacysexy: "privacy-sexy", defenderremover: "microsoft", wub: "microsoft", zenprivacy: "shield", goodbyedpi: "cloud-off", "goodbyedpi-ui": "cloud-off", openvpn: "openvpn", protonvpn: "protonvpn", firefoxrelay: "firefoxrelay", dnsjumper: "microsoft", nextdns: "nextdns", packagepicker: "windowsterminal", portableapps: "portableappsdotcom", portableappz: "blogger", sordum: "microsoft", alternativeto: "alternativeto", softpedia: "browser", techspot: "browser", buster: "github", darkreader: "darkreader", greasyfork: "greasyfork", sponsorblock: "sponsorblock", twp: "windowsterminal", ublock: "ublockorigin", ytautohd: "youtube", bufferbloat: "globe", cloudflarespeed: "cloudflare", dnsspeedtest: "globe", fastcom: "globe", ooklaspeedtest: "speedtest", cracksurl: "globe", cybermania: "globe", fullprogramlarindir: "globe", silentall: "globe", solidshare: "globe", warezturkey: "globe", "1337x": "globe", extto: "globe", eztv: "globe", showrss: "globe", piratebay: "globe", therarbg: "globe", spotifydownloader: "spotify", aimp: "aimp", klite: "globe", foobar2000: "foobar2000", beatport: "beatport", beatstats: "globe", spotx: "spotify", daddyny: "globe", dojostreams: "globe", iptvnator: "globe", monochrome: "globe", streamedpk: "globe", famelack: "globe", idm: "globe", jdownloader: "jdownloader", opensubtitles: "globe", subloader: "globe", subtitleedit: "globe", cineby: "globe", dizi51: "globe", dizibox: "globe", dizipal: "globe", diziwatch: "globe", hdfilmcehennemi: "globe", seriesgraph: "globe", sezonlukdizi: "globe", stremio: "stremio", dropbox: "dropbox", googledrive: "googledrive", lucida: "globe", bibatacursor: "script", cursor: "cursor", antigravity: "ai", reshacker: "globe", virtualbox: "virtualbox", vboxextpack: "virtualbox", adbtools: "android", java: "openjdk", inkscape: "inkscape", deepl: "deepl", antigravitymanager: "ai", arenaai: "globe", claude: "anthropic", perplexity: "perplexity", anydesk: "anydesk", teamviewer: "teamviewer", copyq: "copyq", imageglass: "imageglass", localsend: "localsend", sharex: "sharex", inattv: "globe", netvgold: "globe", premiertv: "globe", vanced: "youtube", xmanager: "spotify", sideloadly: "globe", neofreebird: "globe", regram: "globe", itunes: "itunes", turkanimu: "video"
+  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge", avira: "avira", bitdefender: "bitdefender", emsisoft: "emsisoft", eset: "eset", sandboxie: "sandboxieplus", dcontrol: "microsoft", defendnot: "shield", ooshutup: "microsoftexchange", privacysexy: "privacy-sexy", defenderremover: "microsoft", wub: "microsoft", zenprivacy: "shield", goodbyedpi: "cloud-off", "goodbyedpi-ui": "cloud-off", openvpn: "openvpn", protonvpn: "protonvpn", firefoxrelay: "firefoxrelay", dnsjumper: "microsoft", nextdns: "nextdns", packagepicker: "windowsterminal", portableapps: "portableappsdotcom", portableappz: "blogger", sordum: "microsoft", alternativeto: "alternativeto", softpedia: "browser", techspot: "browser", buster: "github", darkreader: "darkreader", greasyfork: "greasyfork", sponsorblock: "sponsorblock", twp: "windowsterminal", ublock: "ublockorigin", ytautohd: "youtube", bufferbloat: "globe", cloudflarespeed: "cloudflare", dnsspeedtest: "globe", fastcom: "globe", ooklaspeedtest: "speedtest", cracksurl: "globe", cybermania: "globe", fullprogramlarindir: "globe", silentall: "globe", solidshare: "globe", warezturkey: "globe", "1337x": "globe", extto: "globe", eztv: "globe", showrss: "globe", piratebay: "globe", therarbg: "globe", spotifydownloader: "spotify", aimp: "aimp", klite: "globe", foobar2000: "foobar2000", beatport: "beatport", beatstats: "globe", spotx: "spotify", daddyny: "globe", dojostreams: "globe", iptvnator: "globe", monochrome: "globe", streamedpk: "globe", famelack: "globe", idm: "globe", jdownloader: "jdownloader", opensubtitles: "globe", subloader: "globe", subtitleedit: "globe", cineby: "globe", dizi51: "globe", dizibox: "globe", dizipal: "globe", diziwatch: "globe", hdfilmcehennemi: "globe", seriesgraph: "globe", sezonlukdizi: "globe", stremio: "stremio", dropbox: "dropbox", googledrive: "googledrive", lucida: "globe", bibatacursor: "script", cursor: "cursor", antigravity: "ai", reshacker: "globe", virtualbox: "virtualbox", vboxextpack: "virtualbox", adbtools: "android", java: "openjdk", inkscape: "inkscape", antigravitymanager: "ai", arenaai: "globe", claude: "anthropic", perplexity: "perplexity", anydesk: "anydesk", teamviewer: "teamviewer", copyq: "copyq", imageglass: "imageglass", localsend: "localsend", sharex: "sharex", inattv: "globe", netvgold: "globe", premiertv: "globe", vanced: "youtube", xmanager: "spotify", sideloadly: "globe", neofreebird: "globe", regram: "globe", itunes: "itunes", turkanimu: "video"
 };
 
 export const SPECIAL_LOGOS = {
@@ -205,8 +206,8 @@ export const SPECIAL_LOGOS = {
   sideloadly: "https://sideloadly.io/favicon.ico",
   neofreebird: "https://www.google.com/s2/favicons?domain=neofreebird.com&sz=64",
   regram: "https://regram.fouadraheb.com/favicon.ico",
-  whatsapp: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/whatsapp.svg",
   gmail: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gmail.svg",
+  outlook: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/microsoft-outlook.svg",
   yahoo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/yahoo.svg",
   thunderbird: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/thunderbird.svg",
   battlenet: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/battle-net.svg",
@@ -247,15 +248,6 @@ export const LEGENDARY_APPS = [
   { id: "telegram", name: "Telegram Desktop", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "message-circle", size_bytes: 1024 * 1024 * 35, version: "Latest", description: "Hızlı, güvenli ve bulut tabanlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://desktop.telegram.org/" },
   { id: "whatsapp", name: "WhatsApp", category: "Mesajlaşma & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Popüler anlık mesajlaşma uygulaması.", download_url: "https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi", official_url: "https://www.whatsapp.com/" },
 
-
-
-
-
-
-
-
-
-
   // E-Posta & İletişim (25)
   { id: "gmail", name: "Gmail", category: "E-Posta & İletişim", category_order: 25, icon: "mail", size_bytes: 0, version: "Web", description: "Google'ın gelişmiş e-posta servisi.", official_url: "https://mail.google.com/", is_resource: true },
   { id: "outlook", name: "Outlook", category: "E-Posta & İletişim", category_order: 25, icon: "mail", size_bytes: 0, version: "Web", description: "Microsoft'un profesyonel e-posta çözümü.", official_url: "https://outlook.live.com/", is_resource: true },
@@ -264,7 +256,7 @@ export const LEGENDARY_APPS = [
 
   // Ofis & Verimlilik (30)
   { id: "adobe", name: "Adobe Reader", category: "Ofis & Verimlilik", category_order: 30, icon: "file-text", size_bytes: 1024 * 1024 * 200, version: "Latest", description: "PDF okuma ve düzenleme.", download_url: "https://get.adobe.com/tr/reader/", official_url: "https://www.adobe.com/" },
-  { id: "deepl", name: "DeepL", category: "Ofis & Verimlilik", category_order: 30, icon: "languages", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "Yapay zeka tabanlı en doğru çeviri servisi.", download_url: "https://appdownload.deepl.com/windows/0install/DeepLSetup.exe", official_url: "https://www.deepl.com/" },
+  { id: "deepl", name: "DeepL Translate", category: "Ofis & Verimlilik", category_order: 30, icon: "languages", size_bytes: 0, version: "Web", description: "Yapay zeka tabanlı en doğru çeviri servisi.", official_url: "https://www.deepl.com/en/translator", is_resource: true },
   { id: "googledrive", name: "Google Drive", category: "Ofis & Verimlilik", category_order: 30, icon: "cloud", size_bytes: 1024 * 1024 * 100, version: "Latest", description: "Dosya depolama ve senkronizasyon.", download_url: "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe", official_url: "https://www.google.com/drive/" },
   { id: "dropbox", name: "Dropbox", category: "Ofis & Verimlilik", category_order: 30, icon: "cloud", size_bytes: 1024 * 1024 * 90, version: "Latest", description: "Bulut tabanlı dosya saklama servisi.", download_url: "https://www.dropbox.com/download?os=win", official_url: "https://www.dropbox.com/" },
   { id: "copyq", name: "CopyQ", category: "Ofis & Verimlilik", category_order: 30, icon: "clipboard", size_bytes: 1024 * 1024 * 18, version: "Latest", description: "Gelişmiş pano yöneticisi.", download_url: "https://github.com/hluk/CopyQ/releases/latest/download/copyq-setup.exe", official_url: "https://github.com/hluk/CopyQ" },
