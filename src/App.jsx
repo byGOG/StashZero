@@ -516,6 +516,7 @@ function App() {
     setInstalling(false);
   };
 
+
   const startInstall = async () => {
     if (selected.size === 0 || installing) return;
 

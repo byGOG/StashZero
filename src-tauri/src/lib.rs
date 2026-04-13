@@ -627,6 +627,7 @@ async fn kill_script() -> Result<(), String> {
     Ok(())
 }
 
+
 #[tauri::command]
 async fn open_drive(path: String) -> Result<(), String> {
     std::process::Command::new("explorer.exe")
