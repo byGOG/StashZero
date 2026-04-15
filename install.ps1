@@ -5,8 +5,9 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için - Full Set)
+# Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için - Safe Regex)
 function Get-T($text) {
+    # Yıldız karakterini regex içinde doğru yakalamak için kaçırıyoruz (\*)
     $text = $text -replace 's\*', "$([char]0x015F)" # ş
     $text = $text -replace 'S\*', "$([char]0x015E)" # Ş
     $text = $text -replace 'i\*', "$([char]0x0131)" # ı
@@ -26,19 +27,19 @@ $ErrorActionPreference = "Stop"
 
 $repo = "byGOG/StashZero"
 $appName = "StashZero"
-$api = "https://api.github.com/repos/$repo/releases/latest"
+$api = "https://api.github.com/repos/$repo" + "/releases/latest"
 
 Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*latili*yor...") -ForegroundColor Cyan
 
 try {
     # 1. En güncel sürüm bilgilerini al
-    Write-Host (Get-T "[*] En g*u*ncel s*u*r*u*m bilgileri sorgulani*yor...") -ForegroundColor Gray
+    Write-Host (Get-T "[*] En gu*ncel su*ru*m bilgileri sorgulani*yor...") -ForegroundColor Gray
     try {
         $release = Invoke-RestMethod -Uri $api
         $version = $release.tag_name
-        Write-Host (Get-T "[v] Bulunan S*u*r*u*m: $version") -ForegroundColor Green
+        Write-Host (Get-T "[v] Bulunan su*ru*m: $version") -ForegroundColor Green
     } catch {
-        throw (Get-T "GitHub üzerinde yayinlanmis* (Release) bir s*u*r*u*m bulunamadi. L*u*tfen *once GitHub deponuzda bir s*u*r*u*m olus*turun.")
+        throw (Get-T "GitHub üzerinde yayinlanmis* (Release) bir su*ru*m bulunamadi.")
     }
 
     # 2. Uygun asset'i bul
@@ -60,7 +61,7 @@ try {
     $progressPreference = 'Continue'
 
     # 4. Kurulum
-    Write-Host (Get-T "[+] Kurulum bas*latili*yor, l*u*tfen bekleyin...") -ForegroundColor Yellow
+    Write-Host (Get-T "[+] Kurulum bas*latili*yor, lu*tfen bekleyin...") -ForegroundColor Yellow
     
     if ($fileName.EndsWith(".msi")) {
         Start-Process msiexec.exe -ArgumentList "/i `"$tempPath`" /quiet /norestart" -Wait
