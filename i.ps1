@@ -28,7 +28,7 @@ $repo = "byGOG/StashZero"
 $appName = "StashZero"
 $api = "https://api.github.com/repos/$repo" + "/releases/latest"
 
-Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*latili*yor...") -ForegroundColor Cyan
+Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*lat i* l i* yor...") -ForegroundColor Cyan
 
 try {
     # 1. En güncel sürüm bilgilerini al
@@ -60,7 +60,7 @@ try {
     $progressPreference = 'Continue'
 
     # 4. Kurulum
-    Write-Host (Get-T "[+] Kurulum bas*latili*yor, lu*tfen bekleyin...") -ForegroundColor Yellow
+    Write-Host (Get-T "[+] Kurulum bas*lat i* l i* yor, lu*tfen bekleyin...") -ForegroundColor Yellow
     
     if ($fileName.EndsWith(".msi")) {
         Start-Process msiexec.exe -ArgumentList "/i `"$tempPath`" /quiet /norestart" -Wait
@@ -71,7 +71,7 @@ try {
     # 5. Temizlik
     if (Test-Path $tempPath) { Remove-Item $tempPath -Force }
 
-    Write-Host (Get-T "`n[v] StashZero bas*ari*yla kuruldu! Keyifli kullanimlar.`n") -ForegroundColor Green
+    Write-Host (Get-T "`n[v] StashZero bas*ari*yla kuruldu! Keyifli kullani*mlar.`n") -ForegroundColor Green
 
 } catch {
     Write-Host (Get-T "`n[!] Hata olus*tu: $($_.Exception.Message)") -ForegroundColor Red
