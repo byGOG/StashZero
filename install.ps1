@@ -5,9 +5,8 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için - Safe Regex)
+# Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için - Final Precision)
 function Get-T($text) {
-    # Yıldız karakterini regex içinde doğru yakalamak için kaçırıyoruz (\*)
     $text = $text -replace 's\*', "$([char]0x015F)" # ş
     $text = $text -replace 'S\*', "$([char]0x015E)" # Ş
     $text = $text -replace 'i\*', "$([char]0x0131)" # ı
@@ -72,7 +71,7 @@ try {
     # 5. Temizlik
     if (Test-Path $tempPath) { Remove-Item $tempPath -Force }
 
-    Write-Host (Get-T "`n[v] StashZero bas*ariyla kuruldu! Keyifli kullanimlar.`n") -ForegroundColor Green
+    Write-Host (Get-T "`n[v] StashZero bas*ari*yla kuruldu! Keyifli kullanimlar.`n") -ForegroundColor Green
 
 } catch {
     Write-Host (Get-T "`n[!] Hata olus*tu: $($_.Exception.Message)") -ForegroundColor Red
