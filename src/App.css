@@ -1,5 +1,6 @@
 :root {
   --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  --app-font-scale: 1;
   
   /* Frosted Obsidian - Modern Dark Theme */
   --bg-main: radial-gradient(circle at top left, #0e101a 0%, #050608 100%);
@@ -18,6 +19,7 @@
   --text-muted: #52525b;
   
   /* Glass & Borders - Ultra Soft */
+  font-size: calc(16px * var(--app-font-scale));
   --glass-blur: blur(50px);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-border-hover: rgba(0, 255, 159, 0.35);
@@ -540,7 +542,7 @@ body {
   outline: none;
   color: #fff;
   width: 100%;
-  font-size: 13px;
+  font-size: calc(13px * var(--app-font-scale));
 }
 
 .path-display {
@@ -930,7 +932,7 @@ body {
 
 .app-name {
   font-weight: 700;
-  font-size: 13px;
+  font-size: calc(13px * var(--app-font-scale));
   color: #fff;
   letter-spacing: -0.1px;
   white-space: nowrap;
@@ -2924,4 +2926,45 @@ button {
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* ─── Modern Range Slider ─── */
+.range-control {
+  flex: 1;
+  max-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.modern-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  outline: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.modern-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 15px var(--accent-glow);
+  border: 2px solid #000;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modern-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px var(--accent-glow);
+}
+
+.modern-slider:active::-webkit-slider-thumb {
+  transform: scale(0.95);
 }
