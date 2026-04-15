@@ -59,6 +59,98 @@ const SidebarIcon = ({ type }) => {
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     );
+    case "puzzle": return (
+      <svg {...props}>
+        <path d="M12.87 15.07l-3.32-3.32a3 3 0 0 1 0-4.24l.53-.53V3H3v7.07l.53.53a3 3 0 0 1 0 4.24l-.53.53V21h7.07l.53-.53a3 3 0 0 1 4.24 0l.53.53V15.07z" />
+        <path d="M21 13h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2z" />
+      </svg>
+    );
+    case "layout": return (
+      <svg {...props}>
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="9" y1="21" x2="9" y2="9" />
+      </svg>
+    );
+    case "activity": return (
+      <svg {...props}>
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    );
+    case "folder": return (
+      <svg {...props}>
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+      </svg>
+    );
+    case "download": return (
+      <svg {...props}>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    );
+    case "box": return (
+      <svg {...props}>
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12.01" />
+      </svg>
+    );
+    case "lock": return (
+      <svg {...props}>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    );
+    case "archive": return (
+      <svg {...props}>
+        <polyline points="21 8 21 21 3 21 3 8" />
+        <rect x="1" y="3" width="22" height="5" />
+        <line x1="10" y1="12" x2="14" y2="12" />
+      </svg>
+    );
+    case "package": return (
+      <svg {...props}>
+        <path d="m7.5 4.21 4.5 2.6 4.5-2.6m-9 15.58V14.6L3 11.71m18 0-4.5 2.89v5.1m-4.5-7.41 4.5-2.6m-4.5 2.6V21M3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8z" />
+      </svg>
+    );
+    case "database": return (
+      <svg {...props}>
+        <ellipse cx="12" cy="5" rx="9" ry="3" />
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      </svg>
+    );
+    case "bar-chart": return (
+      <svg {...props}>
+        <line x1="12" y1="20" x2="12" y2="10" />
+        <line x1="18" y1="20" x2="18" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="16" />
+      </svg>
+    );
+    case "smartphone": return (
+      <svg {...props}>
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+        <line x1="12" y1="18" x2="12" y2="18" />
+      </svg>
+    );
+    case "command": return (
+      <svg {...props}>
+        <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
+      </svg>
+    );
+    case "movie": return (
+      <svg {...props}>
+        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+        <line x1="7" y1="2" x2="7" y2="22" />
+        <line x1="17" y1="2" x2="17" y2="22" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <line x1="2" y1="7" x2="7" y2="7" />
+        <line x1="2" y1="17" x2="7" y2="17" />
+        <line x1="17" y1="17" x2="22" y2="17" />
+        <line x1="17" y1="7" x2="22" y2="7" />
+      </svg>
+    );
     case "script": return (
       <svg {...props}>
         <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />

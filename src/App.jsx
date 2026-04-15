@@ -17,6 +17,32 @@ import LogPanel from "./components/modals/LogPanel";
 import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
 
+const CATEGORY_ICON_MAP = {
+  "Web Tarayıcıları": "globe",
+  "Eklentiler": "puzzle",
+  "İletişim & Sosyal": "message-square",
+  "Üretkenlik": "layout",
+  "Multimedya": "video",
+  "Geliştirme": "code",
+  "Yapay Zeka": "activity",
+  "Sistem Araçları": "settings",
+  "Donanım & Test": "cpu",
+  "Dosya Yönetimi": "folder",
+  "İndirme Yöneticileri": "download",
+  "Sanallaştırma": "box",
+  "Ağ & Uzaktan Erişim": "terminal",
+  "Güvenlik": "shield",
+  "Gizlilik & Ağ Ayarları": "lock",
+  "Oyun & Platformlar": "gaming",
+  "Oyun Arşivi": "archive",
+  "Film & Medya": "movie",
+  "Uygulama Arşivleri": "package",
+  "Torrent & Dizinler": "database",
+  "Test & Web Analiz": "bar-chart",
+  "Mobil & Modlu Sürümler": "smartphone",
+  "Betikler & Otomasyon": "command"
+};
+
 function App() {
   const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
   const [selected, setSelected] = useState(new Set());
@@ -249,7 +275,12 @@ function App() {
     for (const app of installers) {
       const cat = app.category;
       if (!map.has(cat)) {
-        map.set(cat, { name: cat, order: app.category_order, count: 0, icon: app.icon });
+        map.set(cat, { 
+          name: cat, 
+          order: app.category_order, 
+          count: 0, 
+          icon: CATEGORY_ICON_MAP[cat] || "rect" 
+        });
       }
       map.get(cat).count++;
     }
