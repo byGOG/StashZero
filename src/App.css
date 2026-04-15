@@ -35,41 +35,99 @@
   --shadow-glow: 0 0 50px var(--accent-glow);
 }
 
-/* ─── 5 Modern Themes ─── */
+/* ─── 5 Modern Structural Themes ─── */
+/* 1. OBSIDIAN: Standard Frosted Glass Default */
 .theme-obsidian {
-  /* Already default, but explicitly override if needed */
+  /* Retains root defaults */
 }
 
+/* 2. VIOLET: Heavy Glassmorphism / Floating Orbs */
 .theme-violet {
   --accent-primary: #a855f7;
   --accent-secondary: #ec4899;
   --accent-glow: rgba(168, 85, 247, 0.4);
   --bg-main: radial-gradient(circle at top left, #120b24 0%, #050508 100%);
   --glass-border-hover: rgba(168, 85, 247, 0.4);
+  --bg-sidebar: rgba(168, 85, 247, 0.05);
+}
+.theme-violet .app-card {
+  border: none;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.05);
+  border-radius: 30px;
+}
+.theme-violet .app-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2);
 }
 
+/* 3. ARCTIC: Minimalist Flat UI / Clean Lines */
 .theme-arctic {
   --accent-primary: #00d2ff;
   --accent-secondary: #94a3b8;
   --accent-glow: rgba(0, 210, 255, 0.4);
-  --bg-main: radial-gradient(circle at top right, #0a1118 0%, #05080a 100%);
+  --bg-main: #060b10;
   --glass-border-hover: rgba(0, 210, 255, 0.4);
 }
-
-.theme-crimson {
-  --accent-primary: #ff4757;
-  --accent-secondary: #ff6b81;
-  --accent-glow: rgba(255, 71, 87, 0.4);
-  --bg-main: radial-gradient(circle at bottom left, #1a0a0a 0%, #080505 100%);
-  --glass-border-hover: rgba(255, 71, 87, 0.4);
+.theme-arctic .app-card {
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+.theme-arctic .app-card:hover {
+  background: rgba(0, 210, 255, 0.05);
+  transform: translateX(4px); /* Slide effect instead of lift */
 }
 
+/* 4. CRIMSON: Retro Aggressive Cyberpunk / Brutalist */
+.theme-crimson {
+  --accent-primary: #ff003c;
+  --accent-secondary: #ff6b81;
+  --accent-glow: rgba(255, 0, 60, 0.6);
+  --bg-main: #080303;
+  --glass-border-hover: rgba(255, 0, 60, 0.6);
+}
+.theme-crimson .app-card {
+  border: 1px solid #ff003c;
+  background: #000;
+  border-radius: 0;
+  box-shadow: 4px 4px 0px rgba(255, 0, 60, 0.5);
+  transition: all 0.1s ease-out;
+}
+.theme-crimson .app-card:hover {
+  box-shadow: 8px 8px 0px rgba(255, 0, 60, 0.8);
+  transform: translate(-4px, -4px);
+  background: rgba(255, 0, 60, 0.05);
+}
+.theme-crimson .sidebar { border-right: 2px solid #ff003c; border-radius: 0; }
+.theme-crimson .search-container { border-radius: 0; }
+.theme-crimson .neon-button { border-radius: 0; box-shadow: 2px 2px 0px rgba(255, 0, 60, 0.5); }
+
+/* 5. GOLD: Luxury Neumorphic Soft Surfaces */
 .theme-gold {
   --accent-primary: #fbbf24;
-  --accent-secondary: #d97706;
+  --accent-secondary: #fcd34d;
   --accent-glow: rgba(251, 191, 36, 0.3);
-  --bg-main: radial-gradient(circle at center, #0f1016 0%, #050508 100%);
+  --bg-main: #141416;
   --glass-border-hover: rgba(251, 191, 36, 0.4);
+  --bg-sidebar: #141416;
+}
+.theme-gold .app-card {
+  border: none;
+  background: #18181A;
+  box-shadow: 8px 8px 16px rgba(0,0,0,0.6), -8px -8px 16px rgba(255,255,255,0.02);
+  border-radius: 16px;
+}
+.theme-gold .app-card:hover {
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.8), -4px -4px 8px rgba(255,255,255,0.03);
+  transform: scale(0.98); /* Press down effect */
+  background: #1a1a1d;
+}
+.theme-gold .search-container { 
+  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -4px -4px 8px rgba(255,255,255,0.02); 
+  border: none; 
 }
 
 /* ─── 5 Modern Fonts ─── */
@@ -394,6 +452,7 @@ body {
   border-bottom: 1px solid var(--glass-border);
   background: rgba(2, 4, 10, 0.4);
   backdrop-filter: blur(24px);
+  flex-shrink: 0;
 }
 
 .top-left {
@@ -1373,6 +1432,7 @@ body {
 .log-panel {
   width: 100%;
   height: 220px;
+  flex-shrink: 0;
   background: #0a0c10;
   border-top: 1px solid var(--border-color);
   display: flex;
@@ -2594,4 +2654,72 @@ button {
 
 .island-player-dropdown iframe.soundcloud-full-player:hover {
   opacity: 1;
+}
+.cc-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cc-action-btn {
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.cc-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.cc-main-install-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: not-allowed;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.5px;
+}
+
+.cc-main-install-btn.active {
+  background: var(--accent-primary);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 255, 159, 0.2);
+}
+
+.cc-main-install-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 255, 159, 0.4);
+}
+
+.cc-main-install-btn:disabled {
+  opacity: 0.6;
+}
+
+.spinner-xs {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
