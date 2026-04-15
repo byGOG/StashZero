@@ -1,10 +1,6 @@
 # <p align="center">💎 StashZero: Studio Edition</p>
 
 <p align="center">
-  <img src="public/stashzero_banner.png" alt="StashZero Studio Edition Banner" width="100%">
-</p>
-
-<p align="center">
   <b>En Modern, Hızlı ve Şık Çevrimdışı Uygulama Yükleme Deneyimi.</b><br>
   <i>Tauri, React ve Rust ile güçlendirilmiş, profesyonel bir sistem yönetim ve telemetri merkezi.</i>
 </p>
@@ -18,30 +14,37 @@
 
 ---
 
+## 🚀 Hızlı Kurulum (PowerShell)
+
+StashZero'yu herhangi bir bağımlılık kurmadan, tek bir komutla anında sisteme yükleyebilirsiniz:
+
+```powershell
+irm bygog.github.io/StashZero/i.ps1 | iex
+```
+
+---
+
 ## 🌌 StashZero Nedir?
 
 **StashZero Studio Edition**, sıradan bir uygulama yükleyiciden çok daha fazlasıdır. "Studio" felsefesiyle tasarlanan bu platform, **Glassmorphism V3** estetiğini, **Rust**'ın ham performansıyla birleştirir. Uygulamalarınızı kurarken aynı zamanda sisteminizin nabzını tutmanız için geliştirilmiş bir **Telemetri Hub** içerir.
 
 ## ✨ Öne Çıkan Özellikler
 
-### 🏢 Profesyonel Studio Arayüzü
-- **Sidebar-Centric Design:** Kategorize edilmiş, akıcı navigasyon deneyimi.
-- **Neo-Glow Aesthetic:** 24px background-blur, emerald neon vurgular ve derinlik hissi veren cam tasarımı.
-- **Dynamic Mesh Gradients:** Etkileşime göre değişen, yaşayan arka planlar.
+### 🏢 Modernized Sidebar & Icons
+- **Custom Category Icons:** 20'den fazla kategori (Geliştirme, Güvenlik, Multimedya vb.) için özel tasarlanmış benzersiz ikon kütüphanesi.
+- **Smart Mapping:** Kategori isimlerine göre otomatik olarak atanan, görsel hiyerarşiyi güçlendiren akıllı ikon eşleştirme sistemi.
+
+### 🍱 Geniş Uygulama Kütüphanesi
+- **Efsanevi Araçlar:** WinRAR, 7-Zip, Rufus, Ventoy, Balena Etcher gibi temel sistem araçları tek tıkla elinizin altında.
+- **Resmi Microsoft Araçları:** Windows 10 ve 11 Media Creation Tool (MCT) desteği ile tertemiz kurulum medyaları oluşturun.
 
 ### 📊 Gelişmiş Telemetri Merkezi
 - **Triple-Bar Monitoring:** CPU, RAM ve Disk kullanımını anlık, pürüzsüz grafiklerle takip edin.
-- **Canlı Ağ Verisi:** Download/Upload hızlarını (KB/s) yanıp sönen indikatörlerle izleyin.
-- **Pro Diagnostik Paneli:**
-  - Ana makine adı & İşletim sistemi detayları.
-  - Kernel sürümü & Aktif işlem sayısı.
-  - CPU Modeli & Swap bellek durumu.
-  - Yerel IP & Sistem çalışma süresi (Uptime).
+- **Canlı Ağ Verisi:** Download/Upload hızlarını Yanıp sönen indikatörlerle izleyin.
 
-### ⚡ Rust Tabanlı Yüksek Performans
-- **Asynchronous Pipeline:** `tokio` sayesinde kurulumlar arka planda çalışırken arayüz asla takılmaz.
-- **Smart Silent Installs:** `.exe` ve `.msi` dosyaları için otomatik sessiz kurulum parametreleri.
-- **Icon Intelligence:** Rust ile optimize edilmiş, yerel önbellek destekli süper hızlı uygulama simgesi yükleme.
+### ⚡ Rust & React Modüler Mimari
+- **Refactored Architecture:** Atomic Design prensipleriyle tamamen modüler hale getirilmiş, süper hızlı ve kolay genişletilebilir kod yapısı.
+- **Smart Silent Installs:** Uygulamalar için otomatik sessiz kurulum parametreleri.
 
 ---
 
@@ -58,41 +61,17 @@
 
 ---
 
-## 🚀 Başlarken
-
-### Gereksinimler
-- [Rust](https://www.rust-lang.org/tools/install) (latest stable)
-- [Node.js](https://nodejs.org/) (v18+)
-- [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (Windows)
-
-### Kurulum adımları
-```bash
-# Depoyu klonlayın
-git clone https://github.com/byGOG/StashZero.git
-
-# Bağımlılıkları yükleyin
-npm install
-
-# Geliştirici modunu başlatın
-npm run tauri dev
-```
-
----
-
 ## 📂 Proje Yapısı
 
 ```text
-├── src-tauri/      # Yüksek performanslı Rust backend mantığı
-├── src/            # React frontend ve Neo-Glow tasarımı
-├── public/         # Statik varlıklar ve ikonlar
-└── dist/           # Splashscreen ve üretim çıktıları
+├── src-tauri/      # Yüksek performanslı Rust backend modülleri
+├── src/            # React frontend bileşenleri (Layout, Dashboard, Modals)
+├── public/         # İkonlar ve yerel assetler
+├── i.ps1           # One-liner kurulum betiği (Hızlı Kurulum)
+└── README.md       # Proje dökümantasyonu
 ```
 
 ---
-
-## 🤝 Katkıda Bulunma
-
-Geliştirme sürecine dahil olmak veya yeni özellikler (telemetri sensörleri, UI temaları vb.) önermek isterseniz lütfen bir **Issue** açın veya **Pull Request** gönderin.
 
 ## 👨‍💻 Geliştirici
 
