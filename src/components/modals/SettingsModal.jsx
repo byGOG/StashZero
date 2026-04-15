@@ -9,6 +9,8 @@ const SettingsModal = ({
   setSoundEnabled,
   currentTheme,
   currentFont,
+  fontSize,
+  setFontSize,
   handleMenuAction
 }) => {
   if (!showSettings) return null;
@@ -85,6 +87,27 @@ const SettingsModal = ({
               <button className={currentFont === "inter" ? "active" : ""} onClick={() => handleMenuAction("change-font", "inter")}>Inter</button>
               <button className={currentFont === "firacode" ? "active" : ""} onClick={() => handleMenuAction("change-font", "firacode")}>Fira Code</button>
               <button className={currentFont === "poppins" ? "active" : ""} onClick={() => handleMenuAction("change-font", "poppins")}>Poppins</button>
+            </div>
+          </div>
+
+          <div className="setting-card">
+            <div className="setting-info">
+              <span className="setting-title">Yazı Tipi Boyutu</span>
+              <span className="setting-desc">Arayüz metinlerinin büyüklüğünü ayarlayın (%{fontSize}).</span>
+            </div>
+            <div className="range-control">
+              <input 
+                type="range" 
+                min="80" 
+                max="150" 
+                value={fontSize} 
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  setFontSize(val);
+                  localStorage.setItem("stash-zero-font-size", JSON.stringify(val));
+                }}
+                className="modern-slider"
+              />
             </div>
           </div>
         </div>

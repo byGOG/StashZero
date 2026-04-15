@@ -76,6 +76,7 @@ function App() {
   const [dnsOpen, setDnsOpen] = useState(false);
   const [logPanelHeight, setLogPanelHeight] = useState(220);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
+  const [fontSize, setFontSize] = useState(100);
 
   const searchInputRef = useRef(null);
   const logEndRef = useRef(null);
@@ -145,6 +146,9 @@ function App() {
 
     const savedSound = localStorage.getItem("stash-zero-sound");
     if (savedSound) setSoundEnabled(JSON.parse(savedSound));
+
+    const savedFontSize = localStorage.getItem("stash-zero-font-size");
+    if (savedFontSize) setFontSize(JSON.parse(savedFontSize));
 
     const savedCategory = localStorage.getItem("stash-zero-active-category");
     if (savedCategory) setActiveCategory(savedCategory);
@@ -422,7 +426,7 @@ function App() {
   };
 
   return (
-    <div className={`app-layout theme-${currentTheme} font-${currentFont}`}>
+    <div className={`app-layout theme-${currentTheme} font-${currentFont}`} style={{ "--app-font-scale": fontSize / 100 }}>
       <div className="mesh-gradient" />
       
       <Sidebar 
@@ -495,6 +499,8 @@ function App() {
         setSoundEnabled={setSoundEnabled}
         currentTheme={currentTheme}
         currentFont={currentFont}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
         handleMenuAction={handleMenuAction}
       />
 
