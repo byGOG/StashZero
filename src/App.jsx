@@ -174,27 +174,56 @@ const ProjectLogo = ({ size = 80, className = "" }) => (
 );
 
 const AppLogo = ({ id, className, ...props }) => {
-  if (SPECIAL_LOGOS[id]) {
+  const [logoSrc, setLogoSrc] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  // Initialize and React to id change
+  useEffect(() => {
+    const initial = SPECIAL_LOGOS[id] || `https://cdn.simpleicons.org/${APP_ICON_MAP[id] || id}`;
+    setLogoSrc(initial);
+    setFailed(false);
+    setAttempt(0);
+  }, [id]);
+
+  const handleError = () => {
+    if (attempt === 0 && SPECIAL_LOGOS[id] && logoSrc === SPECIAL_LOGOS[id]) {
+      // Fallback 1: Special logo failed, try mapped slug
+      setLogoSrc(`https://cdn.simpleicons.org/${APP_ICON_MAP[id] || id}`);
+      setAttempt(1);
+    } else if (attempt <= 1) {
+      // Fallback 2: Try using the id directly as a slug
+      const fallbackId = `https://cdn.simpleicons.org/${id}`;
+      if (logoSrc !== fallbackId) {
+        setLogoSrc(fallbackId);
+        setAttempt(2);
+      } else {
+        setFailed(true);
+      }
+    } else {
+      setFailed(true);
+    }
+  };
+
+  if (failed || !logoSrc) {
     return (
       <div className={`${className} logo-container`} {...props}>
-        <img src={SPECIAL_LOGOS[id]} alt={id} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        <div className="fallback-logo-wrap">
+          <svg width="24" height="24" viewBox="0 0 100 100">
+            <path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#00ff9f" strokeWidth="12" strokeLinecap="round" />
+          </svg>
+        </div>
       </div>
     );
   }
 
-  const slug = APP_ICON_MAP[id] || "windowsterminal";
-  const iconUrl = `https://cdn.simpleicons.org/${slug}`;
-
   return (
     <div className={`${className} logo-container`} {...props}>
       <img
-        src={iconUrl}
+        src={logoSrc}
         alt={id}
         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        onError={(e) => {
-          e.target.style.display = 'none';
-          e.target.parentElement.innerHTML = '<div class="fallback-logo-wrap"><svg width="24" height="24" viewBox="0 0 100 100"><path d="M30 50 C30 30, 45 30, 50 50 S70 70, 70 50" fill="none" stroke="#00ff9f" stroke-width="12" stroke-linecap="round" /></svg></div>';
-        }}
+        onError={handleError}
       />
     </div>
   );
@@ -211,6 +240,7 @@ function App() {
   const [appProgress, setAppProgress] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTheme, setCurrentTheme] = useState("obsidian");
+  const [currentFont, setCurrentFont] = useState("outfit");
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -287,6 +317,9 @@ function App() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("stash-zero-theme");
     if (savedTheme) setCurrentTheme(savedTheme);
+
+    const savedFont = localStorage.getItem("stash-zero-font");
+    if (savedFont) setCurrentFont(savedFont);
 
     const savedCleanup = localStorage.getItem("stash-zero-cleanup");
     if (savedCleanup) setAutoCleanup(JSON.parse(savedCleanup));
@@ -640,6 +673,10 @@ function App() {
         setCurrentTheme(data);
         localStorage.setItem("stash-zero-theme", data);
         break;
+      case "change-font":
+        setCurrentFont(data);
+        localStorage.setItem("stash-zero-font", data);
+        break;
       case "exit":
         window.close();
         break;
@@ -705,7 +742,7 @@ function App() {
   };
 
   return (
-    <div className={`app-layout theme-${currentTheme}`}>
+    <div className={`app-layout theme-${currentTheme} font-${currentFont}`}>
       <div className="mesh-gradient" />
       <aside className="sidebar">
         <div className="sidebar-logo">
@@ -877,6 +914,7 @@ function App() {
                         {((installedApps[app.id] && app.portable && !app.script_cmd) || app.script_cmd) && (
                           <button
                             className={`primary-launch-btn ${app.script_cmd ? 'script-vibe' : ''}`}
+                            title={app.script_cmd ? "Betiği Çalıştır" : "Uygulamayı Başlat"}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (app.script_cmd) {
@@ -888,7 +926,14 @@ function App() {
                               }
                             }}
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            {app.script_cmd ? (
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="4 17 10 11 4 5"></polyline>
+                                <line x1="12" y1="19" x2="20" y2="19"></line>
+                              </svg>
+                            ) : (
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            )}
                           </button>
                         )}
                       </div>
@@ -1299,6 +1344,20 @@ function App() {
                   <button className={currentTheme === "arctic" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "arctic")}>Arctic</button>
                   <button className={currentTheme === "crimson" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "crimson")}>Crimson</button>
                   <button className={currentTheme === "gold" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "gold")}>Gold</button>
+                </div>
+              </div>
+
+              <div className="setting-card col">
+                <div className="setting-info">
+                  <span className="setting-title">Yazı Tipi (Font) Stili</span>
+                  <span className="setting-desc">Estetik algınıza uygun modern web tipografisini seçin.</span>
+                </div>
+                <div className="theme-selector modern">
+                  <button className={currentFont === "orbitron" ? "active" : ""} onClick={() => handleMenuAction("change-font", "orbitron")}>Orbitron</button>
+                  <button className={currentFont === "outfit" ? "active" : ""} onClick={() => handleMenuAction("change-font", "outfit")}>Outfit</button>
+                  <button className={currentFont === "inter" ? "active" : ""} onClick={() => handleMenuAction("change-font", "inter")}>Inter</button>
+                  <button className={currentFont === "firacode" ? "active" : ""} onClick={() => handleMenuAction("change-font", "firacode")}>Fira Code</button>
+                  <button className={currentFont === "poppins" ? "active" : ""} onClick={() => handleMenuAction("change-font", "poppins")}>Poppins</button>
                 </div>
               </div>
 
