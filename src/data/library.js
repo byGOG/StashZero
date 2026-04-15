@@ -55,6 +55,7 @@ export const SPECIAL_LOGOS = {
   google: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google.svg",
   cloudflare: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cloudflare.svg",
   mullvad: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mullvad-browser.svg",
+  etcher: "https://img.icons8.com/?size=100&id=SPa3u5sAt8re&format=png&color=000000",
   zen: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zen-browser-dark.svg",
   tor: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tor.png",
   steam: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/steam.svg",
@@ -66,6 +67,9 @@ export const SPECIAL_LOGOS = {
   officetoolplus: "https://officetool.plus/favicon.ico",
   cttwin: "https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/docs/static/favicon-32x32.png",
   sdi: "https://community.chocolatey.org/content/packageimages/sdio.1.17.8.829.png",
+  win10mct: "/mct_icon.png",
+  win11mct: "/mct_icon.png",
+  ventoy: "https://www.ventoy.net/static/img/ventoy.png?v=1",
   ninite: "https://files.catbox.moe/gc2nyw.png",
   fmhy: "https://i.postimg.cc/DwX0TKS3/fmhy.png",
   powershell7: "https://learn.microsoft.com/tr-tr/powershell/media/index/ps_black_128.svg",
@@ -297,6 +301,9 @@ export const LEGENDARY_APPS = [
   { id: "bleachbit", name: "BleachBit", category: "Sistem Araçları", category_order: 60, icon: "trash-2", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "Sistem ve gizlilik temizleme aracı.", download_url: "https://download.bleachbit.org/BleachBit-4.6.0-setup.exe", official_url: "https://www.bleachbit.org/" },
   { id: "ooappbuster", name: "O&O AppBuster", category: "Sistem Araçları", category_order: 60, icon: "trash-2", size_bytes: 1024 * 1024 * 1, version: "Latest", description: "İstenmeyen Windows uygulamalarını kaldırın.", download_url: "https://dl5.oo-software.com/files/ooappbuster/OOAppBuster.exe", official_url: "https://www.oo-software.com/en/ooappbuster", portable: true },
   { id: "unigetui", name: "UniGetUI", category: "Sistem Araçları", category_order: 60, icon: "package", size_bytes: 1024 * 1024 * 50, version: "Latest", description: "Modern paket yöneticisi arayüzü.", download_url: "https://github.com/marticliment/UniGetUI/releases/latest/download/UniGetUI.Installer.exe", official_url: "https://unigetui.com/" },
+  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 60, icon: "save", size_bytes: 1024 * 1024 * 2, version: "Latest", description: "Önyüklenebilir USB sürücü oluşturma aracı.", download_url: "https://github.com/pbatard/rufus/releases/latest/download/rufus.exe", official_url: "https://rufus.ie/", portable: true },
+  { id: "ventoy", name: "Ventoy", category: "Sistem Araçları", category_order: 60, icon: "save", size_bytes: 1024 * 1024 * 15, version: "Latest", description: "ISO/WIM/IMG dosyaları için yeni nesil USB önyükleme aracı.", download_url: "https://github.com/ventoy/Ventoy/releases/latest", official_url: "https://www.ventoy.net/", portable: true },
+  { id: "etcher", name: "Balena Etcher", category: "Sistem Araçları", category_order: 60, icon: "disc", size_bytes: 1024 * 1024 * 145, version: "Latest", description: "OS imajlarını USB ve SD kartlara hızlıca yazın.", download_url: "https://github.com/balena-io/etcher/releases/latest", official_url: "https://www.balena.io/etcher/" },
   { id: "wiztree", name: "WizTree", category: "Dosya Yönetimi", category_order: 70, icon: "search", size_bytes: 1024 * 1024 * 6, version: "Latest", description: "En hızlı disk alanı analiz aracı.", download_url: "https://diskanalyzer.com/download/wiztree_4_18_setup.exe", official_url: "https://diskanalyzer.com/" },
   { id: "teracopy", name: "TeraCopy", category: "Sistem Araçları", category_order: 60, icon: "copy", size_bytes: 1024 * 1024 * 12, version: "Latest", description: "Hızlı ve güvenli dosya kopyalama.", download_url: "https://www.codesector.com/downloads/teracopy.exe", official_url: "https://www.codesector.com/teracopy" },
 
@@ -312,11 +319,15 @@ export const LEGENDARY_APPS = [
   { id: "intel-dsa", name: "Intel DSA", category: "Donanım & Test", category_order: 65, icon: "refresh-cw", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Intel sürücü ve destek asistanı.", download_url: "https://www.intel.com/content/www/us/en/support/detect.html", official_url: "https://www.intel.com/content/www/us/en/support/detect.html" },
   { id: "nvidia-app", name: "NVIDIA App", category: "Donanım & Test", category_order: 65, icon: "zap", size_bytes: 1024 * 1024 * 120, version: "Latest", description: "NVIDIA ekran kartı sürücü ve ayar merkezi.", download_url: "https://www.nvidia.com/tr-tr/software/nvidia-app/", official_url: "https://www.nvidia.com/tr-tr/software/nvidia-app/" },
   { id: "rapr", name: "DriverStore Explorer", category: "Donanım & Test", category_order: 65, icon: "folder", size_bytes: 1024 * 1024 * 1, version: "Latest", description: "Windows sürücü deposu (DriverStore) yönetimi.", download_url: "https://github.com/lostindark/DriverStoreExplorer/releases/latest", official_url: "https://github.com/lostindark/DriverStoreExplorer", portable: true },
+  { id: "win10mct", name: "Windows 10 Media Creation Tool", category: "Sistem Araçları", category_order: 60, icon: "mouse-pointer", size_bytes: 1024 * 1024 * 18, version: "Latest", description: "Orijinal Windows 10 ISO ve kurulum medyası oluşturma aracı.", download_url: "https://go.microsoft.com/fwlink/?LinkId=2265055", official_url: "https://www.microsoft.com/tr-tr/software-download/windows10", portable: true },
+  { id: "win11mct", name: "Windows 11 Media Creation Tool", category: "Sistem Araçları", category_order: 60, icon: "mouse-pointer", size_bytes: 1024 * 1024 * 12, version: "v24H2", description: "Orijinal Windows 11 ISO ve kurulum medyası oluşturma aracı.", download_url: "https://go.microsoft.com/fwlink/?linkid=2156295", official_url: "https://www.microsoft.com/tr-tr/software-download/windows11", portable: true },
 
   // Disk & Dosya (70)
   { id: "hashcheck", name: "HashCheck", category: "Dosya Yönetimi", category_order: 70, icon: "check-circle", size_bytes: 1024 * 1024 * 1, version: "Latest", description: "Dosya doğrulama ve hash hesaplama.", download_url: "https://github.com/idrassi/HashCheck/releases/download/v2.5.0/HashCheckSetup-v2.5.0.1.exe", official_url: "https://github.com/idrassi/HashCheck" },
   { id: "onecommander", name: "OneCommander", category: "Dosya Yönetimi", category_order: 70, icon: "folder", size_bytes: 1024 * 1024 * 45, version: "Latest", description: "Modern çift bölmeli dosya yöneticisi.", download_url: "https://www.onecommander.com/OneCommanderSetup.msi", official_url: "https://www.onecommander.com/" },
   { id: "everything", name: "Everything", category: "Dosya Yönetimi", category_order: 70, icon: "search", size_bytes: 1024 * 1024 * 2, version: "Latest", description: "Anlık dosya arama motoru.", download_url: "https://www.voidtools.com/Everything-1.4.1.1032.x64-Setup.exe", official_url: "https://www.voidtools.com/" },
+  { id: "archive", name: "7-Zip", category: "Dosya Yönetimi", category_order: 70, icon: "package", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Açık kaynaklı dosya arşivleyici.", download_url: "https://www.7-zip.org/a/7z2408-x64.exe", official_url: "https://www.7-zip.org/" },
+  { id: "winrar", name: "WinRAR", category: "Dosya Yönetimi", category_order: 70, icon: "package", size_bytes: 1024 * 1024 * 6, version: "Latest", description: "Popüler arşiv yönetim aracı.", download_url: "https://www.win-rar.com/fileadmin/winrar-versions/winrar-x64-701tr.exe", official_url: "https://www.win-rar.com/" },
 
   // Uzak Erişim & Paylaşım (80)
   { id: "anydesk", name: "AnyDesk", category: "Ağ & Uzaktan Erişim", category_order: 80, icon: "terminal", size_bytes: 1024 * 1024 * 5, version: "Latest", description: "Hızlı uzak masaüstü bağlantısı.", download_url: "https://download.anydesk.com/AnyDesk.exe", official_url: "https://anydesk.com/" },
