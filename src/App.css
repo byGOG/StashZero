@@ -919,15 +919,15 @@ body {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  padding-right: 32px; /* Reduced from 50px */
+  padding-right: 12px;
 }
 
 .app-name-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   min-width: 0;
-  padding-right: 72px; /* Reduced from 90px to give more space for the name */
+  padding-right: 48px;
 }
 
 .app-name {
@@ -935,9 +935,8 @@ body {
   font-size: calc(13px * var(--app-font-scale));
   color: #fff;
   letter-spacing: -0.1px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3;
   width: 100%;
 }
 

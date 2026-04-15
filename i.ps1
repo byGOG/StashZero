@@ -60,7 +60,7 @@ try {
     $progressPreference = 'Continue'
 
     # 4. Kurulum
-    Write-Host (Get-T "[+] Kurulum bas*lat i* l i* yor, lu*tfen bekleyin...") -ForegroundColor Yellow
+    Write-Host (Get-T "[+] Kurulum bas*lati*li*yor, lu*tfen bekleyin...") -ForegroundColor Yellow
     
     if ($fileName.EndsWith(".msi")) {
         Start-Process msiexec.exe -ArgumentList "/i `"$tempPath`" /quiet /norestart" -Wait

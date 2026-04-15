@@ -76,7 +76,7 @@ function App() {
   const [dnsOpen, setDnsOpen] = useState(false);
   const [logPanelHeight, setLogPanelHeight] = useState(220);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
-  const [fontSize, setFontSize] = useState(100);
+  const [fontSize, setFontSize] = useState(150);
 
   const searchInputRef = useRef(null);
   const logEndRef = useRef(null);
