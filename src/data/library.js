@@ -5,7 +5,7 @@ export const POPULAR_DNS = [
   { name: "Quad9", ips: ["9.9.9.9", "149.112.112.112"], slug: "quad9" },
   { name: "AdGuard", ips: ["94.140.14.14", "94.140.15.15"], slug: "adguard" }
 ];
-
+// Library data setup
 export const APP_ICON_MAP = {
   chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
    discord: "discord", telegram: "telegram", whatsapp: "whatsapp",
@@ -225,11 +225,11 @@ export const SPECIAL_LOGOS = {
 export const LEGENDARY_APPS = [
   // Tarayıcılar (10)
   { id: "chrome", name: "Google Chrome", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "Latest", description: "Hızlı ve güvenli web tarayıcısı.", download_url: "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B104F5E68-9A74-4C7D-8E14-4197B8233C92%7D%26lang%3Dtr%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dtrue%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe", official_url: "https://www.google.com/chrome/" },
-  { id: "firefox", name: "Firefox", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, version: "Latest", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/" },
+  { id: "firefox", name: "Firefox", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, version: "Latest", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-stub&os=win&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/", uninstall_path: "C:\\Program Files\\Mozilla Firefox\\uninstall\\helper.exe", install_args: "/s" },
   { id: "brave", name: "Brave", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 105, version: "Latest", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/latest/winx64", official_url: "https://brave.com/tr/" },
-  { id: "mullvad", name: "Mullvad Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, version: "Latest", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/en/download/browser/windows/latest", official_url: "https://mullvad.net/en/browser" },
+  { id: "mullvad", name: "Mullvad Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, version: "Latest", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/tr/download/browser/win64/latest", official_url: "https://mullvad.net/tr/browser", uninstall_path: "C:\\Users\\byGOG\\AppData\\Local\\Mullvad\\MullvadBrowser\\Release\\uninstall.exe" },
   { id: "zen", name: "Zen Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/" },
-  { id: "tor", name: "Tor Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "Latest", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/13.0.14/torbrowser-install-win64-13.0.14_ALL.exe", official_url: "https://www.torproject.org/" },
+  { id: "tor", name: "Tor Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "15.0.9", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/15.0.9/tor-browser-windows-x86_64-portable-15.0.9.exe", official_url: "https://www.torproject.org/", install_args: "/S /D=C:\\StashZero", shortcut_path: "C:\\StashZero\\Tor Browser.lnk", uninstall_paths: ["C:\\StashZero\\Browser", "C:\\StashZero\\Tor Browser.lnk", "C:\\Users\\byGOG\\Desktop\\Tor Browser.lnk"], check_path: "C:\\StashZero\\Browser\\firefox.exe" },
 
   // Tarayıcı Eklentileri (15)
   { id: "ublock", name: "uBlock Origin", category: "Eklentiler", category_order: 15, icon: "globe", size_bytes: 0, version: "Web", description: "En etkili ve hafif reklam engelleyici.", official_url: "https://ublockorigin.com/", is_resource: true },
@@ -244,7 +244,7 @@ export const LEGENDARY_APPS = [
   // Mesajlaşma & Sosyal (20)
   { id: "discord", name: "Discord", category: "İletişim & Sosyal", category_order: 20, icon: "message-square", size_bytes: 1024 * 1024 * 85, version: "Latest", description: "Popüler sesli, görüntülü ve yazılı sohbet platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
   { id: "telegram", name: "Telegram Desktop", category: "İletişim & Sosyal", category_order: 20, icon: "message-circle", size_bytes: 1024 * 1024 * 35, version: "Latest", description: "Hızlı, güvenli ve bulut tabanlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://desktop.telegram.org/" },
-  { id: "whatsapp", name: "WhatsApp", category: "İletişim & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Popüler anlık mesajlaşma uygulaması.", download_url: "https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi", official_url: "https://www.whatsapp.com/" },
+  { id: "whatsapp", name: "WhatsApp", category: "İletişim & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Popüler anlık mesajlaşma uygulaması.", download_url: "https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi", official_url: "https://www.whatsapp.com/", install_args: "/S" },
 
   // E-Posta & İletişim (25)
   { id: "gmail", name: "Gmail", category: "İletişim & Sosyal", category_order: 20, icon: "mail", size_bytes: 0, version: "Web", description: "Google'ın gelişmiş e-posta servisi.", official_url: "https://mail.google.com/", is_resource: true },

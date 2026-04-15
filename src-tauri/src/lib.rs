@@ -20,6 +20,7 @@ async fn close_splashscreen(window: tauri::Window) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().level(log::LevelFilter::Debug).build())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
@@ -35,6 +36,7 @@ pub fn run() {
             installer::uninstall_software,
             installer::uninstall_portable,
             installer::launch_portable,
+            installer::check_path_exists,
             scripts::open_drive,
             network::set_dns,
             network::reset_dns,

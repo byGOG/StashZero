@@ -74,6 +74,15 @@ const AppGrid = ({
                     {app.description}
                   </div>
 
+                  {status === "installing" && appProgress[app.path] !== undefined && (
+                    <div className="app-progress">
+                      <div className="progress-bar-track">
+                        <div className="progress-bar-fill" style={{ width: `${appProgress[app.path]}%` }} />
+                      </div>
+                      <span className="progress-percent">{appProgress[app.path]}%</span>
+                    </div>
+                  )}
+
                   <div className="app-actions-top">
                     {app.official_url && (
                       <button className="icon-action-btn" onClick={(e) => { e.stopPropagation(); openUrl(app.official_url); }} title="Web Sitesi">
@@ -112,17 +121,8 @@ const AppGrid = ({
                     )}
                   </div>
                 </div>
-                {status === "installing" && (
-                  appProgress[app.path] !== undefined ? (
-                    <div className="app-progress">
-                      <div className="progress-bar-track">
-                        <div className="progress-bar-fill" style={{ width: `${appProgress[app.path]}%` }} />
-                      </div>
-                      <span className="progress-percent">{appProgress[app.path]}%</span>
-                    </div>
-                  ) : (
-                    <div className="spinner" />
-                  )
+                {status === "installing" && appProgress[app.path] === undefined && (
+                  <div className="spinner" />
                 )}
               </div>
             );

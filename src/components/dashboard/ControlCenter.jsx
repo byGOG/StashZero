@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { safeInvoke } from "../../utils/tauri";
 import TelemetryIcon from "../icons/TelemetryIcon";
 import { POPULAR_DNS, SPECIAL_LOGOS } from "../../data/library";
 import { sounds } from "../../utils/audio";
@@ -130,7 +130,7 @@ const ControlCenter = ({
                   className="telemetry-card clickable"
                   key={idx}
                   onClick={() => {
-                    invoke("open_drive", { path: disk.mount_point });
+                    safeInvoke("open_drive", { path: disk.mount_point });
                     sounds.playClick();
                   }}
                   title={`${disk.mount_point} Klasörünü Aç`}
@@ -252,7 +252,7 @@ const ControlCenter = ({
                         e.stopPropagation();
                         try {
                           addLog(`${dns.name} DNS uygulanıyor...`, "process");
-                          await invoke("set_dns", { dns: dns.ips });
+                          await safeInvoke("set_dns", { dns: dns.ips });
                           addLog(`${dns.name} DNS başarıyla ayarlandı.`, "success");
                           sounds.playSuccess();
                           setSystemInfo(prev => prev ? { ...prev, dns_servers: dns.ips.join(", ") } : prev);
@@ -276,11 +276,11 @@ const ControlCenter = ({
                       e.stopPropagation();
                       try {
                         addLog("DNS ayarları sıfırlanıyor...", "process");
-                        await invoke("reset_dns");
+                        await safeInvoke("reset_dns");
                         addLog("DNS ayarları otomatiğe döndürüldü.", "success");
                         sounds.playSuccess();
                         setTimeout(async () => {
-                          const info = await invoke("get_system_info");
+                          const info = await safeInvoke("get_system_info");
                           setSystemInfo(info);
                         }, 500);
                         setDnsOpen(false);

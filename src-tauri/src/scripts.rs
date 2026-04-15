@@ -13,7 +13,13 @@ pub static SCRIPT_STDIN: Lazy<Arc<TokioMutex<Option<tokio::process::ChildStdin>>
 pub static SCRIPT_CHILD: Lazy<Arc<TokioMutex<Option<tokio::process::Child>>>> = Lazy::new(|| Arc::new(TokioMutex::new(None)));
 
 #[tauri::command]
-pub async fn run_ps_script(script: String) -> Result<(), String> {
+pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), String> {
+    log::info!("PowerShell betiği çalıştırılıyor (Gizli Pencere)");
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": "PowerShell betiği çalıştırılıyor (Gizli Pencere)", "log_type": "info" }));
+    
+    log::debug!("Betik içeriği: {}", script);
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Betik: {}", script), "log_type": "info" }));
+    
     let escaped_script = script.replace("'", "''");
     
     std::process::Command::new("powershell")
@@ -24,18 +30,28 @@ pub async fn run_ps_script(script: String) -> Result<(), String> {
             &format!("Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-NoExit','-Command','{}' -Verb RunAs -WindowStyle Hidden", escaped_script)
         ])
         .spawn()
-        .map_err(|e| format!("Betik başlatılamadı: {}", e))?;
+        .map_err(|e| {
+            log::error!("Betik başlatılamadı: {}", e);
+            format!("Betik başlatılamadı: {}", e)
+        })?;
     Ok(())
 }
 
 #[tauri::command]
 pub async fn run_ps_script_logged(window: TauriWindow, script: String) -> Result<(), String> {
+    log::info!("İnteraktif PowerShell oturumu başlatılıyor");
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": "İnteraktif PowerShell oturumu başlatılıyor", "log_type": "info" }));
+    
+    log::debug!("Betik içeriği: {}", script);
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Betik: {}", script), "log_type": "info" }));
+    
     use tokio::io::AsyncBufReadExt;
 
     // Kill any existing interactive session
     {
         let mut child_guard = SCRIPT_CHILD.lock().await;
         if let Some(mut old) = child_guard.take() {
+            log::debug!("Eski oturum sonlandırılıyor...");
             let _ = old.kill().await;
         }
         let mut stdin_guard = SCRIPT_STDIN.lock().await;
@@ -56,7 +72,10 @@ pub async fn run_ps_script_logged(window: TauriWindow, script: String) -> Result
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Betik başlatılamadı: {}", e))?;
+        .map_err(|e| {
+            log::error!("İnteraktif betik başlatılamadı: {}", e);
+            format!("Betik başlatılamadı: {}", e)
+        })?;
 
     // Store stdin for interactive input
     if let Some(stdin) = child.stdin.take() {
@@ -71,6 +90,7 @@ pub async fn run_ps_script_logged(window: TauriWindow, script: String) -> Result
         tokio::spawn(async move {
             let mut reader = tokio::io::BufReader::new(stdout).lines();
             while let Ok(Some(line)) = reader.next_line().await {
+                log::debug!("[PS STDOUT] {}", line);
                 let _ = w.emit("script-log", serde_json::json!({ "msg": line, "log_type": "process" }));
             }
         });
@@ -82,6 +102,7 @@ pub async fn run_ps_script_logged(window: TauriWindow, script: String) -> Result
             let mut reader = tokio::io::BufReader::new(stderr).lines();
             while let Ok(Some(line)) = reader.next_line().await {
                 if !line.trim().is_empty() {
+                    log::error!("[PS STDERR] {}", line);
                     let _ = w.emit("script-log", serde_json::json!({ "msg": line, "log_type": "error" }));
                 }
             }
@@ -124,13 +145,21 @@ pub async fn run_ps_script_logged(window: TauriWindow, script: String) -> Result
 
 #[tauri::command]
 pub async fn send_script_input(input: String) -> Result<(), String> {
+    log::debug!("Girdi gönderiliyor: {}", input);
     let mut guard = SCRIPT_STDIN.lock().await;
     if let Some(ref mut stdin) = *guard {
         stdin.write_all(format!("{}\n", input).as_bytes()).await
-            .map_err(|e| format!("Girdi gönderilemedi: {}", e))?;
-        stdin.flush().await.map_err(|e| format!("Flush hatası: {}", e))?;
+            .map_err(|e| {
+                log::error!("Girdi gönderilemedi: {}", e);
+                format!("Girdi gönderilemedi: {}", e)
+            })?;
+        stdin.flush().await.map_err(|e| {
+            log::error!("Flush hatası: {}", e);
+            format!("Flush hatası: {}", e)
+        })?;
         Ok(())
     } else {
+        log::warn!("Girdi gönderilmek istendi ama aktif oturum yok.");
         Err("Aktif oturum yok.".to_string())
     }
 }
