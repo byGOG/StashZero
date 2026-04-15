@@ -9,7 +9,7 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
         <div className="modal-glow-effect" />
         
         <div className="modal-header-premium">
-          <div className="header-badge">STASHZERO STUDIO</div>
+          <div className="header-badge">STASHZERO</div>
           <button className="close-btn-premium" onClick={() => setShowAbout(false)}>&times;</button>
         </div>
 
@@ -21,7 +21,6 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
             </div>
             <div className="about-title-premium">
               <h3>StashZero</h3>
-              <p>Studio Edition</p>
             </div>
           </div>
 
@@ -36,7 +35,7 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
             </div>
             <div className="about-stat-card">
               <span className="stat-label">Current Release</span>
-              <span className="stat-value">v0.1.5 (Master)</span>
+              <span className="stat-value">v0.2.0 (Stable)</span>
             </div>
             <div className="about-stat-card">
               <span className="stat-label">Lead Developer</span>

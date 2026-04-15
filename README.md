@@ -1,4 +1,4 @@
-# <p align="center">💎 StashZero: Studio Edition</p>
+# <p align="center">💎 StashZero</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Stable-emerald?style=for-the-badge&logo=github" alt="Status">
@@ -59,7 +59,7 @@ powershell -ExecutionPolicy Bypass -Command "irm bygog.github.io/StashZero/i.ps1
 - **Canlı İzleme:** CPU, RAM, Disk ve Network (Up/Down) verilerini milisaniyelik gecikmeyle takip edin.
 - **Pro Diagnostik:** Kernel sürümünden IP detaylarına kadar sisteminizin röntgenini çekin.
 
-### ⚙️ Studio Özelleştirmeleri
+### ⚙️ Görsel Özelleştirmeler
 - **Tema Motoru:** Obsidian, Cyberpunk, Minimalist ve Neumorphic temalar arası tek tıkla geçiş.
 - **Sesli Geri Bildirim:** Her etkileşimde kaliteli, stüdyo kalitesinde ses efektleri.
 
@@ -91,7 +91,7 @@ powershell -ExecutionPolicy Bypass -Command "irm bygog.github.io/StashZero/i.ps1
 
 **Baş Mimari:** byGOG  
 **Stüdyo:** byGOG Software  
-**Release:** Master Studio Release
+**Release:** Stable Master Release
 
 ---
 
