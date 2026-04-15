@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { safeInvoke } from "./utils/tauri";
 import { listen } from '@tauri-apps/api/event';
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { open as openUrl } from "@tauri-apps/plugin-shell";
@@ -154,7 +154,7 @@ function App() {
     if (savedCategory) setActiveCategory(savedCategory);
 
     const timer = setTimeout(() => {
-      invoke("close_splashscreen").catch(e => console.error("Splash error:", e));
+      safeInvoke("close_splashscreen").catch(e => console.error("Splash error:", e));
     }, 3500);
 
     const handleKeyDown = (e) => {
@@ -211,9 +211,15 @@ function App() {
       }
     });
 
+    const unlistenBackend = listen('backend-log', (event) => {
+      const { msg, log_type } = event.payload;
+      addLog(msg, log_type || "info");
+    });
+
     return () => {
       unlisten.then(f => f());
       unlistenScript.then(f => f());
+      unlistenBackend.then(f => f());
     };
   }, []);
 
@@ -221,8 +227,8 @@ function App() {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const info = await invoke("get_system_info");
-        setSystemInfo(info);
+        const info = await safeInvoke("get_system_info");
+        if (info) setSystemInfo(info);
       } catch (e) {
         console.error("System info error", e);
       }
@@ -268,7 +274,7 @@ function App() {
       addLog(`> ${terminalInput}`, "command");
       const cmd = terminalInput;
       setTerminalInput("");
-      await invoke("send_script_input", { input: cmd });
+      await safeInvoke("send_script_input", { input: cmd });
     } catch (err) {
       addLog(`Girdi hatası: ${err}`, "error");
     }
@@ -321,9 +327,21 @@ function App() {
 
   const refreshInstalledStatus = async () => {
     try {
-      const systemApps = await invoke("get_installed_winget_ids");
+      const systemApps = await safeInvoke("get_installed_winget_ids", {}, []);
       const newInstalledApps = {};
       for (const app of installers) {
+        // Öncelik: Özel dosya yolu kontrolü
+        if (app.check_path) {
+          try {
+            const exists = await safeInvoke("check_path_exists", { path: app.check_path });
+            if (exists) {
+              newInstalledApps[app.id] = "Kurulu";
+              continue;
+            }
+          } catch (e) { console.error("Path check error", e); }
+        }
+
+        // İkincil: Winget listesi kontrolü
         const lowerName = app.name.toLowerCase();
         const lowerId = app.id.toLowerCase();
         let match = systemApps.find(([name, _]) => {
@@ -348,11 +366,15 @@ function App() {
     setShowLogs(true);
     addLog(`${app.name} kaldırılıyor...`, "process");
     try {
-      if (app.portable) {
-        await invoke("uninstall_portable", { url: app.download_url, appName: app.name });
+      if (app.uninstall_paths || app.portable) {
+        await safeInvoke("uninstall_portable", { 
+          url: app.download_url, 
+          appName: app.name, 
+          uninstallPaths: app.uninstall_paths 
+        });
         addLog(`Başarılı: ${app.name} silindi.`, "success");
       } else if (app.uninstall_path) {
-        await invoke("uninstall_software", { path: app.uninstall_path });
+        await safeInvoke("uninstall_software", { path: app.uninstall_path });
         addLog(`Başarılı: ${app.name} sistemden kaldırıldı.`, "success");
       } else throw new Error("Kaldırma yolu tanımlanmamış.");
       refreshInstalledStatus();
@@ -379,11 +401,18 @@ function App() {
       try {
         if (app.script_cmd) {
           const cmd = app.id === "officetoolplus" ? "run_ps_script_logged" : "run_ps_script";
-          await invoke(cmd, { script: app.script_cmd });
+          await safeInvoke(cmd, { script: app.script_cmd });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`Başlatıldı: ${app.name}`, "success");
         } else if (app.download_url) {
-          await invoke("install_exe_from_url", { url: app.download_url, packageId: app.id, appName: app.name, isPortable: !!app.portable });
+          await safeInvoke("install_exe_from_url", { 
+            url: app.download_url, 
+            packageId: app.id, 
+            appName: app.name, 
+            isPortable: !!app.portable,
+            installArgs: app.install_args, // Opsiyonel parametre
+            shortcutPath: app.shortcut_path
+          });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`Başarılı: ${app.name}`, "success");
         }

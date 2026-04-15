@@ -28,7 +28,7 @@ $repo = "byGOG/StashZero"
 $appName = "StashZero"
 $api = "https://api.github.com/repos/$repo" + "/releases/latest"
 
-Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*lat i* l i* yor...") -ForegroundColor Cyan
+Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*lati*li*yor...") -ForegroundColor Cyan
 
 try {
     # 1. En güncel sürüm bilgilerini al
