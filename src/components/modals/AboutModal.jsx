@@ -5,43 +5,62 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
 
   return (
     <div className="modal-overlay" onClick={() => setShowAbout(false)}>
-      <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>StashZero Hakkında</h2>
-          <button className="close-btn" onClick={() => setShowAbout(false)}>&times;</button>
+      <div className="modal-content about-modal-premium" onClick={e => e.stopPropagation()}>
+        <div className="modal-glow-effect" />
+        
+        <div className="modal-header-premium">
+          <div className="header-badge">STASHZERO STUDIO</div>
+          <button className="close-btn-premium" onClick={() => setShowAbout(false)}>&times;</button>
         </div>
-        <div className="modal-body about-body">
-          <div className="about-branding">
-            <ProjectLogo size={60} />
-            <div className="about-title">
+
+        <div className="modal-body about-body-premium">
+          <div className="about-branding-premium">
+            <div className="logo-container-premium">
+              <ProjectLogo size={80} />
+              <div className="logo-ring-animation" />
+            </div>
+            <div className="about-title-premium">
               <h3>StashZero</h3>
+              <p>Studio Edition</p>
             </div>
           </div>
-          <div className="about-info-grid">
-            <div className="info-item">
-              <span className="label">Geliştirici</span>
-              <span className="value">byGOG</span>
+
+          <div className="about-stats-grid">
+            <div className="about-stat-card">
+              <span className="stat-label">System Architecture</span>
+              <span className="stat-value">Tauri 2.5 + Rust</span>
             </div>
-            <div className="info-item">
-              <span className="label">Sürüm</span>
-              <span className="value">v1.0.0 (Master)</span>
+            <div className="about-stat-card">
+              <span className="stat-label">UI Environment</span>
+              <span className="stat-value">React 19 Core</span>
             </div>
-            <div className="info-item">
-              <span className="label">Mimari</span>
-              <span className="value">Tauri 2.5 + React 18 (Turbo)</span>
+            <div className="about-stat-card">
+              <span className="stat-label">Current Release</span>
+              <span className="stat-value">v0.1.5 (Master)</span>
             </div>
-            <div className="info-item">
-              <span className="label">Motor</span>
-              <span className="value">Rust (Yüksek Performans)</span>
+            <div className="about-stat-card">
+              <span className="stat-label">Lead Developer</span>
+              <span className="stat-value">byGOG</span>
             </div>
           </div>
-          <div className="about-desc">
-            StashZero, modern ve hız odaklı bir çevrimdışı uygulama kütüphanesidir.
-            Gelişmiş telemetri hub'ı ve tek tıkla kurulum özelliği ile
-            profesyonel kullanıcılar için tasarlanmış bir "Ninite" klonudur.
+
+          <div className="tech-badges-row">
+            <div className="tech-chip">Rust</div>
+            <div className="tech-chip">React 19</div>
+            <div className="tech-chip">Tauri</div>
+            <div className="tech-chip">Vite</div>
           </div>
-          <div className="about-copyright">
-            © 2026 byGOG Software. Tüm hakları saklıdır.
+
+          <div className="about-description-premium">
+            StashZero, modern ve hız odaklı bir çevrimdışı uygulama ekosistemidir. 
+            <strong> Glassmorphism V3</strong> estetiğiyle tasarlanan platform, 
+            profesyonel sistem yönetimi ve uygulama kurulum süreçlerini 
+            tek bir merkezden yönetmenizi sağlar.
+          </div>
+
+          <div className="about-footer-premium">
+            <div className="copyright-line">© 2026 byGOG Software. All rights reserved.</div>
+            <div className="tagline">💎 Crafted for perfection</div>
           </div>
         </div>
       </div>
