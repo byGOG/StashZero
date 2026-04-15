@@ -43,11 +43,11 @@ try {
     Write-Host "[+] Kurulum başlatılıyor, lütfen bekleyin..." -ForegroundColor Yellow
     
     if ($fileName.EndsWith(".msi")) {
-        # MSI için sessiz kurulum (isteğe bağlı /quiet eklenebilir)
-        Start-Process msiexec.exe -ArgumentList "/i `"$tempPath`"" -Wait
+        # MSI için sessiz kurulum
+        Start-Process msiexec.exe -ArgumentList "/i `"$tempPath`" /quiet /norestart" -Wait
     } else {
-        # EXE/Setup için
-        Start-Process -FilePath $tempPath -Wait
+        # NSIS EXE için sessiz kurulum
+        Start-Process -FilePath $tempPath -ArgumentList "/S" -Wait
     }
 
     # 5. Temizlik
