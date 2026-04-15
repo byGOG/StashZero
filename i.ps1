@@ -1,6 +1,10 @@
 # StashZero One-Liner Installer
 # Optimized for PowerShell execution (irm | iex)
 
+# Türkçe Karakter Desteği
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 $ErrorActionPreference = "Stop"
 
 $repo = "byGOG/StashZero"
