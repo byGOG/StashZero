@@ -5,14 +5,20 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için)
+# Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için - Full Set)
 function Get-T($text) {
-    $text = $text -replace 's\*', "$([char]0x015F)"
-    $text = $text -replace 'S\*', "$([char]0x015E)"
-    $text = $text -replace 'i\*', "$([char]0x0131)"
-    $text = $text -replace 'I\*', "$([char]0x0130)"
-    $text = $text -replace 'g\*', "$([char]0x011F)"
-    $text = $text -replace 'G\*', "$([char]0x011E)"
+    $text = $text -replace 's\*', "$([char]0x015F)" # ş
+    $text = $text -replace 'S\*', "$([char]0x015E)" # Ş
+    $text = $text -replace 'i\*', "$([char]0x0131)" # ı
+    $text = $text -replace 'I\*', "$([char]0x0130)" # İ
+    $text = $text -replace 'g\*', "$([char]0x011F)" # ğ
+    $text = $text -replace 'G\*', "$([char]0x011E)" # Ğ
+    $text = $text -replace 'u\*', "$([char]0x00FC)" # ü
+    $text = $text -replace 'U\*', "$([char]0x00DC)" # Ü
+    $text = $text -replace 'o\*', "$([char]0x00F6)" # ö
+    $text = $text -replace 'O\*', "$([char]0x00D6)" # Ö
+    $text = $text -replace 'c\*', "$([char]0x00E7)" # ç
+    $text = $text -replace 'C\*', "$([char]0x00C7)" # Ç
     return $text
 }
 
@@ -26,13 +32,13 @@ Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*latili*yor...") -ForegroundColor
 
 try {
     # 1. En güncel sürüm bilgilerini al
-    Write-Host (Get-T "[*] En g*uncel s*ur*um bilgileri sorgulani*yor...") -ForegroundColor Gray
+    Write-Host (Get-T "[*] En g*u*ncel s*u*r*u*m bilgileri sorgulani*yor...") -ForegroundColor Gray
     try {
         $release = Invoke-RestMethod -Uri $api
         $version = $release.tag_name
-        Write-Host (Get-T "[v] Bulunan S*ur*um: $version") -ForegroundColor Green
+        Write-Host (Get-T "[v] Bulunan S*u*r*u*m: $version") -ForegroundColor Green
     } catch {
-        throw (Get-T "GitHub üzerinde yayinlanmis* (Release) bir s*ur*um bulunamadi. L*utfen *once GitHub deponuzda bir s*ur*um olus*turun.")
+        throw (Get-T "GitHub üzerinde yayinlanmis* (Release) bir s*u*r*u*m bulunamadi. L*u*tfen *once GitHub deponuzda bir s*u*r*u*m olus*turun.")
     }
 
     # 2. Uygun asset'i bul
@@ -54,7 +60,7 @@ try {
     $progressPreference = 'Continue'
 
     # 4. Kurulum
-    Write-Host (Get-T "[+] Kurulum bas*latili*yor, l*utfen bekleyin...") -ForegroundColor Yellow
+    Write-Host (Get-T "[+] Kurulum bas*latili*yor, l*u*tfen bekleyin...") -ForegroundColor Yellow
     
     if ($fileName.EndsWith(".msi")) {
         Start-Process msiexec.exe -ArgumentList "/i `"$tempPath`" /quiet /norestart" -Wait
