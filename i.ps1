@@ -7,7 +7,13 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # Karakter dönüşüm fonksiyonu (Bozulmayı önlemek için)
 function Get-T($text) {
-    return $text.Replace('s*', [char]0x015F).Replace('S*', [char]0x015E).Replace('i*', [char]0x0131).Replace('I*', [char]0x0130).Replace('g*', [char]0x011F).Replace('G*', [char]0x011E)
+    $text = $text -replace 's\*', "$([char]0x015F)"
+    $text = $text -replace 'S\*', "$([char]0x015E)"
+    $text = $text -replace 'i\*', "$([char]0x0131)"
+    $text = $text -replace 'I\*', "$([char]0x0130)"
+    $text = $text -replace 'g\*', "$([char]0x011F)"
+    $text = $text -replace 'G\*', "$([char]0x011E)"
+    return $text
 }
 
 $ErrorActionPreference = "Stop"
