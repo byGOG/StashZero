@@ -31,6 +31,11 @@ Herhangi bir kurulum dosyası indirmeden, terminal üzerinden anında StashZero'
 irm bygog.github.io/StashZero/i.ps1 | iex
 ```
 
+### 💻 Komut İstemi (CMD) ile Kurulum
+```cmd
+powershell -ExecutionPolicy Bypass -Command "irm bygog.github.io/StashZero/i.ps1 | iex"
+```
+
 ---
 
 ## 🌌 Vizyon ve Mimari
