@@ -12,9 +12,13 @@ Write-Host "`n[+] StashZero Kurulumu Başlatılıyor..." -ForegroundColor Cyan
 try {
     # 1. En güncel sürüm bilgilerini al
     Write-Host "[*] En güncel sürüm bilgileri sorgulanıyor..." -ForegroundColor Gray
-    $release = Invoke-RestMethod -Uri $api
-    $version = $release.tag_name
-    Write-Host "[✓] Bulunan Sürüm: $version" -ForegroundColor Green
+    try {
+        $release = Invoke-RestMethod -Uri $api
+        $version = $release.tag_name
+        Write-Host "[✓] Bulunan Sürüm: $version" -ForegroundColor Green
+    } catch {
+        throw "GitHub üzerinde yayınlanmış (Release) bir sürüm bulunamadı. Lütfen önce GitHub deponuzda bir sürüm oluşturun veya release assetlerini ekleyin."
+    }
 
     # 2. Uygun asset'i bul (MSI tercih edilir, yoksa EXE)
     $asset = $release.assets | Where-Object { $_.name -like "*.msi" -or $_.name -like "*x64-setup.exe" } | Select-Object -First 1
