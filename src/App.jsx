@@ -14,6 +14,7 @@ import Header from "./components/layout/Header";
 import AppGrid from "./components/dashboard/AppGrid";
 import ControlCenter from "./components/dashboard/ControlCenter";
 import LogPanel from "./components/modals/LogPanel";
+import AdminRequestModal from "./components/modals/AdminRequestModal";
 import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
 
@@ -52,6 +53,7 @@ function App() {
   const [installedApps, setInstalledApps] = useState({}); // id -> version
   const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
   const [appProgress, setAppProgress] = useState({});
+  const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTheme, setCurrentTheme] = useState("obsidian");
   const [currentFont, setCurrentFont] = useState("outfit");
@@ -361,29 +363,70 @@ function App() {
     setLogs(prev => [{ time, msg, type }, ...prev].slice(0, 100));
   };
 
-  const startUninstall = async (app) => {
+  const proceedUninstall = async (app) => {
     setInstalling(true);
     setShowLogs(true);
     addLog(`${app.name} kaldırılıyor...`, "process");
+
     try {
-      if (app.uninstall_paths || app.portable) {
-        await safeInvoke("uninstall_portable", { 
-          url: app.download_url, 
-          appName: app.name, 
-          uninstallPaths: app.uninstall_paths 
-        });
-        addLog(`Başarılı: ${app.name} silindi.`, "success");
+      const appPath = app.path;
+      setInstallStatus(prev => ({ ...prev, [appPath]: "installing" }));
+
+      if (app.uninstall_script) {
+        // Özel kaldırma betiği
+        await safeInvoke("run_ps_script", { script: app.uninstall_script });
+        addLog(`Başarılı: ${app.name} (Store/Script) kaldırıldı.`, "success");
+      } else if (app.portable) {
+        // Portable kaldırma
+        await safeInvoke("uninstall_portable", { url: app.download_url, name: app.name });
+        addLog(`Başarılı: ${app.name} (Portable) dosyaları silindi.`, "success");
       } else if (app.uninstall_path) {
         await safeInvoke("uninstall_software", { path: app.uninstall_path });
         addLog(`Başarılı: ${app.name} sistemden kaldırıldı.`, "success");
       } else throw new Error("Kaldırma yolu tanımlanmamış.");
-      refreshInstalledStatus();
+
+      // Arayüzü anında temizle
+      setInstalledApps(prev => {
+        const next = { ...prev };
+        delete next[app.id];
+        return next;
+      });
+
+      setInstallStatus(prev => {
+        const next = { ...prev };
+        delete next[app.path];
+        return next;
+      });
+
+      setAppProgress(prev => {
+        const next = { ...prev };
+        delete next[app.path];
+        return next;
+      });
+      
+      // Windows'un veritabanını tazeleyebilmesi için 2 saniye sonra sistem taraması yap
+      setTimeout(() => {
+        refreshInstalledStatus();
+      }, 2000);
+
       sounds.playSuccess();
     } catch (error) {
       addLog(`Hata: ${error}`, "error");
       sounds.playError();
     }
     setInstalling(false);
+  };
+
+  const startUninstall = async (targetApp) => {
+    if (!targetApp) return;
+
+    // Yönetici yetkisi gerektiren durum (Uninstall Script varsa)
+    if (targetApp.uninstall_script) {
+      setAdminRequest({ show: true, app: targetApp, action: "Uygulama Kaldırma" });
+      return;
+    }
+
+    proceedUninstall(targetApp);
   };
 
   const startInstall = async () => {
@@ -400,7 +443,7 @@ function App() {
       setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
       try {
         if (app.script_cmd) {
-          const cmd = app.id === "officetoolplus" ? "run_ps_script_logged" : "run_ps_script";
+          const cmd = (app.id === "officetoolplus" || app.is_logged) ? "run_ps_script_logged" : "run_ps_script";
           await safeInvoke(cmd, { script: app.script_cmd });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`Başlatıldı: ${app.name}`, "success");
@@ -555,6 +598,16 @@ function App() {
            src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true"
         ></iframe>
       </div>
+      <AdminRequestModal
+        show={adminRequest.show}
+        appName={adminRequest.app?.name}
+        actionType={adminRequest.action}
+        onConfirm={() => {
+          setAdminRequest({ show: false, app: null, action: "" });
+          proceedUninstall(adminRequest.app);
+        }}
+        onCancel={() => setAdminRequest({ show: false, app: null, action: "" })}
+      />
     </div>
   );
 }

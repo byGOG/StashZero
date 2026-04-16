@@ -163,6 +163,12 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
                 $results += "$($_.Name)|Portable"
             }
         }
+
+        # Microsoft Store (UWP) Apps
+        Get-AppxPackage | Select-Object @{n='name';e={$_.Name}}, @{n='version';e={$_.Version}} | ForEach-Object {
+            if ($_.name -and $_.version) { $results += "$($_.name)|$($_.version)" }
+        }
+
         $results | Select-Object -Unique
     "#;
 
@@ -198,8 +204,44 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
     log::info!("Kurulum başlatılıyor: {} ({})", app_name, package_id);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Kurulum başlatılıyor: {} ({})", app_name, package_id), "log_type": "info" }));
     
-    log::debug!("URL: {}, Portable: {}, Args: {:?}", url, is_portable, install_args);
-    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("URL: {}, Portable: {}, Args: {:?}", url, is_portable, install_args), "log_type": "info" }));
+    // GitHub 'latest' link resolution
+    let mut final_url = url.clone();
+    let is_github_latest = url.contains("github.com") && url.contains("releases/latest");
+    
+    if is_github_latest {
+        let _ = window.emit("backend-log", serde_json::json!({ "msg": "GitHub üzerinden en güncel sürüm çözümleniyor...", "log_type": "info" }));
+        
+        let api_url = url.replace("github.com/", "api.github.com/repos/").replace("/releases/latest", "/releases/latest");
+        let output = tokio::process::Command::new("curl")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-s", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", &api_url])
+            .output().await.map_err(|e| format!("GitHub API hatası: {}", e))?;
+            
+        let json: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|e| format!("JSON ayrıştırma hatası: {}", e))?;
+        let mut found_asset = false;
+
+        if let Some(assets) = json.get("assets").and_then(|a| a.as_array()) {
+            let asset = assets.iter().find(|a| {
+                let name = a.get("name").and_then(|n| n.as_str()).unwrap_or("");
+                name.to_lowercase().ends_with(".exe") && !name.to_lowercase().contains("portable")
+            });
+            
+            if let Some(a) = asset {
+                if let Some(download_url) = a.get("browser_download_url").and_then(|u| u.as_str()) {
+                    final_url = download_url.to_string();
+                    found_asset = true;
+                    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("En güncel sürüm bulundu: {}", final_url.split('/').last().unwrap_or("setup.exe")), "log_type": "success" }));
+                }
+            }
+        }
+
+        if !found_asset {
+            return Err("GitHub üzerinden kurulum dosyası bulunamadı. Lütfen daha sonra tekrar deneyin.".to_string());
+        }
+    }
+
+    log::debug!("URL: {}, Portable: {}, Args: {:?}", final_url, is_portable, install_args);
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme başlatılıyor: {}", final_url), "log_type": "info" }));
 
     let _ = window.emit("install-progress", serde_json::json!({
         "package_id": package_id,
@@ -208,10 +250,10 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
     }));
 
     // Extract filename, but handle query strings by falling back to package_id.exe
-    let file_name = if url.contains('?') || !url.split('/').last().unwrap_or("").ends_with(".exe") {
+    let file_name = if final_url.contains('?') || !final_url.split('/').last().unwrap_or("").ends_with(".exe") {
         format!("{}.exe", package_id)
     } else {
-        url.split('/').last().unwrap_or("setup.exe").to_string()
+        final_url.split('/').last().unwrap_or("setup.exe").to_string()
     };
     let stash_base = std::path::PathBuf::from("C:\\StashZero");
     if !stash_base.exists() {
@@ -233,12 +275,12 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
         std::env::temp_dir().join(&file_name)
     };
 
-    log::debug!("Dosya indiriliyor: {} -> {}", url, target_path.display());
+    log::debug!("Dosya indiriliyor: {} -> {}", final_url, target_path.display());
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme hedefi: {}", target_path.display()), "log_type": "info" }));
 
     let mut curl_cmd = tokio::process::Command::new("curl")
         .creation_flags(CREATE_NO_WINDOW)
-        .args(["-L", "-o", target_path.to_str().unwrap(), &url])
+        .args(["-L", "-o", target_path.to_str().unwrap(), &final_url])
         .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| {
@@ -303,7 +345,7 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
     }
     log::info!("İndirme tamamlandı: {}", app_name);
 
-    let is_zip = url.to_lowercase().ends_with(".zip") || file_name.to_lowercase().ends_with(".zip");
+    let is_zip = final_url.to_lowercase().ends_with(".zip") || file_name.to_lowercase().ends_with(".zip");
 
     if is_zip {
         let _ = window.emit("install-progress", serde_json::json!({

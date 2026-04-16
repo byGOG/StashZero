@@ -27,7 +27,7 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
         .args([
             "-NoProfile",
             "-Command",
-            &format!("Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-NoExit','-Command','{}' -Verb RunAs -WindowStyle Hidden", escaped_script)
+            &format!("Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command','{}' -Verb RunAs -WindowStyle Hidden", escaped_script)
         ])
         .spawn()
         .map_err(|e| {
