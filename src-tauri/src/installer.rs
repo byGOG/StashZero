@@ -1,5 +1,6 @@
-use tauri::Window as TauriWindow;
+use tauri::{Manager, Window as TauriWindow};
 use tauri::Emitter;
+use tauri_plugin_notification::NotificationExt;
 use std::os::windows::process::CommandExt;
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -200,7 +201,16 @@ pub fn check_path_exists(path: String) -> bool {
 }
 
 #[tauri::command]
-pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: String, app_name: String, is_portable: bool, install_args: Option<String>, shortcut_path: Option<String>) -> Result<String, String> {
+pub async fn install_exe_from_url(
+    window: TauriWindow, 
+    url: String, 
+    package_id: String, 
+    app_name: String, 
+    is_portable: bool, 
+    install_args: Option<String>, 
+    shortcut_path: Option<String>,
+    post_install_cmd: Option<String>
+) -> Result<String, String> {
     log::info!("Kurulum başlatılıyor: {} ({})", app_name, package_id);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Kurulum başlatılıyor: {} ({})", app_name, package_id), "log_type": "info" }));
     
@@ -392,6 +402,11 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
                 "percentage": 100,
                 "message": msg.clone()
             }));
+            let _ = window.app_handle().notification()
+                .builder()
+                .title("Kurulum Tamamlandı")
+                .body(format!("{} başarıyla ayıklandı ve hazır.", app_name))
+                .show();
             return Ok(msg);
         } else {
             let err_msg = String::from_utf8_lossy(&output.stderr).to_string();
@@ -409,6 +424,11 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
             "percentage": 100,
             "message": msg.clone()
         }));
+        let _ = window.app_handle().notification()
+            .builder()
+            .title("Kurulum Tamamlandı")
+            .body(format!("{} başarıyla indirildi.", app_name))
+            .show();
         return Ok(msg);
     }
 
@@ -445,6 +465,15 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
 
     if install_status.success() {
         log::info!("Kurulum başarıyla tamamlandı: {}", app_name);
+        
+        if let Some(cmd) = post_install_cmd {
+            log::info!("Kurulum sonrası komut çalıştırılıyor: {}", cmd);
+            let _ = std::process::Command::new("powershell")
+                .creation_flags(CREATE_NO_WINDOW)
+                .args(["-NoProfile", "-Command", &cmd])
+                .status();
+        }
+
         if let Some(path) = shortcut_path {
             let _ = copy_shortcut_to_desktop(&path);
         }
@@ -453,6 +482,11 @@ pub async fn install_exe_from_url(window: TauriWindow, url: String, package_id: 
             "percentage": 100,
             "message": format!("{} başarıyla kuruldu.", app_name)
         }));
+        let _ = window.app_handle().notification()
+            .builder()
+            .title("Kurulum Tamamlandı")
+            .body(format!("{} başarıyla kuruldu.", app_name))
+            .show();
         Ok(format!("{} başarıyla kuruldu.", app_name))
     } else {
         let code = install_status.code().unwrap_or(-1);

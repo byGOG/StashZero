@@ -8,8 +8,8 @@ export const POPULAR_DNS = [
 // Library data setup
 export const APP_ICON_MAP = {
   chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
-   discord: "discord", telegram: "telegram", whatsapp: "whatsapp",
-   gmail: "gmail", outlook: "microsoftoutlook", yahoo: "yahoo", thunderbird: "thunderbird",
+  discord: "discord", telegram: "telegram", whatsapp: "whatsapp",
+  gmail: "gmail", outlook: "microsoftoutlook", yahoo: "yahoo", thunderbird: "thunderbird",
 
 
 
@@ -219,16 +219,17 @@ export const SPECIAL_LOGOS = {
   ankergames: "https://ankergames.net/static/img/footer-dark-logo-1769784075.svg",
   gamecopyworld: "/gamecopyworld_logo.png",
   itunes: "https://upload.wikimedia.org/wikipedia/commons/d/df/ITunes_logo.svg",
-  turkanimu: "https://www.turkanime.co/favicon.ico"
+  turkanimu: "https://www.turkanime.co/favicon.ico",
+  arenaai: "/arenaai_logo.png"
 };
 
 export const LEGENDARY_APPS = [
   // Tarayıcılar (10)
-  { id: "chrome", name: "Google Chrome", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "Latest", description: "Hızlı ve güvenli web tarayıcısı.", download_url: "https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B104F5E68-9A74-4C7D-8E14-4197B8233C92%7D%26lang%3Dtr%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dtrue%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe", official_url: "https://www.google.com/chrome/" },
-  { id: "firefox", name: "Firefox", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, version: "Latest", description: "Gizlilik odaklı özgür tarayıcı.", download_url: "https://download.mozilla.org/?product=firefox-stub&os=win&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/", uninstall_path: "C:\\Program Files\\Mozilla Firefox\\uninstall\\helper.exe", install_args: "/s" },
-  { id: "brave", name: "Brave", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 105, version: "Latest", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/latest/winx64", official_url: "https://brave.com/tr/" },
+  { id: "chrome", name: "Google Chrome", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 110, version: "Enterprise", description: "Hızlı ve güvenli kurumsal web tarayıcısı.", download_url: "https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi", official_url: "https://www.google.com/chrome/", install_args: "/qn /norestart" },
+  { id: "firefox", name: "Firefox", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 55, version: "Latest", description: "Gizlilik odaklı özgür tarayıcısı.", download_url: "https://download.mozilla.org/?product=firefox-stub&os=win&lang=tr", official_url: "https://www.mozilla.org/tr/firefox/", uninstall_path: "C:\\Program Files\\Mozilla Firefox\\uninstall\\helper.exe", install_args: "/s", post_install_cmd: "Stop-Process -Name firefox -ErrorAction SilentlyContinue" },
+  { id: "brave", name: "Brave", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 105, version: "Latest", description: "Reklam engelleyici entegre tarayıcı.", download_url: "https://laptop-updates.brave.com/download/BRV010", official_url: "https://brave.com/tr/" },
   { id: "mullvad", name: "Mullvad Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 90, version: "Latest", description: "Gizlilik odaklı, güvenli tarayıcı.", download_url: "https://mullvad.net/tr/download/browser/win64/latest", official_url: "https://mullvad.net/tr/browser", uninstall_path: "C:\\Users\\byGOG\\AppData\\Local\\Mullvad\\MullvadBrowser\\Release\\uninstall.exe" },
-  { id: "zen", name: "Zen Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/" },
+  { id: "zen", name: "Zen Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Modern, hızlı ve kişiselleştirilebilir.", download_url: "https://github.com/zen-browser/desktop/releases/latest/download/zen.browser.setup-x64.exe", official_url: "https://zen-browser.app/", install_args: "/S /PreventRebootRequired=true" },
   { id: "tor", name: "Tor Browser", category: "Web Tarayıcıları", category_order: 10, icon: "globe", size_bytes: 1024 * 1024 * 95, version: "15.0.9", description: "Anonimlik ve tam gizlilik tarayıcısı.", download_url: "https://www.torproject.org/dist/torbrowser/15.0.9/tor-browser-windows-x86_64-portable-15.0.9.exe", official_url: "https://www.torproject.org/", install_args: "/S /D=C:\\StashZero", shortcut_path: "C:\\StashZero\\Tor Browser.lnk", uninstall_paths: ["C:\\StashZero\\Browser", "C:\\StashZero\\Tor Browser.lnk", "C:\\Users\\byGOG\\Desktop\\Tor Browser.lnk"], check_path: "C:\\StashZero\\Browser\\firefox.exe" },
 
   // Tarayıcı Eklentileri (15)
@@ -244,13 +245,13 @@ export const LEGENDARY_APPS = [
   // Mesajlaşma & Sosyal (20)
   { id: "discord", name: "Discord", category: "İletişim & Sosyal", category_order: 20, icon: "message-square", size_bytes: 1024 * 1024 * 85, version: "Latest", description: "Popüler sesli, görüntülü ve yazılı sohbet platformu.", download_url: "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", official_url: "https://discord.com/" },
   { id: "telegram", name: "Telegram Desktop", category: "İletişim & Sosyal", category_order: 20, icon: "message-circle", size_bytes: 1024 * 1024 * 35, version: "Latest", description: "Hızlı, güvenli ve bulut tabanlı mesajlaşma.", download_url: "https://telegram.org/dl/desktop/win64", official_url: "https://desktop.telegram.org/" },
-  { id: "whatsapp", name: "WhatsApp", category: "İletişim & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Popüler anlık mesajlaşma uygulaması.", download_url: "https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi", official_url: "https://www.whatsapp.com/", install_args: "/S", uninstall_script: "powershell -Command \"Stop-Process -Name *WhatsApp* -Force -ErrorAction SilentlyContinue; Get-AppxPackage -Name *WhatsApp* -AllUsers | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }; Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -like '*WhatsApp*'} | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue\"" },
+  { id: "whatsapp", name: "WhatsApp", category: "İletişim & Sosyal", category_order: 20, icon: "phone", size_bytes: 1024 * 1024 * 110, version: "Latest", description: "Popüler anlık mesajlaşma uygulaması.", download_url: "https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi", official_url: "https://www.whatsapp.com/", install_args: "", post_install_cmd: "Stop-Process -Name WhatsApp.Root -ErrorAction SilentlyContinue", uninstall_script: "powershell -Command \"Stop-Process -Name *WhatsApp* -Force -ErrorAction SilentlyContinue; Get-AppxPackage -Name *WhatsApp* -AllUsers | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }; Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -like '*WhatsApp*'} | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue\"" },
 
   // E-Posta & İletişim (25)
   { id: "gmail", name: "Gmail", category: "İletişim & Sosyal", category_order: 20, icon: "mail", size_bytes: 0, version: "Web", description: "Google'ın gelişmiş e-posta servisi.", official_url: "https://mail.google.com/", is_resource: true },
   { id: "outlook", name: "Outlook", category: "İletişim & Sosyal", category_order: 20, icon: "mail", size_bytes: 0, version: "Web", description: "Microsoft'un profesyonel e-posta çözümü.", official_url: "https://outlook.live.com/", is_resource: true },
   { id: "yahoo", name: "Yahoo Mail", category: "İletişim & Sosyal", category_order: 20, icon: "mail", size_bytes: 0, version: "Web", description: "Geniş depolama alanlı e-posta servisi.", official_url: "https://mail.yahoo.com/", is_resource: true },
-  { id: "thunderbird", name: "Thunderbird", category: "İletişim & Sosyal", category_order: 20, icon: "mail", size_bytes: 1024 * 1024 * 55, version: "Latest", description: "Açık kaynaklı, güçlü e-posta istemcisi.", download_url: "https://download.mozilla.org/?product=thunderbird-latest-ssl&os=win64&lang=tr", official_url: "https://www.thunderbird.net/" },
+  { id: "thunderbird", name: "Thunderbird", category: "İletişim & Sosyal", category_order: 20, icon: "mail", size_bytes: 1024 * 1024 * 55, version: "Latest", description: "Açık kaynaklı, güçlü e-posta istemcisi.", download_url: "https://download.mozilla.org/?product=thunderbird-latest-ssl&os=win64&lang=tr", official_url: "https://www.thunderbird.net/", uninstall_path: "C:\\Program Files\\Mozilla Thunderbird\\uninstall\\helper.exe" },
 
   // Ofis & Verimlilik (30)
   { id: "adobe", name: "Acrobat Reader", category: "Üretkenlik", category_order: 30, icon: "file-text", size_bytes: 1024 * 1024 * 200, version: "Latest", description: "PDF okuma ve düzenleme.", download_url: "https://get.adobe.com/reader/", official_url: "https://get.adobe.com/reader/" },
@@ -291,6 +292,7 @@ export const LEGENDARY_APPS = [
   { id: "perplexity", name: "Perplexity AI", category: "Yapay Zeka", category_order: 55, icon: "cpu", size_bytes: 0, version: "Web", description: "Yapay zeka tabanlı arama motoru.", official_url: "https://www.perplexity.ai/", is_resource: true },
   { id: "llmstats", name: "LLM Stats", category: "Yapay Zeka", category_order: 55, icon: "bar-chart-2", size_bytes: 0, version: "Web", description: "En güncel LLM performans skorları ve istatistikleri.", official_url: "https://llm-stats.com/", is_resource: true },
   { id: "artificialanalysis", name: "Artificial Analysis", category: "Yapay Zeka", category_order: 55, icon: "trending-up", size_bytes: 0, version: "Web", description: "Yapay zeka modelleri için bağımsız analiz ve kıyaslama.", official_url: "https://artificialanalysis.ai/", is_resource: true },
+  { id: "arenaai", name: "Arena AI", category: "Yapay Zeka", category_order: 55, icon: "cpu", size_bytes: 0, version: "Web", description: "LMSYS Chatbot Arena: En iyi yapay zeka modellerini yan yana test edin ve karşılaştırın.", official_url: "https://arena.ai/", is_resource: true },
 
   // Sistem Bakım (60)
   { id: "powertoys", name: "PowerToys", category: "Sistem Araçları", category_order: 60, icon: "settings", size_bytes: 1024 * 1024 * 150, version: "Latest", description: "Microsoft'un Windows verimlilik araçları seti.", download_url: "https://github.com/microsoft/PowerToys/releases/latest/download/PowerToysSetup-x64.exe", official_url: "https://learn.microsoft.com/windows/powertoys/" },

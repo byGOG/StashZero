@@ -18,6 +18,9 @@ import AdminRequestModal from "./components/modals/AdminRequestModal";
 import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
 
+// Hooks
+import { useInstallation } from "./hooks/useInstallation";
+
 const CATEGORY_ICON_MAP = {
   "Web Tarayıcıları": "globe",
   "Eklentiler": "puzzle",
@@ -45,14 +48,34 @@ const CATEGORY_ICON_MAP = {
 };
 
 function App() {
-  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
-  const [selected, setSelected] = useState(new Set());
-  const [installing, setInstalling] = useState(false);
-  const [currentInstall, setCurrentInstall] = useState(null);
-  const [installStatus, setInstallStatus] = useState({});
-  const [installedApps, setInstalledApps] = useState({}); // id -> version
-  const [installProgress, setInstallProgress] = useState({ done: 0, total: 0 });
-  const [appProgress, setAppProgress] = useState({});
+  const {
+    installers,
+    selected,
+    installing,
+    currentInstall,
+    installStatus,
+    installedApps,
+    installProgress,
+    appProgress,
+    logs,
+    isSessionActive,
+    toggleSelect,
+    refreshInstalledStatus,
+    addLog,
+    proceedUninstall,
+    startInstall,
+    selectAll,
+    clearSelection,
+    setLogs,
+    setIsSessionActive,
+    shellType,
+    setShellType,
+    ensureTerminalSession
+  } = useInstallation();
+
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTheme, setCurrentTheme] = useState("obsidian");
@@ -60,9 +83,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
-  const [logs, setLogs] = useState([]);
   const [terminalInput, setTerminalInput] = useState("");
-  const [isSessionActive, setIsSessionActive] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [menuHover, setMenuHover] = useState(false);
   const [systemInfo, setSystemInfo] = useState(null);
@@ -78,7 +99,7 @@ function App() {
   const [dnsOpen, setDnsOpen] = useState(false);
   const [logPanelHeight, setLogPanelHeight] = useState(220);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
-  const [fontSize, setFontSize] = useState(150);
+  const [fontSize, setFontSize] = useState(100);
 
   const searchInputRef = useRef(null);
   const logEndRef = useRef(null);
@@ -90,11 +111,6 @@ function App() {
   const [currentTrackArt, setCurrentTrackArt] = useState(null);
   const [currentTrackTitle, setCurrentTrackTitle] = useState('KEINEMUSIK');
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-
-  // Sync installers if LEGENDARY_APPS changes (Dev/HMR)
-  useEffect(() => {
-    setInstallers(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
-  }, []);
 
   // Auto-scroll logs
   useEffect(() => {
@@ -150,7 +166,11 @@ function App() {
     if (savedSound) setSoundEnabled(JSON.parse(savedSound));
 
     const savedFontSize = localStorage.getItem("stash-zero-font-size");
-    if (savedFontSize) setFontSize(JSON.parse(savedFontSize));
+    if (savedFontSize) {
+      setFontSize(JSON.parse(savedFontSize));
+    } else {
+      setFontSize(100);
+    }
 
     const savedCategory = localStorage.getItem("stash-zero-active-category");
     if (savedCategory) setActiveCategory(savedCategory);
@@ -172,7 +192,7 @@ function App() {
       }
       if (e.key === "F6") {
         e.preventDefault();
-        startInstall();
+        startInstall(setShowLogs);
       }
       if (e.key === "Escape") {
         setSearchTerm("");
@@ -185,58 +205,35 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [installers]);
 
-  // Initial load
-  useEffect(() => {
-    const installersCount = installers.length;
-    addLog(`${installersCount} adet efsane uygulama hazır.`, "info");
-    if (categories.length > 0 && !activeCategory) {
-      setActiveCategory(categories[0].name);
-    }
-    refreshInstalledStatus();
-  }, []);
-
-  // Listen for progress events
-  useEffect(() => {
-    const unlisten = listen('install-progress', (event) => {
-      const { package_id, percentage, message } = event.payload;
-      addLog(message, "process");
-      if (percentage !== null) {
-        setAppProgress(prev => ({ ...prev, [package_id]: percentage }));
-      }
-    });
-
-    const unlistenScript = listen('script-log', (event) => {
-      const { msg, log_type, session_active } = event.payload;
-      addLog(msg, log_type || "process");
-      if (session_active !== undefined) {
-        setIsSessionActive(session_active);
-      }
-    });
-
-    const unlistenBackend = listen('backend-log', (event) => {
-      const { msg, log_type } = event.payload;
-      addLog(msg, log_type || "info");
-    });
-
-    return () => {
-      unlisten.then(f => f());
-      unlistenScript.then(f => f());
-      unlistenBackend.then(f => f());
-    };
-  }, []);
-
   // System Info Polling
   useEffect(() => {
-    const interval = setInterval(async () => {
+    const fetchSystemInfo = async () => {
       try {
         const info = await safeInvoke("get_system_info");
         if (info) setSystemInfo(info);
       } catch (e) {
         console.error("System info error", e);
       }
-    }, 3000);
+    };
+
+    fetchSystemInfo();
+    const interval = setInterval(fetchSystemInfo, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Sync app theme with Windows theme
+  useEffect(() => {
+    if (systemInfo && systemInfo.is_windows_dark !== undefined) {
+      const isDark = systemInfo.is_windows_dark;
+      const themeToSet = isDark ? "obsidian" : "minimalist";
+      
+      // Sadece tema farklıysa güncelle ki sonsuz döngü olmasın
+      if (currentTheme !== themeToSet) {
+        setCurrentTheme(themeToSet);
+        localStorage.setItem("stash-zero-theme", themeToSet);
+      }
+    }
+  }, [systemInfo?.is_windows_dark]);
 
   // SoundCloud API
   useEffect(() => {
@@ -273,12 +270,36 @@ function App() {
   const sendTerminalCommand = async () => {
     if (!terminalInput.trim()) return;
     try {
-      addLog(`> ${terminalInput}`, "command");
+      if (!isSessionActive) {
+        addLog(`Terminal başlatılıyor...`, "process");
+        await ensureTerminalSession();
+        await new Promise(r => setTimeout(r, 500));
+      }
+      
       const cmd = terminalInput;
+      setCommandHistory(prev => [cmd, ...prev.filter(c => c !== cmd)].slice(0, 50));
+      setHistoryIndex(-1);
+
+      addLog(`> ${cmd}`, "command");
       setTerminalInput("");
       await safeInvoke("send_script_input", { input: cmd });
     } catch (err) {
       addLog(`Girdi hatası: ${err}`, "error");
+    }
+  };
+
+  const handleHistoryNavigation = (direction) => {
+    if (commandHistory.length === 0) return;
+
+    let newIndex = historyIndex + direction;
+    if (newIndex >= commandHistory.length) newIndex = commandHistory.length - 1;
+    if (newIndex < -1) newIndex = -1;
+
+    setHistoryIndex(newIndex);
+    if (newIndex === -1) {
+      setTerminalInput("");
+    } else {
+      setTerminalInput(commandHistory[newIndex]);
     }
   };
 
@@ -316,106 +337,7 @@ function App() {
     });
   }, [installers, searchTerm, activeCategory]);
 
-  const toggleSelect = async (path) => {
-    if (installing) return;
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      return next;
-    });
-    sounds.playClick();
-  };
 
-  const refreshInstalledStatus = async () => {
-    try {
-      const systemApps = await safeInvoke("get_installed_winget_ids", {}, []);
-      const newInstalledApps = {};
-      for (const app of installers) {
-        // Öncelik: Özel dosya yolu kontrolü
-        if (app.check_path) {
-          try {
-            const exists = await safeInvoke("check_path_exists", { path: app.check_path });
-            if (exists) {
-              newInstalledApps[app.id] = "Kurulu";
-              continue;
-            }
-          } catch (e) { console.error("Path check error", e); }
-        }
-
-        // İkincil: Winget listesi kontrolü
-        const lowerName = app.name.toLowerCase();
-        const lowerId = app.id.toLowerCase();
-        let match = systemApps.find(([name, _]) => {
-          const lowerN = name.toLowerCase();
-          return lowerN === lowerName || lowerN === lowerId || lowerN.includes(lowerName);
-        });
-        if (match) newInstalledApps[app.id] = match[1] || "Kurulu";
-      }
-      setInstalledApps(newInstalledApps);
-    } catch (e) {
-      console.error("Installation status check failed", e);
-    }
-  };
-
-  const addLog = (msg, type = "info") => {
-    const time = new Date().toLocaleTimeString();
-    setLogs(prev => [{ time, msg, type }, ...prev].slice(0, 100));
-  };
-
-  const proceedUninstall = async (app) => {
-    setInstalling(true);
-    setShowLogs(true);
-    addLog(`${app.name} kaldırılıyor...`, "process");
-
-    try {
-      const appPath = app.path;
-      setInstallStatus(prev => ({ ...prev, [appPath]: "installing" }));
-
-      if (app.uninstall_script) {
-        // Özel kaldırma betiği
-        await safeInvoke("run_ps_script", { script: app.uninstall_script });
-        addLog(`Başarılı: ${app.name} (Store/Script) kaldırıldı.`, "success");
-      } else if (app.portable) {
-        // Portable kaldırma
-        await safeInvoke("uninstall_portable", { url: app.download_url, name: app.name });
-        addLog(`Başarılı: ${app.name} (Portable) dosyaları silindi.`, "success");
-      } else if (app.uninstall_path) {
-        await safeInvoke("uninstall_software", { path: app.uninstall_path });
-        addLog(`Başarılı: ${app.name} sistemden kaldırıldı.`, "success");
-      } else throw new Error("Kaldırma yolu tanımlanmamış.");
-
-      // Arayüzü anında temizle
-      setInstalledApps(prev => {
-        const next = { ...prev };
-        delete next[app.id];
-        return next;
-      });
-
-      setInstallStatus(prev => {
-        const next = { ...prev };
-        delete next[app.path];
-        return next;
-      });
-
-      setAppProgress(prev => {
-        const next = { ...prev };
-        delete next[app.path];
-        return next;
-      });
-      
-      // Windows'un veritabanını tazeleyebilmesi için 2 saniye sonra sistem taraması yap
-      setTimeout(() => {
-        refreshInstalledStatus();
-      }, 2000);
-
-      sounds.playSuccess();
-    } catch (error) {
-      addLog(`Hata: ${error}`, "error");
-      sounds.playError();
-    }
-    setInstalling(false);
-  };
 
   const startUninstall = async (targetApp) => {
     if (!targetApp) return;
@@ -426,61 +348,18 @@ function App() {
       return;
     }
 
-    proceedUninstall(targetApp);
+    proceedUninstall(targetApp, setShowLogs);
   };
 
-  const startInstall = async () => {
-    if (selected.size === 0 || installing) return;
-    setInstalling(true);
-    setShowLogs(true);
-    addLog("Kurulum oturumu başladı.", "info");
-    sounds.playClick();
-    const selectedApps = installers.filter((i) => selected.has(i.path));
-    setInstallProgress({ done: 0, total: selectedApps.length });
-    for (let idx = 0; idx < selectedApps.length; idx++) {
-      const app = selectedApps[idx];
-      setCurrentInstall(app.name);
-      setInstallStatus((prev) => ({ ...prev, [app.path]: "installing" }));
-      try {
-        if (app.script_cmd) {
-          const cmd = (app.id === "officetoolplus" || app.is_logged) ? "run_ps_script_logged" : "run_ps_script";
-          await safeInvoke(cmd, { script: app.script_cmd });
-          setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
-          addLog(`Başlatıldı: ${app.name}`, "success");
-        } else if (app.download_url) {
-          await safeInvoke("install_exe_from_url", { 
-            url: app.download_url, 
-            packageId: app.id, 
-            appName: app.name, 
-            isPortable: !!app.portable,
-            installArgs: app.install_args, // Opsiyonel parametre
-            shortcutPath: app.shortcut_path
-          });
-          setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
-          addLog(`Başarılı: ${app.name}`, "success");
-        }
-        refreshInstalledStatus();
-      } catch (error) {
-        setInstallStatus((prev) => ({ ...prev, [app.path]: "error" }));
-        addLog(`Hata (${app.name}): ${error}`, "error");
-        sounds.playError();
-      }
-      setInstallProgress({ done: idx + 1, total: selectedApps.length });
-    }
-    addLog("Tüm işlemler tamamlandı.", "info");
-    sounds.playSuccess();
-    setCurrentInstall(null);
-    setInstalling(false);
-  };
-
-  const selectAll = () => { if (!installing) setSelected(new Set(installers.map((a) => a.path))); };
-  const clearSelection = () => { if (!installing) setSelected(new Set()); };
 
   const handleMenuAction = async (action, data = null) => {
     sounds.playClick();
     switch (action) {
       case "show-settings": setShowSettings(true); break;
-      case "toggle-logs": setShowLogs(!showLogs); break;
+      case "toggle-logs": 
+        if (!showLogs) setLogPanelHeight(450);
+        setShowLogs(!showLogs); 
+        break;
       case "change-theme": setCurrentTheme(data); localStorage.setItem("stash-zero-theme", data); break;
       case "change-font": setCurrentFont(data); localStorage.setItem("stash-zero-font", data); break;
       default: break;
@@ -518,6 +397,7 @@ function App() {
           currentTrackArt={currentTrackArt}
           isMusicPlaying={isMusicPlaying}
           currentTrackTitle={currentTrackTitle}
+          systemInfo={systemInfo}
         />
 
         <AppGrid 
@@ -545,22 +425,26 @@ function App() {
           sendTerminalCommand={sendTerminalCommand}
           logEndRef={logEndRef}
           setLogs={setLogs}
+          shellType={shellType}
+          setShellType={setShellType}
+          ensureTerminalSession={ensureTerminalSession}
+          handleHistoryNavigation={handleHistoryNavigation}
         />
       </main>
 
-      <ControlCenter 
-        selected={selected}
-        installers={installers}
-        systemInfo={systemInfo}
-        dnsOpen={dnsOpen}
-        setDnsOpen={setDnsOpen}
-        addLog={addLog}
-        setSystemInfo={setSystemInfo}
-        startInstall={startInstall}
-        selectAll={selectAll}
-        clearSelection={clearSelection}
-        installing={installing}
-      />
+        <ControlCenter 
+          selected={selected}
+          installers={installers}
+          systemInfo={systemInfo}
+          dnsOpen={dnsOpen}
+          setDnsOpen={setDnsOpen}
+          addLog={addLog}
+          setSystemInfo={setSystemInfo}
+          startInstall={() => startInstall(setShowLogs)}
+          selectAll={selectAll}
+          clearSelection={clearSelection}
+          installing={installing}
+        />
 
       <SettingsModal 
         showSettings={showSettings}
@@ -598,13 +482,45 @@ function App() {
            src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true"
         ></iframe>
       </div>
+      {/* Floating Install Pill - Modern Bottom UI */}
+      <div className={`floating-install-pill ${selected.size > 0 || installing ? 'visible' : ''}`}>
+        <div className="pill-inner">
+          <div className="pill-info">
+            <div className="pill-count">
+              <span className="count-num">{selected.size}</span>
+              <span className="count-label">Uygulama Seçildi</span>
+            </div>
+            <div className="pill-sep" />
+            <div className="pill-size">
+              {installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0
+                ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024 * 1024)).toFixed(1) + " MB"
+                : "0 MB"}
+            </div>
+          </div>
+          
+          <div className="pill-buttons">
+            <button className="pill-btn-clear" onClick={clearSelection} disabled={installing}>
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+            </button>
+            <button className={`pill-btn-install ${installing ? 'active' : ''}`} onClick={() => startInstall(setShowLogs)} disabled={installing}>
+              {installing ? (
+                <div className="spinner-xs" />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+              )}
+              <span>{installing ? 'Yükleniyor...' : 'Kurulumu Başlat'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <AdminRequestModal
         show={adminRequest.show}
         appName={adminRequest.app?.name}
         actionType={adminRequest.action}
         onConfirm={() => {
           setAdminRequest({ show: false, app: null, action: "" });
-          proceedUninstall(adminRequest.app);
+          proceedUninstall(adminRequest.app, setShowLogs);
         }}
         onCancel={() => setAdminRequest({ show: false, app: null, action: "" })}
       />

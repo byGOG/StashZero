@@ -2,6 +2,8 @@ import { safeInvoke } from "../../utils/tauri";
 import TelemetryIcon from "../icons/TelemetryIcon";
 import { POPULAR_DNS, SPECIAL_LOGOS } from "../../data/library";
 import { sounds } from "../../utils/audio";
+import { motion, AnimatePresence } from 'framer-motion';
+import './SecurityCenter.css';
 
 const formatSpeed = (kbps) => {
   if (kbps >= 1024 * 1024) return `${(kbps / (1024 * 1024)).toFixed(1)} GB/s`;
@@ -22,162 +24,223 @@ const ControlCenter = ({
   clearSelection,
   installing
 }) => {
-  if (!systemInfo) return (
-    <aside className="control-center">
-      <div className="cc-header">
-        <h2>Sistem Telemetrisi</h2>
-      </div>
-      <div className="cc-content">
-         <div className="spinner-container" style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            <div className="spinner" />
-         </div>
-      </div>
-    </aside>
-  );
-
   return (
     <aside className="control-center">
       <div className="cc-header">
-        <h2>Sistem Telemetrisi</h2>
+        <h2>Kontrol Merkezi</h2>
       </div>
 
       <div className="cc-content">
-        <div className="cc-section">
-          <h3 className="cc-section-title">Aktif Dosya Durumu</h3>
-          <div className="file-status-list">
-            <div className="file-status-item">
-              <span className="file-status-label">Seçilen</span>
-              <span className="file-status-value">{selected.size} Uygulama</span>
+
+
+        {!systemInfo ? (
+          <div className="cc-section">
+            <h3 className="cc-section-title">Sistem Telemetrisi</h3>
+            <div className="spinner-container" style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+               <div className="spinner" />
             </div>
-            <div className="file-status-item">
-              <span className="file-status-label">Toplam Boyut</span>
-              <span className="file-status-value">
-                {installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0
-                  ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024 * 1024)).toFixed(1) + " MB"
-                  : "0 MB"}
-              </span>
-            </div>
+            <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center' }}>Sistem verileri taranıyor...</p>
           </div>
-
-          <div className="cc-actions-grid">
-            <button 
-              className="cc-action-btn secondary" 
-              onClick={selectAll}
-              disabled={installing}
-            >
-              Tümünü Seç
-            </button>
-            <button 
-              className="cc-action-btn secondary" 
-              onClick={clearSelection}
-              disabled={installing || selected.size === 0}
-            >
-              Temizle
-            </button>
-          </div>
-
-          <button 
-            className={`cc-main-install-btn ${selected.size > 0 ? 'active' : ''}`}
-            onClick={startInstall}
-            disabled={installing || selected.size === 0}
-          >
-            {installing ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div className="spinner-xs" />
-                <span>Kuruluyor...</span>
-              </div>
-            ) : (
-              <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                <span>{selected.size > 0 ? `Seçilenleri Kur (${selected.size})` : 'Uygulama Seçin'}</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        <div className="cc-section">
-          <h3 className="cc-section-title">Performans</h3>
-          <div className="telemetry-grid">
-            <div className="telemetry-card">
-              <div className="tel-header">
-                <div className="tel-label-group">
-                  <TelemetryIcon type="cpu" />
-                  <span className="tel-label">İşlemci (CPU)</span>
-                </div>
-                <span className="tel-value">{Math.round(systemInfo.cpu_usage)}%</span>
-              </div>
-              <div className="tel-progress">
-                <div className="tel-fill" style={{ width: `${systemInfo.cpu_usage}%` }} />
-              </div>
-            </div>
-            <div className="telemetry-card">
-              <div className="tel-header">
-                <div className="tel-label-group">
-                  <TelemetryIcon type="ram" />
-                  <span className="tel-label">Bellek (RAM)</span>
-                </div>
-                <span className="tel-value">{Math.round((systemInfo.used_memory / systemInfo.total_memory) * 100)}%</span>
-              </div>
-              <div className="tel-progress">
-                <div className="tel-fill" style={{ width: `${(systemInfo.used_memory / systemInfo.total_memory) * 100}%` }} />
-              </div>
-            </div>
-            {systemInfo.disks && systemInfo.disks.map((disk, idx) => {
-              const used = disk.total_space - disk.available_space;
-              const pct = Math.round((used / disk.total_space) * 100);
-              return (
-                <div
-                  className="telemetry-card clickable"
-                  key={idx}
-                  onClick={() => {
-                    safeInvoke("open_drive", { path: disk.mount_point });
-                    sounds.playClick();
-                  }}
-                  title={`${disk.mount_point} Klasörünü Aç`}
-                >
+        ) : (
+          <>
+            <div className="cc-section">
+              <h3 className="cc-section-title">Performans</h3>
+              <div className="telemetry-grid">
+                <div className="telemetry-card">
                   <div className="tel-header">
                     <div className="tel-label-group">
-                      <TelemetryIcon type="disk" />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span className="tel-label">{disk.name || disk.mount_point}</span>
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{disk.model} ({disk.bus_type})</span>
-                      </div>
+                      <TelemetryIcon type="cpu" />
+                      <span className="tel-label">İşlemci (CPU)</span>
                     </div>
-                    <span className="tel-value">{pct}%</span>
+                    <span className="tel-value">{Math.round(systemInfo.cpu_usage)}%</span>
                   </div>
                   <div className="tel-progress">
-                    <div className="tel-fill" style={{ width: `${pct}%`, background: pct > 90 ? '#ff4757' : 'var(--accent-primary)' }} />
-                  </div>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
-                    {Math.round(used / (1024 * 1024 * 1024))} GB / {Math.round(disk.total_space / (1024 * 1024 * 1024))} GB
+                    <div className="tel-fill" style={{ width: `${systemInfo.cpu_usage}%` }} />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <div className="telemetry-card">
+                  <div className="tel-header">
+                    <div className="tel-label-group">
+                      <TelemetryIcon type="ram" />
+                      <span className="tel-label">Bellek (RAM)</span>
+                    </div>
+                    <span className="tel-value">{Math.round((systemInfo.used_memory / systemInfo.total_memory) * 100)}%</span>
+                  </div>
+                  <div className="tel-progress">
+                    <div className="tel-fill" style={{ width: `${(systemInfo.used_memory / systemInfo.total_memory) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        <div className="cc-section">
-          <h3 className="cc-section-title">Ağ Trafiği</h3>
-          <div className="net-monitor">
-            <div className="net-stat download">
-              <div className="net-stat-header">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span>İndirme</span>
+            <div className="cc-section">
+              <h3 className="cc-section-title">Hızlı Denetim</h3>
+              <div className="cc-unified-grid">
+                {/* Masaüstü Düzeni */}
+                <motion.div 
+                  className="security-card modern-glass-v2 unified"
+                  whileHover={{ scale: 1.02, translateY: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    safeInvoke("open_desktop_icon_settings");
+                    sounds.playClick();
+                  }}
+                >
+                  <div className="glass-card-glow" />
+                  <div className="security-card-content vertical-unified">
+                    <div className="security-icon-wrapper settings-accent small-unified">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    </div>
+                    <div className="security-meta centered-unified">
+                      <span className="security-label">Masaüstü</span>
+                      <span className="security-status-text">Düzen Ayarları</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Güç Yönetimi */}
+                <motion.div 
+                  className="security-card modern-glass-v2 unified"
+                  whileHover={{ scale: 1.02, translateY: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    safeInvoke("open_power_settings");
+                    sounds.playClick();
+                  }}
+                >
+                  <div className="glass-card-glow" />
+                  <div className="security-card-content vertical-unified">
+                    <div className="security-icon-wrapper power-accent small-unified">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    </div>
+                    <div className="security-meta centered-unified">
+                      <span className="security-label">Güç</span>
+                      <span className="security-status-text">Plan Yönetimi</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Windows Görünümü */}
+                <motion.div 
+                  className="security-card modern-glass-v2 unified"
+                  whileHover={{ scale: 1.02, translateY: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    safeInvoke("set_windows_theme", { dark: !systemInfo.is_windows_dark });
+                    sounds.playClick();
+                    addLog(`Windows ${!systemInfo.is_windows_dark ? 'Koyu' : 'Açık'} Mod talep edildi.`, "info");
+                  }}
+                >
+                  <div className="glass-card-glow" />
+                  <div className="security-card-content vertical-unified">
+                    <div className={`security-icon-wrapper small-unified ${systemInfo.is_windows_dark ? 'dark-mode-accent' : 'light-mode-accent'}`}>
+                      {systemInfo.is_windows_dark ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                      )}
+                    </div>
+                    <div className="security-meta centered-unified">
+                      <span className="security-label">Görünüm</span>
+                      <span className="security-status-text">{systemInfo.is_windows_dark ? 'Koyu Mod' : 'Açık Mod'}</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Güvenlik Merkezi */}
+                <motion.div 
+                  className={`security-card modern-glass-v2 unified ${systemInfo.defender_active ? 'safe' : 'danger'}`}
+                  whileHover={{ scale: 1.02, translateY: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => safeInvoke("open_defender_settings")}
+                >
+                  <div className="glass-card-glow" />
+                  <div className="security-card-content vertical-unified">
+                    <div className="security-icon-wrapper small-unified">
+                      <TelemetryIcon type="shield" />
+                    </div>
+                    <div className="security-meta centered-unified">
+                      <span className="security-label">Güvenlik</span>
+                      <span className="security-status-text">{systemInfo.defender_active ? 'Koruma Aktif' : 'Risk Altında'}</span>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
-              <span>{formatSpeed(systemInfo.net_in)}</span>
-              <div className="net-activity"><div className="net-activity-bar" style={{ width: `${Math.min(100, systemInfo.net_in / 10)}%` }}></div></div>
-            </div>
-            <div className="net-stat upload">
-              <div className="net-stat-header">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                <span>Yükleme</span>
+
+              {/* UAC Mini Indicator below grid */}
+              <div 
+                className="uac-floating-bar large-version" 
+                onClick={() => {
+                  safeInvoke("open_uac_settings");
+                  sounds.playClick();
+                }}
+                title="Windows UAC Ayarlarını açmak için tıkla"
+              >
+                 <div className="uac-f-content">
+                    <div className="uac-f-icon-box">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <div className="uac-f-text-group">
+                      <span className="uac-f-main-label">UAC Denetimi</span>
+                      <span className="uac-f-sub-label">Seviye {systemInfo.uac_level}</span>
+                    </div>
+                 </div>
+                 <div className="uac-f-dots-container">
+                    {[0, 1, 2, 3].map(lvl => (
+                      <div 
+                        key={lvl} 
+                        className={`uac-f-dot-large ${lvl <= systemInfo.uac_level ? 'active' : ''}`} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          safeInvoke("set_uac_level", { level: lvl });
+                          sounds.playClick();
+                          addLog(`UAC Seviyesi ${lvl} olarak talep edildi.`, "info");
+                        }}
+                        title={`UAC Seviyesini ${lvl} yapmak için tıkla`}
+                      />
+                    ))}
+                 </div>
               </div>
-              <span>{formatSpeed(systemInfo.net_out)}</span>
-              <div className="net-activity"><div className="net-activity-bar" style={{ width: `${Math.min(100, systemInfo.net_out / 10)}%` }}></div></div>
             </div>
-          </div>
-        </div>
+
+            <div className="cc-section">
+              <h3 className="cc-section-title">Diskler</h3>
+              <div className="telemetry-grid">
+                {systemInfo.disks && systemInfo.disks.map((disk, idx) => {
+                  const used = disk.total_space - disk.available_space;
+                  const pct = Math.round((used / disk.total_space) * 100);
+                  return (
+                    <div
+                      className="telemetry-card clickable"
+                      key={idx}
+                      onClick={() => {
+                        safeInvoke("open_drive", { path: disk.mount_point });
+                        sounds.playClick();
+                      }}
+                      title={`${disk.mount_point} Klasörünü Aç`}
+                    >
+                      <div className="tel-header">
+                        <div className="tel-label-group">
+                          <TelemetryIcon type="disk" />
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span className="tel-label">{disk.name || disk.mount_point}</span>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{disk.model} ({disk.bus_type})</span>
+                          </div>
+                        </div>
+                        <span className="tel-value">{pct}%</span>
+                      </div>
+                      <div className="tel-progress">
+                        <div className="tel-fill" style={{ width: `${pct}%`, background: pct > 90 ? '#ff4757' : 'var(--accent-primary)' }} />
+                      </div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
+                        {Math.round(used / (1024 * 1024 * 1024))} GB / {Math.round(disk.total_space / (1024 * 1024 * 1024))} GB
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
 
         <div className="cc-section">
           <h3 className="cc-section-title">Sistem Özellikleri</h3>
@@ -296,9 +359,12 @@ const ControlCenter = ({
             </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </>
+    )}
+  </div>
+</aside>
   );
 };
 
 export default ControlCenter;
+

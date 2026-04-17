@@ -36,15 +36,15 @@ const Sidebar = ({ categories, activeCategory, setActiveCategory, handleMenuActi
       <div className="sidebar-footer">
         <div
           className="sidebar-item"
-          onClick={() => handleMenuAction("show-settings")}
+          onClick={() => handleMenuAction("toggle-logs")}
         >
-          <span>Ayarlar</span>
+          <span>Log + Terminal</span>
         </div>
         <div
           className="sidebar-item"
-          onClick={() => handleMenuAction("toggle-logs")}
+          onClick={() => handleMenuAction("show-settings")}
         >
-          <span>Loglar</span>
+          <span>Ayarlar</span>
         </div>
       </div>
     </aside>
