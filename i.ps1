@@ -31,21 +31,31 @@ $api = "https://api.github.com/repos/$repo" + "/releases/latest"
 Write-Host (Get-T "`n[+] StashZero Kurulumu Bas*lati*li*yor...") -ForegroundColor Cyan
 
 try {
-    # 1. En güncel sürüm bilgilerini al
-    Write-Host (Get-T "[*] En gu*ncel su*ru*m bilgileri sorgulani*yor...") -ForegroundColor Gray
+    # 1. En güncel sürüm bilgilerini al (Asset içeren en son sürümü bul)
+    Write-Host (Get-T "[*] Uygun kurulum paketi sorgulanıyor...") -ForegroundColor Gray
+    
+    $releasesApi = "https://api.github.com/repos/$repo/releases"
     try {
-        $release = Invoke-RestMethod -Uri $api
-        $version = $release.tag_name
-        Write-Host (Get-T "[v] Bulunan su*ru*m: $version") -ForegroundColor Green
+        $allReleases = Invoke-RestMethod -Uri $releasesApi
+        $asset = $null
+        $version = $null
+        
+        foreach ($release in $allReleases) {
+            $foundAsset = $release.assets | Where-Object { $_.name -like "*.msi" -or $_.name -like "*x64-setup.exe" } | Select-Object -First 1
+            if ($foundAsset) {
+                $asset = $foundAsset
+                $version = $release.tag_name
+                break
+            }
+        }
+
+        if (-not $asset) {
+            throw (Get-T "GitHub üzerinde uygun bir kurulum dosyası içeren sürüm bulunamadı.")
+        }
+        
+        Write-Host (Get-T "[v] Kullanılabilir en güncel sürüm: $version") -ForegroundColor Green
     } catch {
-        throw (Get-T "GitHub üzerinde yayinlanmis* (Release) bir su*ru*m bulunamadi.")
-    }
-
-    # 2. Uygun asset'i bul
-    $asset = $release.assets | Where-Object { $_.name -like "*.msi" -or $_.name -like "*x64-setup.exe" } | Select-Object -First 1
-
-    if (-not $asset) {
-        throw (Get-T "Uygun bir kurulum dosyasi bulunamadi.")
+        throw (Get-T "GitHub üzerinden sürüm bilgileri alınamadı: $($_.Exception.Message)")
     }
 
     $downloadUrl = $asset.browser_download_url
