@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   --app-font-scale: 1;
   
@@ -37,7 +37,7 @@
   --shadow-glow: 0 0 50px var(--accent-glow);
 }
 
-/* ─── 5 Modern Structural Themes ─── */
+/* â”€â”€â”€ 5 Modern Structural Themes â”€â”€â”€ */
 /* 1. OBSIDIAN: Standard Frosted Glass Default */
 .theme-obsidian {
   /* Retains root defaults */
@@ -133,7 +133,7 @@
   border: none; 
 }
 
-/* ─── 5 Modern Fonts ─── */
+/* â”€â”€â”€ 5 Modern Fonts â”€â”€â”€ */
 .font-orbitron {
   --font-family: 'Orbitron', 'Inter', sans-serif;
 }
@@ -196,7 +196,7 @@ body {
   scrollbar-color: rgba(16, 185, 129, 0.2) rgba(255, 255, 255, 0.02);
 }
 
-/* ─── Studio Mesh Gradient (Cyber Edition) ─── */
+/* â”€â”€â”€ Studio Mesh Gradient (Cyber Edition) â”€â”€â”€ */
 .mesh-gradient {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -215,7 +215,7 @@ body {
   100% { filter: hue-rotate(0deg) contrast(1.1); }
 }
 
-/* ─── Layout ─── */
+/* â”€â”€â”€ Layout â”€â”€â”€ */
 .app-layout {
   display: flex;
   height: calc(100vh / var(--app-font-scale, 1));
@@ -268,7 +268,7 @@ body {
   100% { opacity: 1; transform: translateX(-50%) scale(1.5); }
 }
 
-/* ─── Sidebar Components ─── */
+/* â”€â”€â”€ Sidebar Components â”€â”€â”€ */
 .sidebar-logo {
   padding: 16px 20px;
   margin-bottom: 12px;
@@ -446,7 +446,7 @@ body {
   border-top: 1px solid var(--glass-border);
 }
 
-/* ─── Top Bar ─── */
+/* â”€â”€â”€ Top Bar â”€â”€â”€ */
 .top-bar {
   height: 90px;
   min-height: 90px;
@@ -586,7 +586,7 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ─── System Stats ─── */
+/* â”€â”€â”€ System Stats â”€â”€â”€ */
 .system-stats {
   display: flex;
   align-items: center;
@@ -784,7 +784,7 @@ body {
   100% { opacity: 0.8; }
 }
 
-/* ─── Content Area ─── */
+/* â”€â”€â”€ Content Area â”€â”€â”€ */
 .content-scroll {
   flex: 1;
   overflow-y: auto;
@@ -871,7 +871,7 @@ body {
   box-shadow: 0 0 15px var(--accent-glow);
   border: 1.5px solid #02040a;
   z-index: 5;
-  margin-top: -10px; /* Logo 38px iken kapağa hafif binmesi için */
+  margin-top: -10px; /* Logo 38px iken kapaÄŸa hafif binmesi iÃ§in */
   animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -1392,7 +1392,7 @@ body {
   text-shadow: 0 0 10px var(--accent-glow);
 }
 
-/* ─── Action Bar ─── */
+/* â”€â”€â”€ Action Bar â”€â”€â”€ */
 .action-bar {
   padding: 32px 40px;
   background: #07080c;
@@ -1458,7 +1458,7 @@ body {
   cursor: not-allowed;
 }
 
-/* ─── Global Progress (Modern Floating Bar) ─── */
+/* â”€â”€â”€ Global Progress (Modern Floating Bar) â”€â”€â”€ */
 .global-progress {
   position: fixed;
   bottom: 0;
@@ -1525,7 +1525,7 @@ body {
   text-align: right;
 }
 
-/* ─── Modals ─── */
+/* â”€â”€â”€ Modals â”€â”€â”€ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1571,7 +1571,7 @@ body {
   justify-content: flex-end;
 }
 
-/* ─── Premium About Modal ─── */
+/* â”€â”€â”€ Premium About Modal â”€â”€â”€ */
 .about-modal-premium {
   background: rgba(13, 15, 18, 0.9);
   backdrop-filter: blur(32px) saturate(180%);
@@ -1778,7 +1778,7 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ─── Log Panel ─── */
+/* â”€â”€â”€ Log Panel â”€â”€â”€ */
 .log-panel {
   width: 100%;
   height: 220px;
@@ -1968,7 +1968,7 @@ body {
 .log-entry.success { color: #10b981; }
 .log-entry.error { color: #f43f5e; font-weight: 600; }
 
-/* ─── Terminal Input Styles ─── */
+/* â”€â”€â”€ Terminal Input Styles â”€â”€â”€ */
 .terminal-input-row {
   display: flex;
   align-items: center;
@@ -2049,7 +2049,7 @@ body {
   100% { transform: scale(0.9); opacity: 0.6; }
 }
 
-/* ─── Control Center (Right Sidebar) ─── */
+/* â”€â”€â”€ Control Center (Right Sidebar) â”€â”€â”€ */
 .control-center {
   width: 360px;
   background: var(--bg-sidebar);
@@ -2397,7 +2397,7 @@ body {
   to { opacity: 1; }
 }
 
-/* ─── Settings Modal Aesthetics ─── */
+/* â”€â”€â”€ Settings Modal Aesthetics â”€â”€â”€ */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2624,7 +2624,7 @@ input:checked + .slider:before {
   letter-spacing: 0.5px;
 }
 
-/* ─── Unified Modern Close Buttons ─── */
+/* â”€â”€â”€ Unified Modern Close Buttons â”€â”€â”€ */
 .close-btn, .icon-btn-sm {
   background: transparent;
   border: none;
@@ -2669,7 +2669,7 @@ button {
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
 }
-/* ─── DNS Quick Selection (Control Center) ─── */
+/* â”€â”€â”€ DNS Quick Selection (Control Center) â”€â”€â”€ */
 .spec-item.clickable:hover {
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
@@ -2798,7 +2798,7 @@ button {
   background: rgba(0, 255, 157, 0.05);
 }
 
-/* ─── Music Island Focus & Backdrop ─── */
+/* â”€â”€â”€ Music Island Focus & Backdrop â”€â”€â”€ */
 .art-wrapper {
   position: relative;
   width: 36px;
@@ -3094,7 +3094,7 @@ button {
   animation: spin 0.8s linear infinite;
 }
 
-/* ─── Modern Range Slider ─── */
+/* â”€â”€â”€ Modern Range Slider â”€â”€â”€ */
 .range-control {
   flex: 1;
   max-width: 200px;
@@ -3549,7 +3549,7 @@ button {
   filter: brightness(1.1);
 }
 
-/* ��� Shell Switcher ��� */
+/* ¦¦¦ Shell Switcher ¦¦¦ */
 .shell-switcher {
   display: flex;
   background: rgba(0, 0, 0, 0.3);
@@ -3622,7 +3622,7 @@ button {
   --shadow-glow: 0 0 50px var(--accent-glow);
 }
 
-/* ─── 5 Modern Structural Themes ─── */
+/* â”€â”€â”€ 5 Modern Structural Themes â”€â”€â”€ */
 /* 1. OBSIDIAN: Standard Frosted Glass Default */
 .theme-obsidian {
   /* Retains root defaults */
@@ -3718,7 +3718,7 @@ button {
   border: none; 
 }
 
-/* ─── 5 Modern Fonts ─── */
+/* â”€â”€â”€ 5 Modern Fonts â”€â”€â”€ */
 .font-orbitron {
   --font-family: 'Orbitron', 'Inter', sans-serif;
 }
@@ -3781,7 +3781,7 @@ body {
   scrollbar-color: rgba(16, 185, 129, 0.2) rgba(255, 255, 255, 0.02);
 }
 
-/* ─── Studio Mesh Gradient (Cyber Edition) ─── */
+/* â”€â”€â”€ Studio Mesh Gradient (Cyber Edition) â”€â”€â”€ */
 .mesh-gradient {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -3800,7 +3800,7 @@ body {
   100% { filter: hue-rotate(0deg) contrast(1.1); }
 }
 
-/* ─── Layout ─── */
+/* â”€â”€â”€ Layout â”€â”€â”€ */
 .app-layout {
   display: flex;
   height: calc(100vh / var(--app-font-scale, 1));
@@ -3853,7 +3853,7 @@ body {
   100% { opacity: 1; transform: translateX(-50%) scale(1.5); }
 }
 
-/* ─── Sidebar Components ─── */
+/* â”€â”€â”€ Sidebar Components â”€â”€â”€ */
 .sidebar-logo {
   padding: 16px 20px;
   margin-bottom: 12px;
@@ -4031,7 +4031,7 @@ body {
   border-top: 1px solid var(--glass-border);
 }
 
-/* ─── Top Bar ─── */
+/* â”€â”€â”€ Top Bar â”€â”€â”€ */
 .top-bar {
   height: 90px;
   min-height: 90px;
@@ -4171,7 +4171,7 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ─── System Stats ─── */
+/* â”€â”€â”€ System Stats â”€â”€â”€ */
 .system-stats {
   display: flex;
   align-items: center;
@@ -4369,7 +4369,7 @@ body {
   100% { opacity: 0.8; }
 }
 
-/* ─── Content Area ─── */
+/* â”€â”€â”€ Content Area â”€â”€â”€ */
 .content-scroll {
   flex: 1;
   overflow-y: auto;
@@ -4456,7 +4456,7 @@ body {
   box-shadow: 0 0 15px var(--accent-glow);
   border: 1.5px solid #02040a;
   z-index: 5;
-  margin-top: -10px; /* Logo 38px iken kapağa hafif binmesi için */
+  margin-top: -10px; /* Logo 38px iken kapaÄŸa hafif binmesi iÃ§in */
   animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -4977,7 +4977,7 @@ body {
   text-shadow: 0 0 10px var(--accent-glow);
 }
 
-/* ─── Action Bar ─── */
+/* â”€â”€â”€ Action Bar â”€â”€â”€ */
 .action-bar {
   padding: 32px 40px;
   background: #07080c;
@@ -5043,7 +5043,7 @@ body {
   cursor: not-allowed;
 }
 
-/* ─── Global Progress (Modern Floating Bar) ─── */
+/* â”€â”€â”€ Global Progress (Modern Floating Bar) â”€â”€â”€ */
 .global-progress {
   position: fixed;
   bottom: 0;
@@ -5110,7 +5110,7 @@ body {
   text-align: right;
 }
 
-/* ─── Modals ─── */
+/* â”€â”€â”€ Modals â”€â”€â”€ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -5156,7 +5156,7 @@ body {
   justify-content: flex-end;
 }
 
-/* ─── Premium About Modal ─── */
+/* â”€â”€â”€ Premium About Modal â”€â”€â”€ */
 .about-modal-premium {
   background: rgba(13, 15, 18, 0.9);
   backdrop-filter: blur(32px) saturate(180%);
@@ -5363,7 +5363,7 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ─── Log Panel ─── */
+/* â”€â”€â”€ Log Panel â”€â”€â”€ */
 .log-panel {
   width: 100%;
   height: 220px;
@@ -5553,7 +5553,7 @@ body {
 .log-entry.success { color: #10b981; }
 .log-entry.error { color: #f43f5e; font-weight: 600; }
 
-/* ─── Terminal Input Styles ─── */
+/* â”€â”€â”€ Terminal Input Styles â”€â”€â”€ */
 .terminal-input-row {
   display: flex;
   align-items: center;
@@ -5634,7 +5634,7 @@ body {
   100% { transform: scale(0.9); opacity: 0.6; }
 }
 
-/* ─── Control Center (Right Sidebar) ─── */
+/* â”€â”€â”€ Control Center (Right Sidebar) â”€â”€â”€ */
 .control-center {
   width: 360px;
   background: var(--bg-sidebar);
@@ -5982,7 +5982,7 @@ body {
   to { opacity: 1; }
 }
 
-/* ─── Settings Modal Aesthetics ─── */
+/* â”€â”€â”€ Settings Modal Aesthetics â”€â”€â”€ */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -6209,7 +6209,7 @@ input:checked + .slider:before {
   letter-spacing: 0.5px;
 }
 
-/* ─── Unified Modern Close Buttons ─── */
+/* â”€â”€â”€ Unified Modern Close Buttons â”€â”€â”€ */
 .close-btn, .icon-btn-sm {
   background: transparent;
   border: none;
@@ -6254,7 +6254,7 @@ button {
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
 }
-/* ─── DNS Quick Selection (Control Center) ─── */
+/* â”€â”€â”€ DNS Quick Selection (Control Center) â”€â”€â”€ */
 .spec-item.clickable:hover {
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
@@ -6383,7 +6383,7 @@ button {
   background: rgba(0, 255, 157, 0.05);
 }
 
-/* ─── Music Island Focus & Backdrop ─── */
+/* â”€â”€â”€ Music Island Focus & Backdrop â”€â”€â”€ */
 .art-wrapper {
   position: relative;
   width: 36px;
@@ -6679,7 +6679,7 @@ button {
   animation: spin 0.8s linear infinite;
 }
 
-/* ─── Modern Range Slider ─── */
+/* â”€â”€â”€ Modern Range Slider â”€â”€â”€ */
 .range-control {
   flex: 1;
   max-width: 200px;
@@ -7134,7 +7134,7 @@ button {
   filter: brightness(1.1);
 }
 
-/* ��� Shell Switcher ��� */
+/* ¦¦¦ Shell Switcher ¦¦¦ */
 .shell-switcher {
   display: flex;
   background: rgba(0, 0, 0, 0.3);
@@ -7169,7 +7169,7 @@ button {
 }
 
 
-/* ��� Modern Terminal Styles ��� */
+/* ¦¦¦ Modern Terminal Styles ¦¦¦ */
 .modern-terminal {
   background: rgba(2, 4, 10, 0.95) !important;
   backdrop-filter: blur(25px) saturate(180%) !important;
