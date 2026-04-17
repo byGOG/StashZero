@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { sounds } from "../../utils/audio";
 
 const SettingsModal = ({
@@ -13,6 +14,12 @@ const SettingsModal = ({
   setFontSize,
   handleMenuAction
 }) => {
+  const [localFontSize, setLocalFontSize] = useState(fontSize);
+
+  useEffect(() => {
+    setLocalFontSize(fontSize);
+  }, [fontSize]);
+
   if (!showSettings) return null;
 
   return (
@@ -92,19 +99,25 @@ const SettingsModal = ({
 
           <div className="setting-card">
             <div className="setting-info">
-              <span className="setting-title">Yazı Tipi Boyutu</span>
-              <span className="setting-desc">Arayüz metinlerinin büyüklüğünü ayarlayın (%{fontSize}).</span>
+              <span className="setting-title">Arayüz Ölçeği</span>
+              <span className="setting-desc">Tüm arayüzün (yazılar, butonlar, paneller) boyutunu ayarlayın (%{fontSize}).</span>
             </div>
             <div className="range-control">
               <input 
                 type="range" 
-                min="80" 
-                max="150" 
-                value={fontSize} 
+                min="40" 
+                max="170" 
+                value={localFontSize} 
                 onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  setFontSize(val);
-                  localStorage.setItem("stash-zero-font-size", JSON.stringify(val));
+                  setLocalFontSize(parseInt(e.target.value));
+                }}
+                onMouseUp={() => {
+                  setFontSize(localFontSize);
+                  localStorage.setItem("stash-zero-font-size", JSON.stringify(localFontSize));
+                }}
+                onTouchEnd={() => {
+                  setFontSize(localFontSize);
+                  localStorage.setItem("stash-zero-font-size", JSON.stringify(localFontSize));
                 }}
                 className="modern-slider"
               />
