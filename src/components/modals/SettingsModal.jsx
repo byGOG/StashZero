@@ -12,7 +12,9 @@ const SettingsModal = ({
   currentFont,
   fontSize,
   setFontSize,
-  handleMenuAction
+  handleMenuAction,
+  perfMode = "auto",
+  setPerfMode = () => {}
 }) => {
   const [localFontSize, setLocalFontSize] = useState(fontSize);
 
@@ -48,6 +50,18 @@ const SettingsModal = ({
               />
               <span className="slider"></span>
             </label>
+          </div>
+
+          <div className="setting-card col">
+            <div className="setting-info">
+              <span className="setting-title">Performans Modu</span>
+              <span className="setting-desc">Sanal makineler ve düşük donanımlı PC'lerde akıcılık için görsel efektleri (bulanıklık, sürekli animasyonlar, gölgeler) kapatır.</span>
+            </div>
+            <div className="theme-selector modern">
+              <button className={perfMode === "auto" ? "active" : ""} onClick={() => setPerfMode("auto")}>Otomatik</button>
+              <button className={perfMode === "full" ? "active" : ""} onClick={() => setPerfMode("full")}>Tam Efekt</button>
+              <button className={perfMode === "low" ? "active" : ""} onClick={() => setPerfMode("low")}>Yüksek Performans</button>
+            </div>
           </div>
 
           <div className="setting-card">

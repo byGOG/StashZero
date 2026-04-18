@@ -20,7 +20,7 @@
   
   /* Glass & Borders - Ultra Soft */
   font-size: 16px;
-  --glass-blur: blur(50px);
+  --glass-blur: blur(18px);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-border-hover: rgba(0, 255, 159, 0.35);
   
@@ -201,18 +201,10 @@ body {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   z-index: -1;
-  background: 
+  background:
     radial-gradient(circle at 20% 20%, rgba(0, 255, 159, 0.06) 0%, transparent 40%),
     radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
     #02040a;
-  filter: saturate(1.5);
-  animation: bgOrbit 40s infinite linear;
-}
-
-@keyframes bgOrbit {
-  0% { filter: hue-rotate(0deg) contrast(1.1); }
-  50% { filter: hue-rotate(10deg) contrast(1.2); }
-  100% { filter: hue-rotate(0deg) contrast(1.1); }
 }
 
 /* â”€â”€â”€ Layout â”€â”€â”€ */
@@ -260,7 +252,9 @@ body {
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 0;
-  animation: bgScatter 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+  /* scatter animation disabled for perf; kept static at mid-scale */
+  opacity: 0.7;
+  transform: translateX(-50%) scale(1.25);
 }
 
 @keyframes bgScatter {
@@ -296,7 +290,7 @@ body {
 
 .project-logo-svg {
   filter: drop-shadow(0 0 10px rgba(0, 255, 159, 0.4));
-  animation: logoSpin 20s infinite linear;
+  animation: logoSpin 60s infinite linear;
 }
 
 @keyframes logoSpin {
@@ -3605,7 +3599,7 @@ button {
   
   /* Glass & Borders - Ultra Soft */
   font-size: 16px;
-  --glass-blur: blur(50px);
+  --glass-blur: blur(18px);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-border-hover: rgba(0, 255, 159, 0.35);
   
@@ -3786,18 +3780,10 @@ body {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   z-index: -1;
-  background: 
+  background:
     radial-gradient(circle at 20% 20%, rgba(0, 255, 159, 0.06) 0%, transparent 40%),
     radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
     #02040a;
-  filter: saturate(1.5);
-  animation: bgOrbit 40s infinite linear;
-}
-
-@keyframes bgOrbit {
-  0% { filter: hue-rotate(0deg) contrast(1.1); }
-  50% { filter: hue-rotate(10deg) contrast(1.2); }
-  100% { filter: hue-rotate(0deg) contrast(1.1); }
 }
 
 /* â”€â”€â”€ Layout â”€â”€â”€ */
@@ -3845,7 +3831,9 @@ body {
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 0;
-  animation: bgScatter 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+  /* scatter animation disabled for perf; kept static at mid-scale */
+  opacity: 0.7;
+  transform: translateX(-50%) scale(1.25);
 }
 
 @keyframes bgScatter {
@@ -3881,7 +3869,7 @@ body {
 
 .project-logo-svg {
   filter: drop-shadow(0 0 10px rgba(0, 255, 159, 0.4));
-  animation: logoSpin 20s infinite linear;
+  animation: logoSpin 60s infinite linear;
 }
 
 @keyframes logoSpin {
@@ -7409,5 +7397,94 @@ button {
 
 .terminal-modern-input::placeholder {
   color: rgba(255, 255, 255, 0.1);
+}
+
+/* ───────────────────────────────────────────────────────────
+   PERFORMANCE MODE — applied via .low-fx on the app-layout root.
+   Auto-enabled for VMs / low-core / prefers-reduced-motion.
+   Kills expensive GPU work: backdrop-filter, large blurs, infinite
+   animations, heavy shadows, filter hue-rotate. Everything stays
+   readable and functional; only the decorative layer drops.
+   ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.05s !important;
+  }
+}
+
+.app-layout.low-fx,
+.app-layout.low-fx * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.app-layout.low-fx .mesh-gradient,
+.app-layout.low-fx .main-content::before {
+  animation: none !important;
+  filter: none !important;
+}
+
+.app-layout.low-fx .mesh-gradient {
+  background: #02040a;
+}
+
+.app-layout.low-fx .project-logo-svg,
+.app-layout.low-fx .logo-glow,
+.app-layout.low-fx .pulse-ring,
+.app-layout.low-fx .security-pulse-ring,
+.app-layout.low-fx .icon-pulse-slow {
+  animation: none !important;
+}
+
+.app-layout.low-fx .logo-glow,
+.app-layout.low-fx .pulse-ring,
+.app-layout.low-fx .security-pulse-ring,
+.app-layout.low-fx .icon-pulse-slow {
+  display: none !important;
+}
+
+.app-layout.low-fx .project-logo-svg {
+  filter: none !important;
+}
+
+.app-layout.low-fx .sidebar {
+  background: #0a0b10 !important;
+  box-shadow: none !important;
+}
+
+.app-layout.low-fx .app-card,
+.app-layout.low-fx .security-card,
+.app-layout.low-fx .telemetry-card,
+.app-layout.low-fx .modal-content,
+.app-layout.low-fx .floating-install-pill .pill-inner,
+.app-layout.low-fx .island-player-dropdown,
+.app-layout.low-fx .log-panel,
+.app-layout.low-fx .cc-section,
+.app-layout.low-fx .control-center {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  background-image: none !important;
+}
+
+.app-layout.low-fx .control-center {
+  background: #0a0b10 !important;
+}
+
+.app-layout.low-fx .app-card:hover {
+  transform: none !important;
+}
+
+.app-layout.low-fx *,
+.app-layout.low-fx *::before,
+.app-layout.low-fx *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.08s !important;
+}
+
+.app-layout.low-fx [class*="drop-shadow"],
+.app-layout.low-fx .brand-logo {
+  filter: none !important;
 }
 
