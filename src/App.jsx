@@ -20,6 +20,7 @@ import AboutModal from "./components/modals/AboutModal";
 
 // Hooks
 import { useInstallation } from "./hooks/useInstallation";
+import { usePerformanceMode } from "./hooks/usePerformanceMode";
 
 const CATEGORY_ICON_MAP = {
   "Web Tarayıcıları": "globe",
@@ -111,6 +112,9 @@ function App() {
   const [currentTrackArt, setCurrentTrackArt] = useState(null);
   const [currentTrackTitle, setCurrentTrackTitle] = useState('KEINEMUSIK');
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [musicPlayerMounted, setMusicPlayerMounted] = useState(false);
+
+  const { mode: perfMode, setMode: setPerfMode, lowFx } = usePerformanceMode();
 
   // Auto-scroll logs
   useEffect(() => {
@@ -205,21 +209,36 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [installers]);
 
-  // System Info Polling
+  // System Info Polling (paused when window is hidden, slowed in low-fx)
   useEffect(() => {
+    let cancelled = false;
+
     const fetchSystemInfo = async () => {
       try {
         const info = await safeInvoke("get_system_info");
-        if (info) setSystemInfo(info);
+        if (!cancelled && info) setSystemInfo(info);
       } catch (e) {
         console.error("System info error", e);
       }
     };
 
+    const intervalMs = lowFx ? 8000 : 5000;
     fetchSystemInfo();
-    const interval = setInterval(fetchSystemInfo, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") fetchSystemInfo();
+    }, intervalMs);
+
+    const onVis = () => {
+      if (document.visibilityState === "visible") fetchSystemInfo();
+    };
+    document.addEventListener("visibilitychange", onVis);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [lowFx]);
 
   // Sync app theme with Windows theme
   useEffect(() => {
@@ -235,37 +254,49 @@ function App() {
     }
   }, [systemInfo?.is_windows_dark]);
 
-  // SoundCloud API
+  // SoundCloud API — lazy: only mount iframe + script on first open
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "https://w.soundcloud.com/player/api.js";
-    script.async = true;
-    script.onload = () => {
-      if (iframeRef.current && window.SC) {
-        const widget = window.SC.Widget(iframeRef.current);
-        const updateTrackInfo = () => {
-          widget.getCurrentSound((sound) => {
-            if (sound) {
-              const art = sound.artwork_url || sound.user.avatar_url;
-              setCurrentTrackArt(art);
-              setCurrentTrackTitle(sound.title);
-            }
-          });
-        };
-        widget.bind(window.SC.Widget.Events.READY, updateTrackInfo);
-        widget.bind(window.SC.Widget.Events.PLAY, () => {
-          setIsMusicPlaying(true);
-          updateTrackInfo();
+    if (!musicPlayerMounted) return;
+
+    let script = document.querySelector('script[data-sc-widget]');
+    let created = false;
+    if (!script) {
+      script = document.createElement('script');
+      script.src = "https://w.soundcloud.com/player/api.js";
+      script.async = true;
+      script.dataset.scWidget = "1";
+      document.body.appendChild(script);
+      created = true;
+    }
+
+    const wire = () => {
+      if (!iframeRef.current || !window.SC) return;
+      const widget = window.SC.Widget(iframeRef.current);
+      const updateTrackInfo = () => {
+        widget.getCurrentSound((sound) => {
+          if (sound) {
+            const art = sound.artwork_url || sound.user.avatar_url;
+            setCurrentTrackArt(art);
+            setCurrentTrackTitle(sound.title);
+          }
         });
-        widget.bind(window.SC.Widget.Events.PAUSE, () => setIsMusicPlaying(false));
-        widget.bind(window.SC.Widget.Events.FINISH, () => setIsMusicPlaying(false));
-      }
+      };
+      widget.bind(window.SC.Widget.Events.READY, updateTrackInfo);
+      widget.bind(window.SC.Widget.Events.PLAY, () => {
+        setIsMusicPlaying(true);
+        updateTrackInfo();
+      });
+      widget.bind(window.SC.Widget.Events.PAUSE, () => setIsMusicPlaying(false));
+      widget.bind(window.SC.Widget.Events.FINISH, () => setIsMusicPlaying(false));
     };
-    document.body.appendChild(script);
+
+    if (window.SC) wire();
+    else script.addEventListener('load', wire, { once: true });
+
     return () => {
-      if (document.body.contains(script)) document.body.removeChild(script);
+      if (created && document.body.contains(script)) document.body.removeChild(script);
     };
-  }, []);
+  }, [musicPlayerMounted]);
 
   const sendTerminalCommand = async () => {
     if (!terminalInput.trim()) return;
@@ -366,7 +397,10 @@ function App() {
     }
   };
 
-  const handleIslandClick = () => setShowMusicPlayer(!showMusicPlayer);
+  const handleIslandClick = () => {
+    if (!musicPlayerMounted) setMusicPlayerMounted(true);
+    setShowMusicPlayer(!showMusicPlayer);
+  };
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -377,7 +411,7 @@ function App() {
   };
 
   return (
-    <div className={`app-layout theme-${currentTheme} font-${currentFont}`} style={{ "--app-font-scale": fontSize / 100 }}>
+    <div className={`app-layout theme-${currentTheme} font-${currentFont} ${lowFx ? 'low-fx' : ''}`} style={{ "--app-font-scale": fontSize / 100 }}>
       <div className="mesh-gradient" />
       
       <Sidebar 
@@ -400,7 +434,7 @@ function App() {
           systemInfo={systemInfo}
         />
 
-        <AppGrid 
+        <AppGrid
           filteredApps={filteredApps}
           selected={selected}
           installStatus={installStatus}
@@ -411,6 +445,7 @@ function App() {
           startUninstall={startUninstall}
           addLog={addLog}
           setShowLogs={setShowLogs}
+          lowFx={lowFx}
         />
 
         <LogPanel 
@@ -446,7 +481,7 @@ function App() {
           installing={installing}
         />
 
-      <SettingsModal 
+      <SettingsModal
         showSettings={showSettings}
         setShowSettings={setShowSettings}
         autoCleanup={autoCleanup}
@@ -458,6 +493,8 @@ function App() {
         fontSize={fontSize}
         setFontSize={setFontSize}
         handleMenuAction={handleMenuAction}
+        perfMode={perfMode}
+        setPerfMode={setPerfMode}
       />
 
       <AboutModal 
@@ -465,23 +502,28 @@ function App() {
         setShowAbout={() => setShowAbout(false)}
       />
 
-      {/* Global Music Player Layer */}
-      <div className={`island-backdrop ${showMusicPlayer ? 'visible' : ''}`} onClick={() => setShowMusicPlayer(false)} />
-      <div className={`island-player-dropdown global-layer ${showMusicPlayer ? 'visible' : 'hidden'}`}>
-        <div className="dropdown-header">
-           <div className="live-dot" />
-           <span>STASH RADIO: KEINEMUSIK</span>
-           <button className="island-close-btn" onClick={() => setShowMusicPlayer(false)}>&times;</button>
-        </div>
-        <iframe 
-           ref={iframeRef}
-           id="sc-widget-player"
-           className="soundcloud-full-player"
-           width="100%" height="450" scrolling="no" frameBorder="no" 
-           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-           src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true"
-        ></iframe>
-      </div>
+      {/* Global Music Player Layer — iframe mounts lazily on first open */}
+      {musicPlayerMounted && (
+        <>
+          <div className={`island-backdrop ${showMusicPlayer ? 'visible' : ''}`} onClick={() => setShowMusicPlayer(false)} />
+          <div className={`island-player-dropdown global-layer ${showMusicPlayer ? 'visible' : 'hidden'}`}>
+            <div className="dropdown-header">
+              <div className="live-dot" />
+              <span>STASH RADIO: KEINEMUSIK</span>
+              <button className="island-close-btn" onClick={() => setShowMusicPlayer(false)}>&times;</button>
+            </div>
+            <iframe
+              ref={iframeRef}
+              id="sc-widget-player"
+              className="soundcloud-full-player"
+              width="100%" height="450" scrolling="no" frameBorder="no"
+              loading="lazy"
+              allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true"
+            ></iframe>
+          </div>
+        </>
+      )}
       {/* Floating Install Pill - Modern Bottom UI */}
       <div className={`floating-install-pill ${selected.size > 0 || installing ? 'visible' : ''}`}>
         <div className="pill-inner">

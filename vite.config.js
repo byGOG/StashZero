@@ -12,4 +12,22 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    target: 'chrome110',
+    cssMinify: true,
+    sourcemap: false,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('framer-motion')) return 'motion'
+          if (id.includes('react-dom')) return 'react'
+          if (id.includes('/react/') || id.endsWith('/react')) return 'react'
+          if (id.includes('@tauri-apps')) return 'tauri'
+        },
+      },
+    },
+  },
 })

@@ -4,7 +4,7 @@ import { open as openUrl } from "@tauri-apps/plugin-shell";
 import { motion, AnimatePresence } from "framer-motion";
 import AppLogo from "../icons/AppLogo";
 
-const containerVariants = {
+const containerVariantsFull = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -14,11 +14,11 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariantsFull = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
     transition: {
       type: "spring",
@@ -27,6 +27,17 @@ const itemVariants = {
     }
   },
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.15 } }
+};
+
+const containerVariantsLow = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 1, transition: { staggerChildren: 0 } }
+};
+
+const itemVariantsLow = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 1, transition: { duration: 0 } },
+  exit: { opacity: 1 }
 };
 
 const AppGrid = ({
@@ -39,9 +50,14 @@ const AppGrid = ({
   handleMouseMove,
   startUninstall,
   addLog,
-  setShowLogs
+  setShowLogs,
+  lowFx = false
 }) => {
+  const containerVariants = lowFx ? containerVariantsLow : containerVariantsFull;
+  const itemVariants = lowFx ? itemVariantsLow : itemVariantsFull;
   const [shakeAppId, setShakeAppId] = useState(null);
+  const hoverAnim = lowFx ? undefined : { y: -5, transition: { duration: 0.2 } };
+  const tapAnim = lowFx ? undefined : { scale: 0.98 };
 
   return (
     <div className="content-scroll">
@@ -77,7 +93,7 @@ const AppGrid = ({
               return (
                 <motion.div
                   key={app.path}
-                  layout
+                  layout={lowFx ? false : true}
                   variants={itemVariants}
                   className={cardClass}
                   onClick={() => {
@@ -92,9 +108,9 @@ const AppGrid = ({
                       toggleSelect(app.path);
                     }
                   }}
-                  onMouseMove={handleMouseMove}
-                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  whileTap={{ scale: 0.98 }}
+                  onMouseMove={lowFx ? undefined : handleMouseMove}
+                  whileHover={hoverAnim}
+                  whileTap={tapAnim}
                 >
                   <div className="app-icon">
                     <AppLogo id={app.id} className="brand-logo" />

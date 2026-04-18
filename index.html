@@ -7,7 +7,10 @@
     <title>StashZero</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Critical font (boot path): Outfit with minimum weight set. Other families are loaded non-blocking. -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code:wght@400;600&family=Orbitron:wght@500;700&family=Poppins:wght@400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code:wght@400;600&family=Orbitron:wght@500;700&family=Poppins:wght@400;600&display=swap"></noscript>
     <style>
       body {
         margin: 0;
@@ -26,17 +29,15 @@
         align-items: center;
         gap: 20px;
       }
-      .spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid rgba(255, 255, 255, 0.1);
-        border-left-color: #00ff9f;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        filter: drop-shadow(0 0 10px #00ff9f);
+      .boot-logo {
+        width: 72px;
+        height: 72px;
+        filter: drop-shadow(0 0 14px rgba(0,255,159,0.45));
+        animation: bootPulse 2s ease-in-out infinite;
       }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
+      @keyframes bootPulse {
+        0%, 100% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.06); opacity: 1; }
       }
       .loading-text {
         font-size: 14px;
@@ -55,7 +56,17 @@
   <body>
     <div id="root">
       <div class="loader-container">
-        <div class="spinner"></div>
+        <svg class="boot-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="boot-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00f3ff" />
+              <stop offset="100%" stop-color="#00ff9f" />
+            </linearGradient>
+          </defs>
+          <polygon points="50,10 84,29 84,71 50,90 16,71 16,29" fill="none" stroke="url(#boot-grad)" stroke-width="3" stroke-linejoin="round" />
+          <ellipse cx="50" cy="50" rx="13" ry="18" fill="none" stroke="url(#boot-grad)" stroke-width="5" stroke-linecap="round" />
+          <line x1="36" y1="66" x2="64" y2="34" stroke="url(#boot-grad)" stroke-width="5" stroke-linecap="round" />
+        </svg>
         <div class="loading-text">StashZero Yükleniyor...</div>
       </div>
     </div>

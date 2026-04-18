@@ -25,12 +25,20 @@ async fn close_splashscreen(window: tauri::Window) {
 
 fn reveal_main_window(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_skip_taskbar(false);
+        if !window.is_visible().unwrap_or(false) {
+            let _ = window.show();
+        }
         if window.is_minimized().unwrap_or(false) {
             let _ = window.unminimize();
         }
-        let _ = window.show();
         let _ = window.set_focus();
     }
+}
+
+fn hide_main_window(window: &tauri::WebviewWindow) {
+    let _ = window.set_skip_taskbar(true);
+    let _ = window.hide();
 }
 
 fn toggle_main_window(app: &tauri::AppHandle) {
@@ -38,19 +46,27 @@ fn toggle_main_window(app: &tauri::AppHandle) {
         let visible = window.is_visible().unwrap_or(false);
         let minimized = window.is_minimized().unwrap_or(false);
         if visible && !minimized {
-            let _ = window.hide();
+            hide_main_window(&window);
         } else {
-            if minimized {
-                let _ = window.unminimize();
-            }
-            let _ = window.show();
-            let _ = window.set_focus();
+            reveal_main_window(app);
         }
     }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(target_os = "windows")]
+    {
+        let existing = std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").unwrap_or_default();
+        let flags = "--disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows";
+        let combined = if existing.is_empty() {
+            flags.to_string()
+        } else {
+            format!("{existing} {flags}")
+        };
+        std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", combined);
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().level(log::LevelFilter::Debug).build())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -102,6 +118,7 @@ pub fn run() {
             tauri::WindowEvent::CloseRequested { api, .. } => {
                 if window.label() == "main" && !QUIT_REQUESTED.load(Ordering::SeqCst) {
                     log::info!("Ana pencere gizleniyor...");
+                    let _ = window.set_skip_taskbar(true);
                     let _ = window.hide();
                     api.prevent_close();
                 }
