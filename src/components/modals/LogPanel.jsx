@@ -32,7 +32,6 @@ const LogPanel = ({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
           </div>
           <span>STASHZERO TERMİNAL</span>
-          <div className="terminal-path">{shellType.toUpperCase()}@SİSTEM</div>
         </div>
 
         <div className="terminal-controls">
@@ -78,7 +77,7 @@ const LogPanel = ({
         </div>
       </div>
 
-      <div className="terminal-body" ref={logEndRef}>
+      <div className="terminal-body">
         <div className="terminal-welcome">
           <div className="welcome-ascii">
             {` ███████╗████████╗ █████╗ ███████╗██╗  ██╗███████╗███████╗██████╗  ██████╗ 
@@ -88,17 +87,18 @@ const LogPanel = ({
  ███████║   ██║   ██║  ██║███████║██║  ██║███████╗███████╗██║  ██║╚██████╔╝
  ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ `}
           </div>
-          <p>StashZero Profesyonel Komut Arayüzüne Hoş Geldiniz</p>
-          <p className="welcome-meta">Sistem otomasyonu ve çapraz kabuk yönetimi için hazır.</p>
+          <p style={{ fontWeight: 900, letterSpacing: '1px', color: 'var(--accent-primary)' }}>STASHZERO CORE // TERMİNAL</p>
+          <p className="welcome-meta" style={{ opacity: 0.6 }}>Gelişmiş sistem yönetimi ve otomasyon arayüzü.</p>
         </div>
 
         <div className="log-entries-container">
           {logs.map((log, i) => (
             <div key={i} className={`terminal-log-entry ${log.type}`}>
-              <span className="log-timestamp">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+              <span className="log-timestamp">[{log.time}]</span>
               <span className="log-content-text">{log.msg}</span>
             </div>
           ))}
+          <div ref={logEndRef} />
         </div>
       </div>
 

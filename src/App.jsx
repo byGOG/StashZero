@@ -119,7 +119,7 @@ function App() {
   // Auto-scroll logs
   useEffect(() => {
     if (showLogs && logEndRef.current) {
-      logEndRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      logEndRef.current.scrollIntoView({ behavior: "auto", block: "nearest" });
     }
   }, [logs, showLogs]);
 
