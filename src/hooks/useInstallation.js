@@ -24,7 +24,7 @@ export const useInstallation = () => {
 
   const addLog = useCallback((msg, type = "info") => {
     const time = new Date().toLocaleTimeString();
-    setLogs(prev => [{ time, msg, type }, ...prev].slice(0, 100));
+    setLogs(prev => [...prev, { time, msg, type }].slice(-100));
   }, []);
 
   const refreshInstalledStatus = useCallback(async () => {
@@ -87,8 +87,6 @@ export const useInstallation = () => {
 
   // Initial load
   useEffect(() => {
-    const installersCount = installers.length;
-    addLog(`${installersCount} adet efsane uygulama hazır.`, "info");
     refreshInstalledStatus();
   }, []);
 
