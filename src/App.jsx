@@ -53,6 +53,7 @@ function App() {
     installers,
     selected,
     installing,
+    isUninstalling,
     currentInstall,
     installStatus,
     installedApps,
@@ -525,7 +526,13 @@ function App() {
         </>
       )}
       {/* Floating Install Pill - Modern Bottom UI */}
-      <div className={`floating-install-pill ${selected.size > 0 || installing ? 'visible' : ''}`}>
+      <div 
+        className={`floating-install-pill ${(selected.size > 0 || installing) ? 'visible' : ''}`}
+        style={{ 
+          bottom: showLogs ? `${logPanelHeight + 30}px` : undefined,
+          zIndex: 10005 
+        }}
+      >
         <div className="pill-inner">
           <div className="pill-info">
             <div className="pill-count">
@@ -550,7 +557,7 @@ function App() {
               ) : (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
               )}
-              <span>{installing ? 'Yükleniyor...' : 'Kurulumu Başlat'}</span>
+              <span>{installing ? (isUninstalling ? 'Kaldırılıyor...' : 'Yükleniyor...') : 'Kurulumu Başlat'}</span>
             </button>
           </div>
         </div>
