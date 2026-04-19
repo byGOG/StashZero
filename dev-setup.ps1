@@ -11,9 +11,16 @@ Write-Info "StashZero Gelistirme Ortami Hazirlaniyor..."
 
 # 1. Check for Node.js
 if (!(Get-Command node -ErrorAction SilentlyContinue)) {
-    Write-Warn "Node.js bulunamadi. Winget ile kuruluyor..."
-    Start-Process winget -ArgumentList "install OpenJS.NodeJS.LTS --silent --accept-package-agreements --accept-source-agreements" -Wait
-    Write-Success "Node.js kuruldu. (Lutfen kurulum sonrasi yeni bir terminal acmaniz gerekebilir)"
+    Write-Warn "Node.js bulunamadi. Kuruluyor..."
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Start-Process winget -ArgumentList "install OpenJS.NodeJS.LTS --silent --accept-package-agreements --accept-source-agreements" -Wait
+    } else {
+        Write-Info "winget bulunamadi, dogrudan MSI indiriliyor..."
+        $nodeMsi = "$env:TEMP\node-lts.msi"
+        Invoke-WebRequest -Uri "https://nodejs.org/dist/v22.12.0/node-v22.12.0-x64.msi" -OutFile $nodeMsi
+        Start-Process msiexec.exe -ArgumentList "/i `"$nodeMsi`" /quiet /norestart" -Wait
+    }
+    Write-Success "Node.js kuruldu. (Lutfen kurulum sonrasi terminali kapatip acin)"
 } else {
     Write-Info "Node.js zaten yuklu: $(node -v)"
 }
