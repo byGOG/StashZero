@@ -288,14 +288,14 @@ pub async fn install_exe_from_url(
     log::debug!("Dosya indiriliyor: {} -> {}", final_url, target_path.display());
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme hedefi: {}", target_path.display()), "log_type": "info" }));
 
-    let mut curl_cmd = tokio::process::Command::new("curl")
+    let mut curl_cmd = tokio::process::Command::new("curl.exe")
         .creation_flags(CREATE_NO_WINDOW)
-        .args(["-L", "-o", target_path.to_str().unwrap(), &final_url])
+        .args(["-L", "--fail", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "-o", target_path.to_str().unwrap(), &final_url])
         .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| {
-            log::error!("Curl başlatılamadı: {}", e);
-            format!("Curl başlatılamadı: {}", e)
+            log::error!("curl.exe başlatılamadı: {}", e);
+            format!("curl.exe başlatılamadı: {}", e)
         })?;
 
     if let Some(stderr) = curl_cmd.stderr.take() {
@@ -345,14 +345,25 @@ pub async fn install_exe_from_url(
     }
     
     let status = curl_cmd.wait().await.map_err(|e| {
-        log::error!("Curl error: {}", e);
-        format!("Curl process error: {}", e)
+        log::error!("curl.exe error: {}", e);
+        format!("curl.exe process error: {}", e)
     })?;
 
     if !status.success() {
         log::error!("İndirme başarısız ({}): Exit code {}", app_name, status.code().unwrap_or(-1));
-        return Err(format!("İndirme başarısız: Exit code {}", status.code().unwrap_or(-1)));
+        return Err(format!("İndirme başarısız (HTTP hatası veya bağlantı kesildi): Exit code {}", status.code().unwrap_or(-1)));
     }
+
+    // Check file size for debugging
+    if let Ok(metadata) = std::fs::metadata(&target_path) {
+        let size_kb = metadata.len() / 1024;
+        log::info!("İndirme tamamlandı: {} (Boyut: {} KB)", app_name, size_kb);
+        let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme bitti, dosya boyutu: {} KB", size_kb), "log_type": "info" }));
+        if metadata.len() < 1024 {
+            return Err("İndirilen dosya çok küçük, muhtemelen hatalı.".to_string());
+        }
+    }
+
     log::info!("İndirme tamamlandı: {}", app_name);
 
     let is_zip = final_url.to_lowercase().ends_with(".zip") || file_name.to_lowercase().ends_with(".zip");
@@ -402,11 +413,6 @@ pub async fn install_exe_from_url(
                 "percentage": 100,
                 "message": msg.clone()
             }));
-            let _ = window.app_handle().notification()
-                .builder()
-                .title("Kurulum Tamamlandı")
-                .body(format!("{} başarıyla ayıklandı ve hazır.", app_name))
-                .show();
             return Ok(msg);
         } else {
             let err_msg = String::from_utf8_lossy(&output.stderr).to_string();
@@ -424,11 +430,6 @@ pub async fn install_exe_from_url(
             "percentage": 100,
             "message": msg.clone()
         }));
-        let _ = window.app_handle().notification()
-            .builder()
-            .title("Kurulum Tamamlandı")
-            .body(format!("{} başarıyla indirildi.", app_name))
-            .show();
         return Ok(msg);
     }
 
@@ -440,6 +441,11 @@ pub async fn install_exe_from_url(
 
     let target_str = target_path.to_str().unwrap();
     let final_args = install_args.unwrap_or_else(|| "/S".to_string());
+    let args_part = if final_args.is_empty() { 
+        "".to_string() 
+    } else { 
+        format!("-ArgumentList '{}'", final_args) 
+    };
     
     log::info!("Kurulum başlatılıyor: {} -> Args: {}", target_str, final_args);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Yükleyici çalıştırılıyor: {} {}", target_str, final_args), "log_type": "process" }));
@@ -450,7 +456,7 @@ pub async fn install_exe_from_url(
             "-NoProfile",
             "-WindowStyle", "Hidden",
             "-Command",
-            &format!("Start-Process -FilePath '{}' -ArgumentList '{}' -Wait -Verb RunAs", target_str, final_args)
+            &format!("Start-Process -FilePath '{}' {} -Wait -Verb RunAs", target_str, args_part)
         ])
         .spawn()
         .map_err(|e| {
@@ -482,11 +488,6 @@ pub async fn install_exe_from_url(
             "percentage": 100,
             "message": format!("{} başarıyla kuruldu.", app_name)
         }));
-        let _ = window.app_handle().notification()
-            .builder()
-            .title("Kurulum Tamamlandı")
-            .body(format!("{} başarıyla kuruldu.", app_name))
-            .show();
         Ok(format!("{} başarıyla kuruldu.", app_name))
     } else {
         let code = install_status.code().unwrap_or(-1);

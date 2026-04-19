@@ -1781,7 +1781,7 @@ body {
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  z-index: 10;
+  z-index: 9000;
   animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
@@ -5360,7 +5360,7 @@ body {
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  z-index: 10;
+  z-index: 9000;
   animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }

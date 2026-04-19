@@ -8,6 +8,7 @@ export const useInstallation = () => {
   const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
+  const [isUninstalling, setIsUninstalling] = useState(false);
   const [currentInstall, setCurrentInstall] = useState(null);
   const [installStatus, setInstallStatus] = useState({});
   const [installedApps, setInstalledApps] = useState({}); // id -> version
@@ -142,6 +143,7 @@ export const useInstallation = () => {
 
   const proceedUninstall = useCallback(async (app, setShowLogs) => {
     setInstalling(true);
+    setIsUninstalling(true);
     if (setShowLogs) setShowLogs(true);
     addLog(`${app.name} kaldırılıyor...`, "process");
 
@@ -152,9 +154,13 @@ export const useInstallation = () => {
       if (app.uninstall_script) {
         await safeInvoke("run_ps_script", { script: app.uninstall_script });
         addLog(`Başarılı: ${app.name} (Store/Script) kaldırıldı.`, "success");
-      } else if (app.portable) {
-        await safeInvoke("uninstall_portable", { url: app.download_url, name: app.name });
-        addLog(`Başarılı: ${app.name} (Portable) dosyaları silindi.`, "success");
+      } else if (app.portable || app.uninstall_paths) {
+        await safeInvoke("uninstall_portable", { 
+          url: app.download_url, 
+          app_name: app.name,
+          uninstall_paths: app.uninstall_paths || null 
+        });
+        addLog(`Başarılı: ${app.name} dosyaları temizlendi.`, "success");
       } else if (app.uninstall_path) {
         await safeInvoke("uninstall_software", { path: app.uninstall_path });
         addLog(`Başarılı: ${app.name} sistemden kaldırıldı.`, "success");
@@ -188,6 +194,7 @@ export const useInstallation = () => {
       sounds.playError();
     }
     setInstalling(false);
+    setIsUninstalling(false);
   }, [addLog, refreshInstalledStatus]);
 
   const startInstall = useCallback(async (setShowLogs) => {
@@ -255,6 +262,7 @@ export const useInstallation = () => {
     installers,
     selected,
     installing,
+    isUninstalling,
     currentInstall,
     installStatus,
     installedApps,
