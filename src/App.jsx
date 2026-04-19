@@ -210,33 +210,55 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [installers]);
 
-  // System Info Polling (paused when window is hidden, slowed in low-fx)
+  // Tiered telemetry polling:
+  //   - Initial heavy fetch once (static + dynamic).
+  //   - Fast tick (~2.5s) updates only CPU/RAM/net.
+  //   - Slow tick (~30s) refreshes disks, Defender, UAC, theme, DNS, local IP.
   useEffect(() => {
     let cancelled = false;
 
-    const fetchSystemInfo = async () => {
-      try {
-        const info = await safeInvoke("get_system_info");
-        if (!cancelled && info) setSystemInfo(info);
-      } catch (e) {
-        console.error("System info error", e);
-      }
+    const mergeInfo = (patch) => {
+      setSystemInfo((prev) => (prev ? { ...prev, ...patch } : patch));
     };
 
-    const intervalMs = lowFx ? 8000 : 5000;
-    fetchSystemInfo();
-    const timer = setInterval(() => {
-      if (document.visibilityState === "visible") fetchSystemInfo();
-    }, intervalMs);
+    const fetchInitial = async () => {
+      const info = await safeInvoke("get_system_info");
+      if (!cancelled && info) setSystemInfo(info);
+    };
+
+    const fetchFast = async () => {
+      const info = await safeInvoke("get_fast_telemetry");
+      if (!cancelled && info) mergeInfo(info);
+    };
+
+    const fetchSlow = async () => {
+      const info = await safeInvoke("get_slow_telemetry");
+      if (!cancelled && info) mergeInfo(info);
+    };
+
+    const fastMs = lowFx ? 5000 : 2500;
+    const slowMs = lowFx ? 60000 : 30000;
+
+    fetchInitial();
+    const fastTimer = setInterval(() => {
+      if (document.visibilityState === "visible") fetchFast();
+    }, fastMs);
+    const slowTimer = setInterval(() => {
+      if (document.visibilityState === "visible") fetchSlow();
+    }, slowMs);
 
     const onVis = () => {
-      if (document.visibilityState === "visible") fetchSystemInfo();
+      if (document.visibilityState === "visible") {
+        fetchFast();
+        fetchSlow();
+      }
     };
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
       cancelled = true;
-      clearInterval(timer);
+      clearInterval(fastTimer);
+      clearInterval(slowTimer);
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [lowFx]);

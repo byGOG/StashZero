@@ -21,6 +21,19 @@ pub static NET_STATE: Lazy<Mutex<NetState>> = Lazy::new(|| {
     })
 });
 
+// Reusable System handle — created once, refreshed selectively per poll.
+// Avoids the cost of System::new_all() which enumerates every process.
+pub static SYS_HANDLE: Lazy<Mutex<System>> = Lazy::new(|| {
+    let mut s = System::new();
+    s.refresh_cpu();
+    s.refresh_memory();
+    s.refresh_networks_list();
+    Mutex::new(s)
+});
+
+// Cached local IP — rarely changes; refreshed only on slow tick.
+pub static LOCAL_IP_CACHE: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("Detecting...")));
+
 pub struct StaticSystemInfo {
     pub gpu_model: String,
     pub motherboard: String,
@@ -49,6 +62,26 @@ pub struct DiskInfo {
     model: String,
     bus_type: String,
     media_type: String,
+}
+
+#[derive(Serialize)]
+pub struct FastTelemetry {
+    cpu_usage: f32,
+    total_memory: u64,
+    used_memory: u64,
+    net_in: f32,
+    net_out: f32,
+    uptime: u64,
+}
+
+#[derive(Serialize)]
+pub struct SlowTelemetry {
+    disks: Vec<DiskInfo>,
+    defender_active: bool,
+    uac_level: i32,
+    is_windows_dark: bool,
+    dns_servers: String,
+    local_ip: String,
 }
 
 #[derive(Serialize)]
@@ -82,21 +115,9 @@ pub struct SystemInfo {
     disks: Vec<DiskInfo>,
 }
 
-#[tauri::command]
-pub fn get_system_info() -> SystemInfo {
-    let mut sys = System::new_all();
-    sys.refresh_cpu();
-    sys.refresh_memory();
-    sys.refresh_disks_list();
-    sys.refresh_networks_list();
-    
+fn collect_disks(sys: &System, static_info_ref: Option<&StaticSystemInfo>) -> (Vec<DiskInfo>, f32) {
     let mut disk_pct = 0.0;
     let mut disks_info = Vec::new();
-    
-    let static_info_guard = STATIC_SYS_INFO.lock().unwrap();
-    
-    // If static info is not yet available, we return defaults to keep UI snappy
-    let static_info_ref = static_info_guard.as_ref();
 
     for disk in sys.disks() {
         let total = disk.total_space();
@@ -150,8 +171,12 @@ pub fn get_system_info() -> SystemInfo {
         }
     }
 
-    let mut total_in = 0;
-    let mut total_out = 0;
+    (disks_info, disk_pct)
+}
+
+fn compute_net_speeds(sys: &System) -> (f32, f32) {
+    let mut total_in = 0u64;
+    let mut total_out = 0u64;
     for (_iface, network) in sys.networks() {
         total_in += network.total_received();
         total_out += network.total_transmitted();
@@ -172,17 +197,44 @@ pub fn get_system_info() -> SystemInfo {
         state.last_time = now;
     }
 
-    let mut local_ip = String::from("Detecting...");
-    if let Some(_si) = static_info_ref {
-        local_ip = "127.0.0.1".to_string();
-        if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
-            if socket.connect("8.8.8.8:80").is_ok() {
-                if let Ok(addr) = socket.local_addr() {
-                    local_ip = addr.ip().to_string();
-                }
+    (net_in_kb, net_out_kb)
+}
+
+fn detect_local_ip() -> String {
+    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        if socket.connect("8.8.8.8:80").is_ok() {
+            if let Ok(addr) = socket.local_addr() {
+                return addr.ip().to_string();
             }
         }
     }
+    "127.0.0.1".to_string()
+}
+
+// Heavy one-shot call — used on app startup to populate the initial UI.
+// Does NOT create a new System; reuses the cached handle and refreshes disks once.
+#[tauri::command]
+pub fn get_system_info() -> SystemInfo {
+    let mut sys = SYS_HANDLE.lock().unwrap();
+    sys.refresh_cpu();
+    sys.refresh_memory();
+    sys.refresh_disks_list();
+    sys.refresh_disks();
+    sys.refresh_networks();
+
+    let static_info_guard = STATIC_SYS_INFO.lock().unwrap();
+    let static_info_ref = static_info_guard.as_ref();
+
+    let (disks_info, disk_pct) = collect_disks(&sys, static_info_ref);
+    let (net_in_kb, net_out_kb) = compute_net_speeds(&sys);
+
+    let local_ip = if static_info_ref.is_some() {
+        let ip = detect_local_ip();
+        if let Ok(mut cache) = LOCAL_IP_CACHE.lock() { *cache = ip.clone(); }
+        ip
+    } else {
+        "Detecting...".to_string()
+    };
 
     SystemInfo {
         cpu_usage: sys.global_cpu_info().cpu_usage(),
@@ -194,7 +246,7 @@ pub fn get_system_info() -> SystemInfo {
         hostname: sys.host_name().unwrap_or_else(|| "PC".to_string()),
         uptime: sys.uptime(),
         kernel_version: sys.kernel_version().unwrap_or_else(|| "N/A".to_string()),
-        total_processes: sys.processes().len() as u32,
+        total_processes: 0,
         net_in: net_in_kb,
         net_out: net_out_kb,
         local_ip,
@@ -208,10 +260,63 @@ pub fn get_system_info() -> SystemInfo {
         tpm_status: static_info_ref.map(|s| s.tpm_status).unwrap_or(false),
         hvci_status: static_info_ref.map(|s| s.hvci_status).unwrap_or(false),
         dns_servers: static_info_ref.map(|s| s.dns_servers.clone()).unwrap_or("Tespit ediliyor...".to_string()),
+        defender_active: static_info_ref.map(|s| s.defender_active).unwrap_or(false),
+        uac_level: static_info_ref.map(|s| s.uac_level).unwrap_or(0),
+        is_windows_dark: static_info_ref.map(|s| s.is_windows_dark).unwrap_or(false),
+        disks: disks_info,
+    }
+}
+
+// Lightweight poll — called every ~2.5s. No child processes, no disk enum, no new System.
+#[tauri::command]
+pub fn get_fast_telemetry() -> FastTelemetry {
+    let mut sys = SYS_HANDLE.lock().unwrap();
+    sys.refresh_cpu();
+    sys.refresh_memory();
+    sys.refresh_networks();
+
+    let (net_in_kb, net_out_kb) = compute_net_speeds(&sys);
+
+    FastTelemetry {
+        cpu_usage: sys.global_cpu_info().cpu_usage(),
+        total_memory: sys.total_memory(),
+        used_memory: sys.used_memory(),
+        net_in: net_in_kb,
+        net_out: net_out_kb,
+        uptime: sys.uptime(),
+    }
+}
+
+// Medium poll — called every ~30s. Spawns child processes for UAC/Defender/theme.
+#[tauri::command]
+pub fn get_slow_telemetry() -> SlowTelemetry {
+    let mut sys = SYS_HANDLE.lock().unwrap();
+    sys.refresh_disks_list();
+    sys.refresh_disks();
+
+    let static_info_guard = STATIC_SYS_INFO.lock().unwrap();
+    let static_info_ref = static_info_guard.as_ref();
+
+    let (disks_info, _disk_pct) = collect_disks(&sys, static_info_ref);
+
+    let local_ip = {
+        let cached = LOCAL_IP_CACHE.lock().ok().map(|s| s.clone()).unwrap_or_default();
+        if cached.is_empty() || cached == "Detecting..." || cached == "127.0.0.1" {
+            let ip = detect_local_ip();
+            if let Ok(mut cache) = LOCAL_IP_CACHE.lock() { *cache = ip.clone(); }
+            ip
+        } else {
+            cached
+        }
+    };
+
+    SlowTelemetry {
+        disks: disks_info,
         defender_active: get_dynamic_defender_status(),
         uac_level: get_dynamic_uac_level(),
         is_windows_dark: get_dynamic_windows_theme(),
-        disks: disks_info,
+        dns_servers: static_info_ref.map(|s| s.dns_servers.clone()).unwrap_or("Tespit ediliyor...".to_string()),
+        local_ip,
     }
 }
 

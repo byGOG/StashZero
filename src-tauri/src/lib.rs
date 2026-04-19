@@ -127,6 +127,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             sysinfo::get_system_info,
+            sysinfo::get_fast_telemetry,
+            sysinfo::get_slow_telemetry,
             installer::get_installed_winget_ids,
             installer::install_exe_from_url,
             installer::uninstall_software,
