@@ -32,7 +32,7 @@ pub async fn uninstall_software(path: String) -> Result<String, String> {
             "-NoProfile",
             "-WindowStyle", "Normal",
             "-Command",
-            &format!("Start-Process -FilePath '{}' -Wait -Verb RunAs", path)
+            &format!("$ErrorActionPreference = 'Stop'; Start-Process -FilePath '{}' -Wait -Verb RunAs", path)
         ])
         .spawn()
         .map_err(|e| format!("Kaldırma başlatılamadı: {}", e))?;
@@ -201,6 +201,32 @@ pub fn check_path_exists(path: String) -> bool {
 }
 
 #[tauri::command]
+pub async fn get_file_version(path: String) -> Result<String, String> {
+    if !std::path::Path::new(&path).exists() {
+        return Err("Dosya bulunamadı".to_string());
+    }
+
+    let ps_script = format!(
+        "(Get-Item -Path '{}').VersionInfo.ProductVersion",
+        path
+    );
+
+    let output = tokio::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-NoProfile", "-Command", &ps_script])
+        .output()
+        .await
+        .map_err(|e| format!("Sürüm bilgisi alınamadı: {}", e))?;
+
+    let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if version.is_empty() {
+        Ok("Kurulu".to_string())
+    } else {
+        Ok(version)
+    }
+}
+
+#[tauri::command]
 pub async fn install_exe_from_url(
     window: TauriWindow, 
     url: String, 
@@ -290,7 +316,7 @@ pub async fn install_exe_from_url(
 
     let mut curl_cmd = tokio::process::Command::new("curl.exe")
         .creation_flags(CREATE_NO_WINDOW)
-        .args(["-L", "--fail", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "-o", target_path.to_str().unwrap(), &final_url])
+        .args(["-L", "--fail", "--retry", "3", "--retry-delay", "2", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "-o", target_path.to_str().unwrap(), &final_url])
         .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| {
@@ -354,14 +380,19 @@ pub async fn install_exe_from_url(
         return Err(format!("İndirme başarısız (HTTP hatası veya bağlantı kesildi): Exit code {}", status.code().unwrap_or(-1)));
     }
 
-    // Check file size for debugging
-    if let Ok(metadata) = std::fs::metadata(&target_path) {
-        let size_kb = metadata.len() / 1024;
-        log::info!("İndirme tamamlandı: {} (Boyut: {} KB)", app_name, size_kb);
-        let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme bitti, dosya boyutu: {} KB", size_kb), "log_type": "info" }));
-        if metadata.len() < 1024 {
-            return Err("İndirilen dosya çok küçük, muhtemelen hatalı.".to_string());
-        }
+    // Check file size and existence
+    let metadata = std::fs::metadata(&target_path).map_err(|e| {
+        log::error!("İndirilen dosya bulunamadı: {} - {}", target_path.display(), e);
+        format!("İndirilen dosya bulunamadı: {}", e)
+    })?;
+
+    let size_kb = metadata.len() / 1024;
+    log::info!("İndirme tamamlandı: {} (Boyut: {} KB)", app_name, size_kb);
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme bitti, dosya boyutu: {} KB", size_kb), "log_type": "info" }));
+    
+    if metadata.len() < 1024 {
+        let _ = std::fs::remove_file(&target_path); // Clean up bad file
+        return Err("İndirilen dosya çok küçük (1KB altı), muhtemelen hatalı veya sunucu hatası oluştu.".to_string());
     }
 
     log::info!("İndirme tamamlandı: {}", app_name);
@@ -413,6 +444,13 @@ pub async fn install_exe_from_url(
                 "percentage": 100,
                 "message": msg.clone()
             }));
+            if let Some(cmd) = post_install_cmd {
+                log::info!("Kurulum sonrası komut çalıştırılıyor: {}", cmd);
+                let _ = std::process::Command::new("powershell")
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .args(["-NoProfile", "-Command", &cmd])
+                    .status();
+            }
             return Ok(msg);
         } else {
             let err_msg = String::from_utf8_lossy(&output.stderr).to_string();
@@ -456,7 +494,7 @@ pub async fn install_exe_from_url(
             "-NoProfile",
             "-WindowStyle", "Hidden",
             "-Command",
-            &format!("Start-Process -FilePath '{}' {} -Wait -Verb RunAs", target_str, args_part)
+            &format!("$ErrorActionPreference = 'Stop'; Start-Process -FilePath '{}' {} -Wait -Verb RunAs", target_str, args_part)
         ])
         .spawn()
         .map_err(|e| {
