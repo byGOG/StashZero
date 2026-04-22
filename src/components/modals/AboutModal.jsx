@@ -33,7 +33,7 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
             </div>
             <div className="about-stat-card">
               <span className="stat-label">Release</span>
-              <span className="stat-value">v0.2.0 (Stable)</span>
+              <span className="stat-value">v0.3.0 (Stable)</span>
             </div>
             <div className="about-stat-card">
               <span className="stat-label">Developer</span>
