@@ -94,6 +94,7 @@ const SettingsModal = ({
               <button className={currentTheme === "arctic" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "arctic")}>Arctic</button>
               <button className={currentTheme === "crimson" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "crimson")}>Crimson</button>
               <button className={currentTheme === "gold" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "gold")}>Gold</button>
+              <button className={currentTheme === "minimalist" ? "active" : ""} onClick={() => handleMenuAction("change-theme", "minimalist")}>Minimalist</button>
             </div>
           </div>
 
