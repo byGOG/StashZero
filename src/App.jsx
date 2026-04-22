@@ -80,7 +80,7 @@ function App() {
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentTheme, setCurrentTheme] = useState("obsidian");
+  const [currentTheme, setCurrentTheme] = useState("minimalist");
   const [currentFont, setCurrentFont] = useState("outfit");
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -267,7 +267,7 @@ function App() {
   useEffect(() => {
     if (systemInfo && systemInfo.is_windows_dark !== undefined) {
       const isDark = systemInfo.is_windows_dark;
-      const themeToSet = isDark ? "obsidian" : "minimalist";
+      const themeToSet = isDark ? "minimalist" : "minimalist";
       
       // Sadece tema farklıysa güncelle ki sonsuz döngü olmasın
       if (currentTheme !== themeToSet) {
