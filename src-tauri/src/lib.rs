@@ -135,6 +135,7 @@ pub fn run() {
             installer::uninstall_portable,
             installer::launch_portable,
             installer::check_path_exists,
+            installer::get_file_version,
             scripts::open_drive,
             network::set_dns,
             network::reset_dns,

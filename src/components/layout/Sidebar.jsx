@@ -46,6 +46,12 @@ const Sidebar = ({ categories, activeCategory, setActiveCategory, handleMenuActi
         >
           <span>Ayarlar</span>
         </div>
+        <div
+          className="sidebar-item"
+          onClick={() => handleMenuAction("show-about")}
+        >
+          <span>Hakkında</span>
+        </div>
       </div>
     </aside>
   );

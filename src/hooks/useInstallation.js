@@ -41,7 +41,8 @@ export const useInstallation = () => {
           try {
             const exists = await safeInvoke("check_path_exists", { path: app.check_path });
             if (exists) {
-              newInstalledApps[app.id] = "Kurulu";
+              const version = await safeInvoke("get_file_version", { path: app.check_path });
+              newInstalledApps[app.id] = version || "Kurulu";
               isInstalled = true;
             }
           } catch (e) { console.error("Path check error", e); }

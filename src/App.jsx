@@ -410,6 +410,7 @@ function App() {
     sounds.playClick();
     switch (action) {
       case "show-settings": setShowSettings(true); break;
+      case "show-about": setShowAbout(true); break;
       case "toggle-logs": 
         if (!showLogs) setLogPanelHeight(450);
         setShowLogs(!showLogs); 
@@ -520,9 +521,9 @@ function App() {
         setPerfMode={setPerfMode}
       />
 
-      <AboutModal 
+      <AboutModal
         showAbout={showAbout}
-        setShowAbout={() => setShowAbout(false)}
+        setShowAbout={setShowAbout}
       />
 
       {/* Global Music Player Layer — iframe mounts lazily on first open */}
