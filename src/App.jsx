@@ -17,10 +17,12 @@ import LogPanel from "./components/modals/LogPanel";
 import AdminRequestModal from "./components/modals/AdminRequestModal";
 import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
+import UpdateModal from "./components/modals/UpdateModal";
 
 // Hooks
 import { useInstallation } from "./hooks/useInstallation";
 import { usePerformanceMode } from "./hooks/usePerformanceMode";
+import { useUpdateChecker } from "./hooks/useUpdateChecker";
 
 const CATEGORY_ICON_MAP = {
   "Web Tarayıcıları": "globe",
@@ -80,7 +82,7 @@ function App() {
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentTheme, setCurrentTheme] = useState("minimalist");
+  const [currentTheme, setCurrentTheme] = useState("obsidian");
   const [currentFont, setCurrentFont] = useState("outfit");
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -116,6 +118,7 @@ function App() {
   const [musicPlayerMounted, setMusicPlayerMounted] = useState(false);
 
   const { mode: perfMode, setMode: setPerfMode, lowFx } = usePerformanceMode();
+  const updateChecker = useUpdateChecker();
 
   // Auto-scroll logs
   useEffect(() => {
@@ -267,7 +270,7 @@ function App() {
   useEffect(() => {
     if (systemInfo && systemInfo.is_windows_dark !== undefined) {
       const isDark = systemInfo.is_windows_dark;
-      const themeToSet = isDark ? "minimalist" : "minimalist";
+      const themeToSet = isDark ? "obsidian" : "obsidian";
       
       // Sadece tema farklıysa güncelle ki sonsuz döngü olmasın
       if (currentTheme !== themeToSet) {
@@ -417,6 +420,7 @@ function App() {
         break;
       case "change-theme": setCurrentTheme(data); localStorage.setItem("stash-zero-theme", data); break;
       case "change-font": setCurrentFont(data); localStorage.setItem("stash-zero-font", data); break;
+      case "check-updates": updateChecker.checkNow(); break;
       default: break;
     }
   };
@@ -524,6 +528,16 @@ function App() {
       <AboutModal
         showAbout={showAbout}
         setShowAbout={setShowAbout}
+      />
+
+      <UpdateModal
+        visible={updateChecker.visible}
+        info={updateChecker.updateInfo}
+        checking={updateChecker.checking}
+        currentVersion={updateChecker.currentVersion}
+        onClose={updateChecker.dismiss}
+        onSkip={updateChecker.skip}
+        onCheckNow={updateChecker.checkNow}
       />
 
       {/* Global Music Player Layer — iframe mounts lazily on first open */}

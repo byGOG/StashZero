@@ -1,0 +1,324 @@
+﻿Visual Studio Derleme Araçları 2022|17.14.30
+Brave|147.1.89.143
+Internet Download Manager|6.42.63
+Jellyfin Server 10.11.8|10.11.8
+K-Lite Codec Pack 19.6.6 Standard|19.6.6
+Copilot|147.0.3912.84
+Microsoft Edge WebView2 Çalışma Zamanı|147.0.3912.72
+PlumeImpactor|
+qBittorrent|5.1.4
+Steam|2.10.91.91
+Universal CRT Extension SDK|10.1.26100.7705
+Microsoft .NET Host FX Resolver - 9.0.15 (x86)|72.60.50518
+Microsoft Visual C++ 2013 Redistributable (x64) - 12.0.40664|12.0.40664.0
+Universal CRT Redistributable|10.0.26624
+MSI Development Tools|10.1.26100.7705
+WinRT Intellisense UAP - Other Languages|10.1.26100.7705
+Microsoft .NET Host FX Resolver - 10.0.7 (x86)|80.28.51996
+Windows SDK Desktop Headers arm64|10.1.26100.7705
+Microsoft ASP.NET Core 9.0.15 - Shared Framework (x64)|9.0.15.26176
+Microsoft Visual C++ v14 Redistributable (x86) - 14.50.35719|14.50.35719.0
+Windows SDK DirectX x86 Remote|10.1.26100.7705
+Windows SDK Desktop Libs x64|10.1.26100.7705
+Windows SDK AddOn|10.1.0.0
+Microsoft .NET Host - 8.0.26 (x86)|64.104.50421
+vs_CoreEditorFonts|17.7.40001
+Microsoft Windows Desktop Runtime 10.0.7 (x64)|10.0.7.50000
+Windows Team Extension SDK|10.1.26100.7705
+vs_filehandler_amd64|17.14.36024
+Windows SDK Modern Non-Versioned Developer Tools|10.1.26100.7705
+vs_githubprotocolhandlermsi|17.14.36015
+Microsoft .NET Runtime - 10.0.7 (x86)|80.28.51996
+Windows SDK Desktop Libs arm64|10.1.26100.7705
+Windows SDK for Windows Store Apps Libs|10.1.26100.7705
+WinRT Intellisense IoT - Other Languages|10.1.26100.7705
+Microsoft Visual C++ 2012 Redistributable (x86) - 11.0.61030|11.0.61030.0
+Universal CRT Redistributable|10.1.26100.7705
+Microsoft ASP.NET Core Runtime - 10.0.7 (x86)|80.28.51996
+Microsoft Windows Desktop Runtime - 8.0.26 (x86)|64.104.50433
+Microsoft .NET Runtime - 8.0.26 (x86)|64.104.50421
+WinRT Intellisense Mobile - en-us|10.1.26100.7705
+Kits Configuration Installer|10.1.26100.7705
+Microsoft Visual Studio Setup WMI Provider|3.12.2140.44225
+Windows SDK for Windows Store Apps Tools|10.1.26100.7705
+Windows SDK for Windows Store Managed Apps Libs|10.1.26100.7705
+vcpp_crt.redist.clickonce|14.44.35211
+Windows SDK EULA|10.1.26100.7705
+vs_minshellinteropsharedmsi|17.14.36015
+WinRT Intellisense Desktop - en-us|10.1.26100.7705
+Windows SDK ARM64 Desktop Tools|10.1.26100.7705
+Microsoft Windows Desktop Runtime 10.0.7 (x86)|10.0.7.50000
+Microsoft Visual C++ 2022 X86 Minimum Runtime - 14.50.35719|14.50.35719
+WinRT Intellisense UAP - en-us|10.1.26100.7705
+Microsoft .NET Runtime - 9.0.15 (x86)|72.60.50518
+Microsoft .NET Host FX Resolver - 8.0.26 (x86)|64.104.50421
+Microsoft ASP.NET Core 9.0.15 Shared Framework (x86)|9.0.15.26176
+vs_minshellmsi|17.14.36301
+Microsoft ASP.NET Core Runtime - 10.0.7 (x86)|10.0.7.36017
+Microsoft .NET Host - 9.0.15 (x86)|72.60.50518
+vs_filehandler_x86|17.14.36024
+Microsoft Windows Desktop Runtime - 10.0.7 (x86)|80.28.51996
+Microsoft Visual C++ 2005 Redistributable|8.0.61001
+vs_communitysharedmsi|17.14.36025
+Microsoft Visual C++ 2022 X86 Additional Runtime - 14.50.35719|14.50.35719
+Windows SDK Desktop Tools arm64|10.1.26100.7705
+Microsoft ASP.NET Core Runtime - 10.0.7 (x64)|10.0.7.36017
+Universal CRT Headers Libraries and Sources|10.1.26100.7705
+Universal General MIDI DLS Extension SDK|10.1.26100.7705
+Windows SDK OnecoreUap Headers x64|10.1.26100.7705
+Microsoft Visual C++ 2013 x86 Minimum Runtime - 12.0.40664|12.0.40664
+Windows SDK OnecoreUap Headers arm64|10.1.26100.7705
+UniGetUI|2026.1.6
+Microsoft Windows Desktop Runtime - 9.0.15 (x86)|9.0.15.35926
+Microsoft ASP.NET Core 9.0.15 - Shared Framework (x86)|9.0.15.26176
+WinRT Intellisense PPI - en-us|10.1.26100.7705
+Microsoft Visual C++ v14 Redistributable (x64) - 14.50.35719|14.50.35719.0
+Windows SDK Redistributables|10.1.26100.7705
+Windows Team Extension SDK Contracts|10.1.26100.7705
+WinRT Intellisense PPI - Other Languages|10.1.26100.7705
+Microsoft Visual C++ 2008 Redistributable - x86 9.0.30729.6161|9.0.30729.6161
+Microsoft Visual C++ 2013 Redistributable (x86) - 12.0.40664|12.0.40664.0
+Windows SDK Desktop Libs x86|10.1.26100.7705
+Windows Mobile Extension SDK Contracts|10.1.26100.7705
+Windows IoT Extension SDK|10.1.26100.7705
+Windows SDK|10.1.26100.7705
+vs_minshellinteropmsi|17.14.36015
+Microsoft ASP.NET Core 8.0.26 Shared Framework (x86)|8.0.26.26169
+Windows IoT Extension SDK Contracts|10.1.26100.7705
+SDK ARM64 Redistributables|10.1.26100.7705
+vs_vswebprotocolselectormsires|17.14.36323
+Windows SDK for Windows Store Apps Metadata|10.1.26100.7705
+Microsoft Visual C++ 2012 x86 Additional Runtime - 11.0.61030|11.0.61030
+vs_vswebprotocolselectormsi|17.14.36323
+Windows SDK for Windows Store Apps Headers|10.1.26100.7705
+Windows App Certification Kit x64|10.1.26100.7705
+Windows App Certification Kit x64 (OnecoreUAP)|10.1.26100.7705
+Microsoft Visual C++ 2022 X86 Debug Runtime - 14.44.35211|14.44.35211
+Microsoft Visual C++ 2012 x86 Minimum Runtime - 11.0.61030|11.0.61030
+Microsoft Windows Desktop Runtime - 9.0.15 (x86)|72.60.50530
+Windows Software Development Kit - Windows 10.0.26100.7705|10.1.26100.7705
+vs_communitymsires|17.14.36015
+Microsoft Visual C++ 2012 Redistributable (x64) - 11.0.61030|11.0.61030.0
+Windows SDK for Windows Store Apps Headers OnecoreUap|10.1.26100.7705
+Microsoft Windows Desktop Runtime - 8.0.26 (x64)|8.0.26.35920
+Windows SDK Desktop Headers x64|10.1.26100.7705
+Windows SDK for Windows Store Apps|10.1.26100.7705
+Microsoft ASP.NET Core 8.0.26 - Shared Framework (x86)|8.0.26.26169
+Python Launcher|3.14.4150.0
+WinAppDeploy|10.1.26100.7705
+Microsoft Visual Studio Setup Configuration|3.12.2140.44225
+Windows SDK Desktop Headers x86|10.1.26100.7705
+vs_FileTracker_Singleton|17.14.36015
+Microsoft Visual C++ 2013 x86 Additional Runtime - 12.0.40664|12.0.40664
+vs_minshellmsires|17.14.36015
+Windows SDK Desktop Tools x86|10.1.26100.7705
+Microsoft Windows Desktop Runtime - 9.0.15 (x64)|9.0.15.35926
+Windows App Certification Kit SupportedApiList x86|10.1.26100.7705
+Windows SDK for Windows Store Apps Contracts|10.1.26100.7705
+Windows Mobile Extension SDK|10.1.26100.7705
+SDK ARM64 Additions|10.1.26100.7705
+WinRT Intellisense Desktop - Other Languages|10.1.26100.7705
+Windows SDK Desktop Tools x64|10.1.26100.7705
+WinRT Intellisense IoT - en-us|10.1.26100.7705
+Microsoft .NET Host - 10.0.7 (x86)|80.28.51996
+Windows SDK OnecoreUap Headers x86|10.1.26100.7705
+Microsoft Visual C++ 2010  x86 Redistributable - 10.0.40219|10.0.40219
+Realtek Audio Driver|6.0.9888.1
+Windows SDK Modern Versioned Developer Tools|10.1.26100.7705
+Microsoft Windows Desktop Runtime - 8.0.26 (x86)|8.0.26.35920
+Windows Desktop Extension SDK Contracts|10.1.26100.7705
+Microsoft ASP.NET Core 8.0.26 - Shared Framework (x64)|8.0.26.26169
+vs_minshellsharedmsi|17.14.36024
+Windows SDK for Windows Store Apps DirectX x86 Remote|10.1.26100.7705
+Windows SDK Signing Tools|10.1.26100.7705
+Windows SDK Facade Windows WinMD Versioned|10.1.26100.7705
+Universal CRT Tools x86|10.1.26100.7705
+Windows Desktop Extension SDK|10.1.26100.7705
+Hattrick Organizer 10.0.856.0|10.0.856.0
+ShareX|19.0.2
+Git|2.53.0.2
+HashCheck Shell Extension|2.5.0.1
+HWiNFO® 64|8.46
+Notepad++ (64-bit x64)|8.9.3
+Microsoft 365 - tr-tr|16.0.19929.20090
+Sandboxie-Plus v1.17.4|1.17.4
+StartAllBack|3.9.22
+Wallpaper Engine|
+TeamViewer|15.76.5
+WinRAR 7.20 (64 bit)|7.20.0
+WizTree v4.31|4.31
+Zen Browser (x64 en-US)|1.19.8b
+Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.40664|12.0.40664
+Intel(R) ME WMI Provider|1.0.0.0
+Microsoft .NET Host FX Resolver - 9.0.15 (x64)|72.60.50518
+Python 3.14.4 Tcl/Tk Support (64-bit)|3.14.4150.0
+Node.js|24.14.1
+Intel(R) Management Engine Components|2553.8.58.0
+Microsoft Visual C++ 2010  x64 Redistributable - 10.0.40219|10.0.40219
+Windows App Certification Kit Native Components|10.1.26100.7705
+Python 3.14.4 Executables (64-bit)|3.14.4150.0
+Dynamic Application Loader Host Interface Service|1.0.0.0
+Microsoft .NET Host - 8.0.26 (x64)|64.104.50421
+Intel(R) Management Engine Driver|1.0.0.0
+Microsoft Visual C++ 2012 x64 Additional Runtime - 11.0.61030|11.0.61030
+vs_communityx64msi|17.14.36025
+ImageGlass|9.4.1.15
+Microsoft Windows Desktop Runtime - 9.0.15 (x64)|72.60.50530
+Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.40664|12.0.40664
+VMware Workstation|25.0.1
+Microsoft .NET Host FX Resolver - 10.0.7 (x64)|80.28.51996
+Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.6161|9.0.30729.6161
+Application Verifier x64 External Package (OnecoreUAP)|10.1.26100.7705
+Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.50.35719|14.50.35719
+Google Drive|123.0.1.0
+Python 3.14.4 Standard Library (64-bit)|3.14.4150.0
+Microsoft .NET Runtime - 10.0.7 (x64)|80.28.51996
+Microsoft ASP.NET Core 9.0.15 Shared Framework (x64)|9.0.15.26176
+Python 3.14.4 Development Libraries (64-bit)|3.14.4150.0
+PowerShell 7-x64|7.6.1.0
+Microsoft .NET Host - 10.0.7 (x64)|80.28.51996
+Python 3.14.4 Add to Path (64-bit)|3.14.4150.0
+Office 16 Click-to-Run Extensibility Component|16.0.19929.20032
+Microsoft .NET Runtime - 9.0.15 (x64)|72.60.50518
+Microsoft Windows Desktop Runtime - 10.0.7 (x64)|80.28.51996
+CopyQ 15.0.0|15.0.0
+Python 3.14.4 Documentation (64-bit)|3.14.4150.0
+ASUS DriverHub|1.0.7.0
+Microsoft Visual C++ 2005 Redistributable (x64)|8.0.61000
+Microsoft Visual C++ 2022 X64 Additional Runtime - 14.50.35719|14.50.35719
+NVIDIA Grafik Sürücüsü 596.21|596.21
+NVIDIA App 11.0.7.237|11.0.7.237
+NVIDIA MessageBus 3 for NvApp|3.21
+NVIDIA Backend|11.0.7.237
+NvCpl|1.0
+NVIDIA PhysX Sistem Yazılımı 9.23.1019|9.23.1019
+NVIDIA FrameView SDK 1.7.12227.37421622|1.7.12227.37421622
+NVIDIA HD Ses Sürücüsü 1.4.5.7|1.4.5.7
+NVIDIA Install Application|2.1002.442.0
+NVIDIA Container|1.48
+NVIDIA AIUser Container|1.48
+NVIDIA LocalSystem Container|1.48
+NVIDIA Session Container|1.48
+NVIDIA User Container|1.48
+NVIDIA NvDLISR|1.0
+NVIDIA Watchdog Plugin for NvContainer|1.48
+NVIDIA Telemetry Client|19.5.13.0
+NVIDIA ShadowPlay 11.0.7.0|11.0.7.0
+NVIDIA Virtual Audio 4.65.0.12|4.65.0.12
+Microsoft Windows Desktop Runtime - 8.0.26 (x64)|64.104.50433
+GitHub CLI|2.91.0
+Python 3.14.4 Core Interpreter (64-bit)|3.14.4150.0
+DiagnosticsHub_CollectionService|17.14.36412
+Universal CRT Tools x64|10.1.26100.7705
+Microsoft .NET Host FX Resolver - 8.0.26 (x64)|64.104.50421
+Microsoft ASP.NET Core 8.0.26 Shared Framework (x64)|8.0.26.26169
+Microsoft Visual C++ 2012 x64 Minimum Runtime - 11.0.61030|11.0.61030
+Microsoft .NET Runtime - 8.0.26 (x64)|64.104.50421
+Application Verifier x64 External Package (DesktopEditions)|10.1.26100.7705
+Python 3.14.4 Test Suite (64-bit)|3.14.4150.0
+Google Chrome|147.0.7727.117
+Microsoft ASP.NET Core Runtime - 10.0.7 (x64)|80.28.51996
+Python 3.14.4 pip Bootstrap (64-bit)|3.14.4150.0
+Apple Mobile Device Support|19.4.0.10
+BCUninstaller 6.1.0.0|6.1.0.0
+VS Script Debugging Common|17.0.157.0
+Windows SDK DirectX x64 Remote|10.1.26100.7705
+Intel(R) Management Engine Components|1.0.0.0
+Revision Tool version 2.8.4|2.8.4
+Microsoft .NET Host - 9.0.15 (x64)|72.60.50518
+Microsoft Visual C++ 2022 X64 Debug Runtime - 14.44.35211|14.44.35211
+Bitwarden|2026.3.1
+SoundCloud|1.0
+Jellyfin|1.0
+Hattrick|1.0
+Google Gemini|1.0
+YouTube|1.0
+Kick|1.0
+DeepL Translate|1.0
+Discord|1.0.9234
+Flow Launcher|2.1.1
+Snappy Driver Installer Origin|1.17.8.829
+JDownloader 2|2.0.260331
+Rustup: the Rust toolchain installer|1.29.0
+Spotify|1.2.87.414.g4e7a1155
+Python 3.14.4 (64-bit)|3.14.4150.0
+Telegram Desktop|6.7.6
+Antigravity (User)|1.23.2
+Icons|Portable
+1527c705-839a-4832-9118-54d4Bd6a0c89|10.0.19640.1000
+c5e2524a-ea46-4f67-841f-6a9465d9d515|10.0.26100.1
+E2A4F912-2574-4A75-9BB0-0D023378592B|10.0.19640.1000
+F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE|10.0.26100.1
+Microsoft.AccountsControl|10.0.26100.1
+Microsoft.AsyncTextService|10.0.26100.1
+Microsoft.BioEnrollment|10.0.19587.1000
+Microsoft.CredDialogHost|10.0.19595.1001
+Microsoft.Win32WebViewHost|10.0.26100.1
+Microsoft.Windows.AssignedAccessLockApp|1000.25128.1000.0
+Microsoft.Windows.CapturePicker|10.0.19580.1000
+Microsoft.Windows.CloudExperienceHost|10.0.26100.1
+Microsoft.Windows.ContentDeliveryManager|10.0.26100.1
+Microsoft.Windows.ParentalControls|1000.25128.1000.0
+Microsoft.Windows.PinningConfirmationDialog|1000.25140.1001.0
+Microsoft.Windows.PrintQueueActionCenter|1.0.2.0
+Microsoft.Windows.XGpuEjectDialog|10.0.26100.1
+Microsoft.XboxGameCallableUI|1000.25128.1000.0
+MicrosoftWindows.UndockedDevKit|10.0.26100.1
+Windows.CBSPreview|10.0.19580.1000
+windows.immersivecontrolpanel|10.0.8.1000
+Windows.PrintDialog|6.2.3.0
+Microsoft.VCLibs.140.00|14.0.33519.0
+Microsoft.UI.Xaml.2.8|8.2511.26001.0
+Microsoft.SecHealthUI|1000.29554.1001.0
+Microsoft.AAD.BrokerPlugin|1000.19580.1000.2
+Microsoft.Windows.AugLoop.CBS|1.1126.2131.0
+Microsoft.Windows.OOBENetworkCaptivePortal|10.0.26495.1000
+Microsoft.Windows.OOBENetworkConnectionFlow|10.0.26495.1000
+Microsoft.Windows.StartMenuExperienceHost|10.0.26100.4768
+Microsoft.WindowsAppRuntime.CBS.1.6|6000.708.357.100
+Microsoft.WindowsAppRuntime.CBS.1.8|8000.715.1812.100
+MicrosoftWindows.Client.FileExp|1000.26100.4.0
+MicrosoftWindows.Client.Photon|1000.26100.10.0
+Microsoft.Windows.NarratorQuickStart|10.0.26100.1
+NVIDIACorp.NVIDIAControlPanel|8.1.969.0
+Microsoft.UI.Xaml.CBS|9.2602.17001.0
+Microsoft.Windows.ShellExperienceHost|10.0.26100.8115
+MicrosoftWindows.60719890.Voiess|1000.26100.8115.0
+MicrosoftWindows.60719895.Livtop|1000.26100.8115.0
+MicrosoftWindows.60719896.Speion|1000.26100.8115.0
+MicrosoftWindows.60719898.InpApp|1000.26100.8115.0
+MicrosoftWindows.Client.CBS|1000.26100.297.0
+MicrosoftWindows.Client.Core|1000.26100.86.0
+MicrosoftWindows.Client.OOBE|1000.26100.40.0
+MicrosoftCorporationII.WinAppRuntime.Main.1.8|8000.806.2252.0
+AppUp.IntelOptaneMemoryandStorageManagement|20.0.1024.0
+Microsoft.VCLibs.140.00.UWPDesktop|14.0.33728.0
+WinRAR.ShellExtension|1.0.0.2
+NotepadPlusPlus|1.0.0.0
+RealtekSemiconductorCorp.RealtekAudioControl|1.53.376.0
+A-Volute.28054DF1F58B4|3.16.23.0
+Microsoft.NET.Native.Framework.2.1|2.1.27427.0
+Microsoft.NET.Native.Runtime.2.1|2.1.26424.0
+A-Volute.SonicStudio3|3.16.23.0
+Microsoft.NET.Native.Framework.2.2|2.2.29512.0
+Microsoft.NET.Native.Runtime.2.2|2.2.28604.0
+Microsoft.WindowsAppRuntime.1.6|6000.519.329.0
+OpenAI.ChatGPT-Desktop|1.2026.43.0
+Microsoft.Winget.Fonts.Source|2025.1016.311.49
+Microsoft.LanguageExperiencePacktr-TR|26100.144.243.0
+SandboxieShell|1.0.0.0
+Microsoft.WindowsAppRuntime.1.7|7000.785.2325.0
+Microsoft.Windows.Photos|2026.11020.20001.0
+DTSInc.DTSSoundUnbound|2026.1.2.0
+Microsoft.ECApp|10.0.26100.8246
+Microsoft.LockApp|10.0.26100.8246
+5319275A.WhatsAppDesktop|2.2613.101.0
+Microsoft.6365217CE6EB4|102.2504.16004.0
+Microsoft.WindowsAppRuntime.1.8|8000.836.2153.0
+Microsoft.DesktopAppInstaller|1.28.240.0
+Claude|1.3883.0.0
+Microsoft.OfficePushNotificationUtility|16.0.19929.20090
+Microsoft.Office.ActionsServer|16.0.19929.20090
+aimgr|0.20.47.0
+Microsoft.Copilot|147.0.3912.84
+Microsoft.Winget.Source|2026.424.1800.9

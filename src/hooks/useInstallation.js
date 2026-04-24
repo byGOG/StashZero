@@ -3,6 +3,7 @@ import { safeInvoke } from "../utils/tauri";
 import { listen } from '@tauri-apps/api/event';
 import { sounds } from "../utils/audio";
 import { LEGENDARY_APPS } from "../data/library";
+import { cleanVersion } from "../utils/updateChecker";
 
 export const useInstallation = () => {
   const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
@@ -42,7 +43,7 @@ export const useInstallation = () => {
             const exists = await safeInvoke("check_path_exists", { path: app.check_path });
             if (exists) {
               const version = await safeInvoke("get_file_version", { path: app.check_path });
-              newInstalledApps[app.id] = version || "Kurulu";
+              newInstalledApps[app.id] = version ? cleanVersion(version) : "Kurulu";
               isInstalled = true;
             }
           } catch (e) { console.error("Path check error", e); }
@@ -57,7 +58,7 @@ export const useInstallation = () => {
             return lowerN === lowerName || lowerN === lowerId || lowerN.includes(lowerName);
           });
           if (match) {
-            newInstalledApps[app.id] = match[1] || "Kurulu";
+            newInstalledApps[app.id] = match[1] ? cleanVersion(match[1]) : "Kurulu";
             isInstalled = true;
           }
         }

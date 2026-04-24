@@ -21,20 +21,36 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Betik: {}", script), "log_type": "info" }));
     
     let escaped_script = script.replace("'", "''");
-    
-    std::process::Command::new("powershell")
+
+    let status = tokio::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
         .args([
             "-NoProfile",
             "-Command",
-            &format!("Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command','{}' -Verb RunAs -WindowStyle Hidden", escaped_script)
+            &format!("$p = Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command','{}' -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode", escaped_script)
         ])
         .spawn()
         .map_err(|e| {
             log::error!("Betik başlatılamadı: {}", e);
             format!("Betik başlatılamadı: {}", e)
+        })?
+        .wait()
+        .await
+        .map_err(|e| {
+            log::error!("Betik süreç hatası: {}", e);
+            format!("Betik süreç hatası: {}", e)
         })?;
-    Ok(())
+
+    if status.success() {
+        let _ = window.emit("backend-log", serde_json::json!({ "msg": "Betik tamamlandı.", "log_type": "success" }));
+        Ok(())
+    } else {
+        let code = status.code().unwrap_or(-1);
+        let msg = format!("Betik hatayla sonlandı (Exit code {}). UAC reddedilmiş olabilir.", code);
+        log::error!("{}", msg);
+        let _ = window.emit("backend-log", serde_json::json!({ "msg": msg.clone(), "log_type": "error" }));
+        Err(msg)
+    }
 }
 
 #[tauri::command]
