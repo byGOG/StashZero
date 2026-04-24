@@ -114,6 +114,19 @@ const SettingsModal = ({
 
           <div className="setting-card">
             <div className="setting-info">
+              <span className="setting-title">Güncellemeler</span>
+              <span className="setting-desc">GitHub üzerinden yayınlanan yeni StashZero sürümlerini kontrol edin.</span>
+            </div>
+            <button
+              className="neon-button subtle"
+              onClick={() => handleMenuAction("check-updates")}
+            >
+              Güncellemeleri Denetle
+            </button>
+          </div>
+
+          <div className="setting-card">
+            <div className="setting-info">
               <span className="setting-title">Arayüz Ölçeği</span>
               <span className="setting-desc">Tüm arayüzün (yazılar, butonlar, paneller) boyutunu ayarlayın (%{fontSize}).</span>
             </div>

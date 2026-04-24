@@ -151,8 +151,11 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
             "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
         )
         $installed = Get-ItemProperty $paths -ErrorAction SilentlyContinue | 
-            Select-Object @{n='name';e={$_.DisplayName}}, @{n='version';e={$_.DisplayVersion}} | 
-            Where-Object { $_.name -ne $null -and $_.name -ne '' }
+            Where-Object { 
+                $_.DisplayName -ne $null -and $_.DisplayName -ne '' -and
+                ($null -eq $_.InstallLocation -or $_.InstallLocation -eq '' -or (Test-Path $_.InstallLocation))
+            } |
+            Select-Object @{n='name';e={$_.DisplayName}}, @{n='version';e={$_.DisplayVersion}}
         
         $results = @()
         foreach ($item in $installed) {
@@ -197,17 +200,27 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
 
 #[tauri::command]
 pub fn check_path_exists(path: String) -> bool {
+    if path.contains('$') {
+        let output = std::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(["-NoProfile", "-Command", &format!("Test-Path \"{}\"", path)])
+            .output();
+        
+        if let Ok(out) = output {
+            return String::from_utf8_lossy(&out.stdout).trim().to_lowercase() == "true";
+        }
+    }
     std::path::Path::new(&path).exists()
 }
 
 #[tauri::command]
 pub async fn get_file_version(path: String) -> Result<String, String> {
-    if !std::path::Path::new(&path).exists() {
+    if !check_path_exists(path.clone()) {
         return Err("Dosya bulunamadı".to_string());
     }
 
     let ps_script = format!(
-        "(Get-Item -Path '{}').VersionInfo.ProductVersion",
+        "(Get-Item -Path \"{}\").VersionInfo.ProductVersion",
         path
     );
 
