@@ -1,101 +1,168 @@
-# <p align="center">💎 StashZero</p>
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Status-Stable-emerald?style=for-the-badge&logo=github" alt="Status">
-  <img src="https://img.shields.io/badge/Build-Passing-blue?style=for-the-badge&logo=github-actions" alt="Build">
-  <img src="https://img.shields.io/badge/Version-0.1.0-6366f1?style=for-the-badge" alt="Version">
+<img src="src/assets/about-hero.png" alt="StashZero" width="820">
+
+# StashZero
+
+**Windows için sade, hızlı ve güzel bir uygulama merkezi.**
+
+İhtiyacınız olan her şeyi tek tıkla kurun, sisteminizi tek pencereden yönetin.
+
+<p>
+  <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows">
+  <img src="https://img.shields.io/badge/Sürüm-0.3.1-6366f1?style=for-the-badge" alt="Sürüm">
+  <img src="https://img.shields.io/badge/Ücretsiz-Evet-10b981?style=for-the-badge" alt="Ücretsiz">
+  <img src="https://img.shields.io/badge/Türkçe-Evet-ef4444?style=for-the-badge" alt="Türkçe">
 </p>
 
-<p align="center">
-  <b>Geleceğin Sistem Yönetim Merkezi.</b><br>
-  <i>Tauri, React 19 ve Rust ile inşa edilmiş, minimalist ve ultra-hızlı bir uygulama ekosistemi.</i>
-</p>
+</div>
 
 ---
 
-## 📑 İçindekiler
-- [🚀 Hızlı Kurulum](#-hızlı-kurulum)
-- [🌌 Vizyon ve Mimari](#-vizyon-ve-mimari)
-- [✨ Premium Özellikler](#-premium-özellikler)
-- [🛠️ Teknoloji Yığını](#️-teknoloji-yığını)
-- [🗺️ Yol Haritası](#️-yol-haritası)
-- [👨‍💻 Geliştirici](#-geliştirici)
+## StashZero Nedir?
+
+StashZero, **Windows bilgisayarınızı sıfırdan kurarken veya mevcut sisteminizi düzenlerken** zaman kazandırmak için tasarlandı. Onlarca uygulamayı tek tek indirip kurmak yerine, ihtiyacınız olanları seçin — gerisini StashZero halletsin.
+
+- Tarayıcılardan oyun platformlarına, güvenlik araçlarından geliştirici setlerine kadar geniş bir uygulama arşivi.
+- Kurulum, kaldırma, güncelleme — hepsi tek yerden.
+- Arka planda CPU, RAM, disk ve ağ durumunuzu takip eden mini bir kontrol merkezi.
+- Yönetici izinleri, DNS ayarları, güç planı, masaüstü düzeni gibi sık kullanılan Windows ayarlarına hızlı erişim.
 
 ---
 
-## 🚀 Hızlı Kurulum (PowerShell)
+## Hızlı Kurulum
 
-Herhangi bir kurulum dosyası indirmeden, terminal üzerinden anında StashZero'yu sisteminize kurun:
+Hiçbir şey indirmenize gerek yok. **PowerShell**'i açın ve şu satırı yapıştırın:
 
 ```powershell
 irm bygog.github.io/StashZero/i.ps1 | iex
 ```
 
-### 💻 Komut İstemi (CMD) ile Kurulum
+Alternatif olarak **Komut İstemi (CMD)**'ni tercih ederseniz:
+
 ```cmd
 powershell -ExecutionPolicy Bypass -Command "irm bygog.github.io/StashZero/i.ps1 | iex"
 ```
 
----
-
-## 🌌 Vizyon ve Mimari
-
-**StashZero**, basit bir "software installer" olmanın ötesinde, sistem yöneticileri ve profesyonel kullanıcılar için tasarlanmış bir **Control Center**'dır. 
-
-*   **Glassmorphism V3:** Derinlik, ışık ve şeffaflık dengesiyle optimize edilmiş arayüz.
-*   **Rust Backend:** Bellek güvenliği ve en düşük CPU kullanımı için native Rust çekirdeği.
-*   **Modular Design:** Atomic Design prensipleriyle kodlanmış, her parçası bağımsızca ölçeklenebilir yapı.
+Kurulum birkaç saniye sürer, ardından StashZero masaüstünüzde hazır olur.
 
 ---
 
-## ✨ Premium Özellikler
+## Neler Yapabilirsiniz?
 
-### 🍱 Akıllı Kütüphane Sistemi
-- **Gelişmiş Kategorizasyon:** 23+ benzersiz kategori ve her kategoriye özel Lucide-style ikonlar.
-- **Efsanevi Araçlar:** WinRAR, Rufus, Ventoy, Windows MCT ve çok daha fazlası.
-- **Otomatik Logo Çözümleme:** Uygulamalar için yüksek çözünürlüklü ve vektörel logo desteği.
+### Toplu Uygulama Kurulumu
 
-### 📊 Gerçek Zamanlı Telemetri
-- **Canlı İzleme:** CPU, RAM, Disk ve Network (Up/Down) verilerini milisaniyelik gecikmeyle takip edin.
-- **Pro Diagnostik:** Kernel sürümünden IP detaylarına kadar sisteminizin röntgenini çekin.
+İstediğiniz uygulamaları işaretleyin, ekranın altındaki **Kurulumu Başlat** butonuna basın. StashZero sıra ile hepsini indirir ve kurar. Siz kahvenizi içerken işiniz bitmiş olur.
 
-### ⚙️ Görsel Özelleştirmeler
-- **Tema Motoru:** Obsidian, Cyberpunk, Minimalist ve Neumorphic temalar arası tek tıkla geçiş.
-- **Sesli Geri Bildirim:** Her etkileşimde kaliteli, stüdyo kalitesinde ses efektleri.
+- Seçtiğiniz uygulamaların **toplam indirilecek boyutu** canlı olarak ekranda.
+- Her uygulama için **ilerleme çubuğu** ve canlı log kaydı.
+- Yönetici izni gerektiğinde önceden **nazik bir uyarı**.
+
+### Zengin Uygulama Kütüphanesi
+
+Kategorilere ayrılmış yüzlerce uygulama:
+
+| Kategori | İçerik |
+|----------|--------|
+| **Web Tarayıcıları** | Chrome, Firefox, Brave, Opera, Zen, Mullvad, Tor |
+| **İletişim & Sosyal** | Discord, Telegram, WhatsApp, Thunderbird |
+| **Üretkenlik** | Notion, Obsidian, Evernote, Adobe Acrobat |
+| **Multimedya** | VLC, Spotify, OBS, HandBrake, Audacity, Kodi |
+| **Geliştirme** | VS Code, Git, Node.js, Python, Docker, Postman |
+| **Yapay Zeka** | Claude, Cursor, ChatGPT araçları |
+| **Sistem Araçları** | PowerToys, HWiNFO, CPU-Z, GPU-Z, Sysinternals |
+| **Güvenlik** | Malwarebytes, Bitwarden, KeePass, Bitdefender, ESET |
+| **Gizlilik & Ağ** | ProtonVPN, OpenVPN, GoodbyeDPI, NextDNS |
+| **Oyun Platformları** | Steam, Epic Games, GOG, Origin |
+| **Dosya Yönetimi** | 7-Zip, WinRAR, TeraCopy, OneCommander, WizTree |
+| **Sanallaştırma** | VirtualBox, VMware, Sandboxie |
+| **Donanım & Test** | FurMark, OCCT, PerformanceTest, BurnInTest |
+
+...ve bunun gibi 23+ kategori.
+
+### Canlı Sistem Panosu
+
+Ana ekranın yan tarafında her zaman sisteminizin nabzını tutun:
+
+- **CPU / RAM** — milisaniyelik güncellenen kullanım çubukları
+- **Disk doluluğu** — tüm sürücüler için
+- **Ağ hızı** — anlık indirme/yükleme
+- **Windows Defender** ve **UAC** durumu
+- **Tema / DNS / IP** bilgileri
+
+### Tek Tıkla Windows Ayarları
+
+Sık ihtiyaç duyduğunuz ayar ekranları parmağınızın ucunda:
+
+- Masaüstü simgeleri düzeni
+- Güç planı yönetimi
+- DNS değiştirme (Google, Cloudflare, OpenDNS, Quad9, AdGuard)
+- Windows Defender ve UAC ayarları
+
+### Kişiselleştirme
+
+- **Temalar:** Obsidian (karanlık) ve Minimalist (aydınlık) arasında geçiş.
+- **Yazı tipleri:** Modern font seçenekleri.
+- **Yazı boyutu:** %75'ten %125'e kadar ölçekleme.
+- **Ses efektleri:** Her etkileşimde hoş geri bildirimler (isterseniz kapatın).
+- **Performans modu:** Düşük donanımlı cihazlarda animasyonları azaltın.
+
+### Bonus: Dahili Radyo
+
+Çalışırken fon müziği mi arıyorsunuz? Başlık çubuğundaki küçük simgeye tıklayın, **KEINEMUSIK** canlı yayını doğrudan uygulama içinde açılsın.
 
 ---
 
-## 🛠️ Teknoloji Yığını
+## Klavye Kısayolları
 
-| Teknoloji | Kullanım Alanı | Logo |
-| :--- | :--- | :--- |
-| **Rust** | Backend Core & System API | <img src="https://img.shields.io/badge/-Rust-000000?style=flat-square&logo=rust" alt="Rust"> |
-| **Tauri** | Desktop Runtime | <img src="https://img.shields.io/badge/-Tauri-24C8D8?style=flat-square&logo=tauri" alt="Tauri"> |
-| **React 19** | UI Lifecycle | <img src="https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react" alt="React"> |
-| **Vite** | Build Tooling | <img src="https://img.shields.io/badge/-Vite-646CFF?style=flat-square&logo=vite" alt="Vite"> |
-| **PowerShell** | Install Pipeline | <img src="https://img.shields.io/badge/-PowerShell-5391FE?style=flat-square&logo=powershell" alt="PowerShell"> |
-
----
-
-## 🗺️ Yol Haritası
-
-- [x] **v0.1.0:** Otomatik Kurulum Betiği (PowerShell) ve CI/CD Pipeline.
-- [x] **v0.1.5:** Modernize Edilmiş Kategori İkonları ve Modüler Mimari.
-- [ ] **v0.2.0:** Gelişmiş GPU Telemetrisi ve Grafik Paneli.
-- [ ] **v0.3.0:** StashZero Cloud Sync (Ayarların buluta yedeklenmesi).
-- [ ] **v1.0.0:** Stable Master Edition Release.
+| Kısayol | Ne İşe Yarar |
+|---------|--------------|
+| `Ctrl` + `F` | Uygulama ara |
+| `Ctrl` + `A` | Görünen uygulamaların tümünü seç |
+| `F6` | Seçili uygulamaları kurmaya başla |
+| `Esc` | Aramayı temizle / menüleri kapat |
 
 ---
 
-## 👨‍💻 Geliştirici
+## Sık Sorulan Sorular
 
-**Baş Mimari:** byGOG  
-**Stüdyo:** byGOG Software  
-**Release:** Stable Master Release
+**Güvenli mi?**  
+Evet. StashZero, uygulamaları **resmi üreticilerin kendi kurulum dosyalarından** indirir — ara sunucu veya değiştirilmiş paket kullanmaz. Tüm kurulum adımlarını log ekranından canlı takip edebilirsiniz.
+
+**Ücretsiz mi?**  
+Tamamen ücretsiz. Reklam yok, abonelik yok, gizli ücret yok.
+
+**İnternete sürekli bağlı olmalı mıyım?**  
+Kurulum anında evet — uygulamalar internetten indirilir. Kurulduktan sonra StashZero'yu kapatabilirsiniz.
+
+**Windows 10'da çalışır mı?**  
+Evet. Windows 10 ve Windows 11 destekleniyor.
+
+**Yönetici hakkı istiyor, neden?**  
+Bazı uygulamaların kurulumu veya kaldırılması için Windows yönetici izni gerekir. StashZero bu izni yalnızca gerektiğinde, sizi uyararak ister.
+
+**Eski sürümü nasıl güncellerim?**  
+StashZero arka planda yeni sürümleri kontrol eder. Güncelleme varsa küçük bir bildirim görürsünüz — dilerseniz **Ayarlar** içinden manuel de kontrol edebilirsiniz.
+
+**Ayarlarım kaybolur mu?**  
+Tema, yazı tipi, seçili kategori gibi tercihleriniz bilgisayarınızda saklanır; güncellemelerden etkilenmez.
 
 ---
 
-<p align="center">
-  <i>StashZero topluluğu için 💎 ile geliştirilmiştir.</i><br>
-  © 2026 byGOG Software. Tüm hakları saklıdır.
-</p>
+## İletişim ve Topluluk
+
+<div align="center">
+
+**[byGOG.github.io](https://bygog.github.io/)** · **[Sordum.net Topluluğu](https://www.sordum.net/)**
+
+Sordum.net'in sade ve kullanıcı odaklı anlayışından ilham alınarak geliştirildi.
+
+</div>
+
+---
+
+<div align="center">
+
+© 2026 byGOG Software · StashZero tüm Windows kullanıcıları için ücretsizdir.
+
+</div>
