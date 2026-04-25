@@ -24,7 +24,7 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
         
         <div className="about-hero-container">
           <img src={AboutHero} alt="StashZero Art" className="about-hero-img" />
-          <span className="version-tag-float">STABLE v0.3.0</span>
+          <span className="version-tag-float">STABLE v0.3.1</span>
           <div className="about-hero-overlay">
             <div className="about-brand-float">
               <ProjectLogo size={40} />

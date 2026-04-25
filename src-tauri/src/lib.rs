@@ -130,6 +130,7 @@ pub fn run() {
             sysinfo::get_fast_telemetry,
             sysinfo::get_slow_telemetry,
             installer::get_installed_winget_ids,
+            installer::batch_check_installations,
             installer::install_exe_from_url,
             installer::uninstall_software,
             installer::uninstall_portable,

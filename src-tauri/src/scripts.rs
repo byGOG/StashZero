@@ -16,30 +16,55 @@ pub static SCRIPT_CHILD: Lazy<Arc<TokioMutex<Option<tokio::process::Child>>>> = 
 pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), String> {
     log::info!("PowerShell betiği çalıştırılıyor (Gizli Pencere)");
     let _ = window.emit("backend-log", serde_json::json!({ "msg": "PowerShell betiği çalıştırılıyor (Gizli Pencere)", "log_type": "info" }));
-    
+
     log::debug!("Betik içeriği: {}", script);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Betik: {}", script), "log_type": "info" }));
-    
-    let escaped_script = script.replace("'", "''");
+
+    // Write script to a temp .ps1 file so we don't have to escape quotes
+    // through multiple layers (outer cmd -> outer powershell -> Start-Process
+    // -> elevated powershell). Using -File sidesteps that entirely.
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+    let script_path = std::env::temp_dir().join(format!("stashzero_script_{}.ps1", ts));
+    // UTF-8 BOM so PowerShell 5.1 reads non-ASCII characters correctly
+    let mut bytes = vec![0xEF, 0xBB, 0xBF];
+    bytes.extend_from_slice(b"$ErrorActionPreference = 'Stop'\r\n");
+    bytes.extend_from_slice(script.as_bytes());
+    std::fs::write(&script_path, &bytes).map_err(|e| {
+        log::error!("Geçici betik yazılamadı: {}", e);
+        format!("Geçici betik yazılamadı: {}", e)
+    })?;
+
+    let script_path_str = script_path.to_string_lossy().to_string();
+    let escaped_path = script_path_str.replace("'", "''");
 
     let status = tokio::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
         .args([
             "-NoProfile",
             "-Command",
-            &format!("$p = Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command','{}' -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode", escaped_script)
+            &format!(
+                "$p = Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','{}' -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode",
+                escaped_path
+            )
         ])
         .spawn()
         .map_err(|e| {
             log::error!("Betik başlatılamadı: {}", e);
+            let _ = std::fs::remove_file(&script_path);
             format!("Betik başlatılamadı: {}", e)
         })?
         .wait()
         .await
         .map_err(|e| {
             log::error!("Betik süreç hatası: {}", e);
+            let _ = std::fs::remove_file(&script_path);
             format!("Betik süreç hatası: {}", e)
         })?;
+
+    let _ = std::fs::remove_file(&script_path);
 
     if status.success() {
         let _ = window.emit("backend-log", serde_json::json!({ "msg": "Betik tamamlandı.", "log_type": "success" }));

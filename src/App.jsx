@@ -82,8 +82,8 @@ function App() {
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentTheme, setCurrentTheme] = useState("obsidian");
-  const [currentFont, setCurrentFont] = useState("outfit");
+  const [currentTheme, setCurrentTheme] = useState("aurora");
+  const [currentFont, setCurrentFont] = useState("inter");
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -266,16 +266,14 @@ function App() {
     };
   }, [lowFx]);
 
-  // Sync app theme with Windows theme
+  // Apply default theme on first launch only (when no saved choice exists).
+  // Once the user picks a theme it is preserved across Windows light/dark changes.
   useEffect(() => {
     if (systemInfo && systemInfo.is_windows_dark !== undefined) {
-      const isDark = systemInfo.is_windows_dark;
-      const themeToSet = isDark ? "obsidian" : "obsidian";
-      
-      // Sadece tema farklıysa güncelle ki sonsuz döngü olmasın
-      if (currentTheme !== themeToSet) {
-        setCurrentTheme(themeToSet);
-        localStorage.setItem("stash-zero-theme", themeToSet);
+      const savedTheme = localStorage.getItem("stash-zero-theme");
+      if (!savedTheme && currentTheme !== "aurora") {
+        setCurrentTheme("aurora");
+        localStorage.setItem("stash-zero-theme", "aurora");
       }
     }
   }, [systemInfo?.is_windows_dark]);

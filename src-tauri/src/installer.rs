@@ -142,8 +142,45 @@ pub async fn launch_portable(url: String, app_name: Option<String>, launch_file:
     }
 }
 
-#[tauri::command]
-pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String> {
+fn expand_env_vars(path: &str) -> String {
+    let mut result = path.to_string();
+    let env_vars = [
+        ("$env:LocalAppData", "LOCALAPPDATA"),
+        ("$env:AppData", "APPDATA"),
+        ("$env:UserProfile", "USERPROFILE"),
+        ("$env:ProgramFiles(x86)", "ProgramFiles(x86)"),
+        ("$env:ProgramFiles", "ProgramFiles"),
+        ("$env:ProgramData", "ProgramData"),
+        ("$env:Public", "PUBLIC"),
+        ("$env:WinDir", "WINDIR"),
+        ("$env:SystemRoot", "SystemRoot"),
+        ("$env:Temp", "TEMP"),
+        ("$env:Tmp", "TMP"),
+    ];
+    for (placeholder, var) in env_vars.iter() {
+        if result.contains(placeholder) {
+            if let Ok(val) = std::env::var(var) {
+                result = result.replace(placeholder, &val);
+            }
+        }
+    }
+    while let Some(start) = result.find('%') {
+        if let Some(end_rel) = result[start + 1..].find('%') {
+            let end = start + 1 + end_rel;
+            let var_name = &result[start + 1..end];
+            if let Ok(val) = std::env::var(var_name) {
+                result = format!("{}{}{}", &result[..start], val, &result[end + 1..]);
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    result
+}
+
+async fn fetch_winget_list() -> Vec<(String, String)> {
     let ps_script = r#"
         $paths = @(
             "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -176,12 +213,18 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
         $results | Select-Object -Unique
     "#;
 
-    let output = tokio::process::Command::new("powershell")
+    let output = match tokio::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
         .args(["-NoProfile", "-Command", ps_script])
         .output()
         .await
-        .map_err(|e| format!("Kayıt defteri okunamadı: {}", e))?;
+    {
+        Ok(o) => o,
+        Err(e) => {
+            log::error!("Kayıt defteri okunamadı: {}", e);
+            return Vec::new();
+        }
+    };
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut final_list = Vec::new();
@@ -192,10 +235,123 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
             let parts: Vec<&str> = trimmed.split('|').collect();
             final_list.push((parts[0].trim().to_string(), parts[1].trim().to_string()));
         } else if !trimmed.is_empty() {
-             final_list.push((trimmed.to_string(), "".to_string()));
+            final_list.push((trimmed.to_string(), "".to_string()));
         }
     }
-    Ok(final_list)
+    final_list
+}
+
+#[tauri::command]
+pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String> {
+    Ok(fetch_winget_list().await)
+}
+
+fn clean_version(raw: &str) -> String {
+    let trimmed = raw.trim().trim_start_matches(|c| c == 'v' || c == 'V');
+    let cut: &str = trimmed.split(|c| c == '-' || c == '+').next().unwrap_or(trimmed);
+    cut.to_string()
+}
+
+#[derive(serde::Deserialize)]
+pub struct AppCheckInput {
+    pub id: String,
+    pub name: String,
+    pub check_path: Option<String>,
+}
+
+async fn batch_get_versions(items: &[(String, String)]) -> std::collections::HashMap<String, String> {
+    use std::collections::HashMap;
+    let mut versions: HashMap<String, String> = HashMap::new();
+    if items.is_empty() {
+        return versions;
+    }
+
+    let mut script = String::from("$ErrorActionPreference='SilentlyContinue';");
+    for (id, path) in items {
+        let esc_path = path.replace('\'', "''");
+        let esc_id = id.replace('\'', "''");
+        script.push_str(&format!(
+            "try {{ $v=(Get-Item -LiteralPath '{}' -ErrorAction Stop).VersionInfo.ProductVersion; Write-Output ('{}|' + $v) }} catch {{ Write-Output '{}|' }};",
+            esc_path, esc_id, esc_id
+        ));
+    }
+
+    let output = match tokio::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-NoProfile", "-Command", &script])
+        .output()
+        .await
+    {
+        Ok(o) => o,
+        Err(e) => {
+            log::error!("Toplu sürüm sorgusu başarısız: {}", e);
+            return versions;
+        }
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines() {
+        let trimmed = line.trim();
+        if let Some(idx) = trimmed.find('|') {
+            let id = trimmed[..idx].trim().to_string();
+            let v = trimmed[idx + 1..].trim().to_string();
+            if !id.is_empty() {
+                versions.insert(id, v);
+            }
+        }
+    }
+    versions
+}
+
+#[tauri::command]
+pub async fn batch_check_installations(
+    apps: Vec<AppCheckInput>,
+) -> Result<std::collections::HashMap<String, String>, String> {
+    use std::collections::HashMap;
+
+    let winget_handle = tokio::spawn(fetch_winget_list());
+
+    let mut existing_paths: Vec<(String, String)> = Vec::new();
+    for app in &apps {
+        if let Some(p) = &app.check_path {
+            let expanded = expand_env_vars(p);
+            if std::path::Path::new(&expanded).exists() {
+                existing_paths.push((app.id.clone(), expanded));
+            }
+        }
+    }
+
+    let versions = batch_get_versions(&existing_paths).await;
+    let winget = winget_handle.await.unwrap_or_default();
+
+    let mut installed: HashMap<String, String> = HashMap::new();
+    for (id, _path) in &existing_paths {
+        let v = versions.get(id).cloned().unwrap_or_default();
+        let display = if v.is_empty() { "Kurulu".to_string() } else { clean_version(&v) };
+        installed.insert(id.clone(), display);
+    }
+
+    for app in &apps {
+        if installed.contains_key(&app.id) {
+            continue;
+        }
+        let lower_name = app.name.to_lowercase();
+        let lower_id = app.id.to_lowercase();
+        for (name, version) in &winget {
+            let lower_n = name.to_lowercase();
+            if lower_n == lower_name || lower_n == lower_id || lower_n.contains(&lower_name) {
+                let display = if version.is_empty() {
+                    "Kurulu".to_string()
+                } else {
+                    clean_version(version)
+                };
+                installed.insert(app.id.clone(), display);
+                break;
+            }
+        }
+    }
+
+    Ok(installed)
 }
 
 #[tauri::command]
@@ -263,7 +419,7 @@ pub async fn install_exe_from_url(
         let api_url = url.replace("github.com/", "api.github.com/repos/").replace("/releases/latest", "/releases/latest");
         let output = tokio::process::Command::new("curl")
             .creation_flags(CREATE_NO_WINDOW)
-            .args(["-s", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", &api_url])
+            .args(["-s", "-L", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", &api_url])
             .output().await.map_err(|e| format!("GitHub API hatası: {}", e))?;
             
         let json: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|e| format!("JSON ayrıştırma hatası: {}", e))?;
