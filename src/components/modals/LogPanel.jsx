@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { safeInvoke } from "../../utils/tauri";
 
 const LogPanel = ({
@@ -17,6 +18,15 @@ const LogPanel = ({
   ensureTerminalSession,
   handleHistoryNavigation
 }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyAll = () => {
+    const text = logs.map(l => `[${l.time}] ${l.msg}`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (!showLogs) return null;
 
   return (
@@ -66,6 +76,18 @@ const LogPanel = ({
                ÇEVRİMİÇİ
              </div>
           )}
+
+          <button 
+            className={`terminal-action-btn ${copied ? 'copied' : ''}`} 
+            onClick={handleCopyAll} 
+            title={copied ? "Kopyalandı!" : "Hepsini Kopyala"}
+          >
+            {copied ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            )}
+          </button>
 
           <button className="terminal-action-btn" onClick={() => setLogs([])} title="Terminali Temizle">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
