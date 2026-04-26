@@ -11,18 +11,6 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}
 
 static QUIT_REQUESTED: AtomicBool = AtomicBool::new(false);
 
-#[tauri::command]
-async fn close_splashscreen(window: tauri::Window) {
-  // Get windows
-  if let Some(splash_window) = window.get_webview_window("splash") {
-    splash_window.close().unwrap();
-  }
-  if let Some(main_window) = window.get_webview_window("main") {
-    main_window.show().unwrap();
-    main_window.maximize().unwrap();
-  }
-}
-
 fn reveal_main_window(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.set_skip_taskbar(false);
@@ -151,8 +139,7 @@ pub fn run() {
             scripts::set_desktop_icon_visibility,
             scripts::open_desktop_icon_settings,
             scripts::open_power_settings,
-            scripts::ensure_terminal_session,
-            close_splashscreen
+            scripts::ensure_terminal_session
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

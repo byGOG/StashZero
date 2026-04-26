@@ -1,8 +1,9 @@
+import { memo } from "react";
 import SidebarIcon from "../icons/SidebarIcon";
 import ProjectLogo from "../icons/ProjectLogo";
 import { sounds } from "../../utils/audio";
 
-const Sidebar = ({ categories, activeCategory, setActiveCategory, handleMenuAction }) => {
+const Sidebar = memo(function Sidebar({ categories, activeCategory, setActiveCategory, handleMenuAction }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -55,6 +56,6 @@ const Sidebar = ({ categories, activeCategory, setActiveCategory, handleMenuActi
       </div>
     </aside>
   );
-};
+});
 
 export default Sidebar;

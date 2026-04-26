@@ -18,18 +18,8 @@
         "height": 800,
         "resizable": true,
         "fullscreen": false,
-        "visible": false
-      },
-      {
-        "label": "splash",
-        "url": "splashscreen.html",
-        "width": 400,
-        "height": 300,
-        "decorations": false,
-        "center": true,
-        "transparent": true,
-        "alwaysOnTop": true,
-        "visible": true
+        "visible": true,
+        "maximized": true
       }
     ],
     "security": {

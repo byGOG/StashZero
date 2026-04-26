@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } from "react";
 import { safeInvoke } from "./utils/tauri";
 import { listen } from '@tauri-apps/api/event';
 import { open, save } from "@tauri-apps/plugin-dialog";
@@ -114,8 +114,12 @@ function App() {
 
   const [currentTrackArt, setCurrentTrackArt] = useState(null);
   const [currentTrackTitle, setCurrentTrackTitle] = useState('KEINEMUSIK');
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const [musicPlayerMounted, setMusicPlayerMounted] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
+    return localStorage.getItem("stash-zero-music-playing") === "true";
+  });
+  const [musicPlayerMounted, setMusicPlayerMounted] = useState(() => {
+    return localStorage.getItem("stash-zero-music-mounted") === "true";
+  });
 
   const { mode: perfMode, setMode: setPerfMode, lowFx } = usePerformanceMode();
   const updateChecker = useUpdateChecker();
@@ -162,7 +166,12 @@ function App() {
   // Load persistence and keyboard shortcuts
   useEffect(() => {
     const savedTheme = localStorage.getItem("stash-zero-theme");
-    if (savedTheme) setCurrentTheme(savedTheme);
+    const validThemes = ["aurora", "nebula", "sunset", "mint", "onyx"];
+    if (savedTheme && validThemes.includes(savedTheme)) {
+      setCurrentTheme(savedTheme);
+    } else if (savedTheme) {
+      localStorage.setItem("stash-zero-theme", "aurora");
+    }
 
     const savedFont = localStorage.getItem("stash-zero-font");
     if (savedFont) setCurrentFont(savedFont);
@@ -182,10 +191,6 @@ function App() {
 
     const savedCategory = localStorage.getItem("stash-zero-active-category");
     if (savedCategory) setActiveCategory(savedCategory);
-
-    const timer = setTimeout(() => {
-      safeInvoke("close_splashscreen").catch(e => console.error("Splash error:", e));
-    }, 3500);
 
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key === "f") {
@@ -296,6 +301,8 @@ function App() {
     const wire = () => {
       if (!iframeRef.current || !window.SC) return;
       const widget = window.SC.Widget(iframeRef.current);
+      let positionInterval;
+
       const updateTrackInfo = () => {
         widget.getCurrentSound((sound) => {
           if (sound) {
@@ -305,13 +312,52 @@ function App() {
           }
         });
       };
-      widget.bind(window.SC.Widget.Events.READY, updateTrackInfo);
+
+      const savePosition = () => {
+        widget.getPosition((pos) => {
+          if (pos > 0) {
+            localStorage.setItem("stash-zero-music-position", pos.toString());
+          }
+        });
+      };
+
+      widget.bind(window.SC.Widget.Events.READY, () => {
+        updateTrackInfo();
+        const savedPos = localStorage.getItem("stash-zero-music-position");
+        if (savedPos && localStorage.getItem("stash-zero-music-playing") === "true") {
+          widget.seekTo(parseInt(savedPos));
+        }
+      });
+
       widget.bind(window.SC.Widget.Events.PLAY, () => {
         setIsMusicPlaying(true);
+        localStorage.setItem("stash-zero-music-playing", "true");
         updateTrackInfo();
+        
+        // Start saving position
+        if (positionInterval) clearInterval(positionInterval);
+        positionInterval = setInterval(savePosition, 2000);
+
+        // Resume from saved position if just started
+        const savedPos = localStorage.getItem("stash-zero-music-position");
+        if (savedPos) {
+          widget.seekTo(parseInt(savedPos));
+        }
       });
-      widget.bind(window.SC.Widget.Events.PAUSE, () => setIsMusicPlaying(false));
-      widget.bind(window.SC.Widget.Events.FINISH, () => setIsMusicPlaying(false));
+
+      widget.bind(window.SC.Widget.Events.PAUSE, () => {
+        setIsMusicPlaying(false);
+        localStorage.setItem("stash-zero-music-playing", "false");
+        if (positionInterval) clearInterval(positionInterval);
+        savePosition(); // Save one last time
+      });
+
+      widget.bind(window.SC.Widget.Events.FINISH, () => {
+        setIsMusicPlaying(false);
+        localStorage.setItem("stash-zero-music-playing", "false");
+        localStorage.removeItem("stash-zero-music-position");
+        if (positionInterval) clearInterval(positionInterval);
+      });
     };
 
     if (window.SC) wire();
@@ -363,34 +409,37 @@ function App() {
     for (const app of installers) {
       const cat = app.category;
       if (!map.has(cat)) {
-        map.set(cat, { 
-          name: cat, 
-          order: app.category_order, 
-          count: 0, 
-          icon: CATEGORY_ICON_MAP[cat] || "rect" 
+        map.set(cat, {
+          name: cat,
+          order: app.category_order,
+          count: 0,
+          icon: CATEGORY_ICON_MAP[cat] || "rect"
         });
       }
       map.get(cat).count++;
     }
-    const list = Array.from(map.values()).sort((a, b) => a.order - b.order);
-    if (list.length > 0) {
-      const exists = list.some(c => c.name === activeCategory);
-      if (!activeCategory || !exists) {
-        setActiveCategory(list[0].name);
-        localStorage.setItem("stash-zero-active-category", list[0].name);
-      }
+    return Array.from(map.values()).sort((a, b) => a.order - b.order);
+  }, [installers]);
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const exists = categories.some(c => c.name === activeCategory);
+    if (!activeCategory || !exists) {
+      setActiveCategory(categories[0].name);
+      localStorage.setItem("stash-zero-active-category", categories[0].name);
     }
-    return list;
-  }, [installers, activeCategory]);
+  }, [categories, activeCategory]);
+
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   const filteredApps = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    return installers.filter(app => {
-      const matchesSearch = !term || app.name.toLowerCase().includes(term);
-      const matchesCategory = !activeCategory || app.category === activeCategory;
-      return matchesSearch && (term ? matchesSearch : matchesCategory);
-    });
-  }, [installers, searchTerm, activeCategory]);
+    const term = deferredSearchTerm.toLowerCase();
+    if (term) {
+      return installers.filter(app => app.name.toLowerCase().includes(term));
+    }
+    if (!activeCategory) return installers;
+    return installers.filter(app => app.category === activeCategory);
+  }, [installers, deferredSearchTerm, activeCategory]);
 
 
 
@@ -423,18 +472,36 @@ function App() {
     }
   };
 
+  const selectedTotalMb = useMemo(() => {
+    if (selected.size === 0) return 0;
+    let total = 0;
+    for (const inst of installers) {
+      if (selected.has(inst.path) && inst.size_bytes) total += inst.size_bytes;
+    }
+    return total / (1024 * 1024);
+  }, [installers, selected]);
+
   const handleIslandClick = () => {
-    if (!musicPlayerMounted) setMusicPlayerMounted(true);
+    if (!musicPlayerMounted) {
+      setMusicPlayerMounted(true);
+      localStorage.setItem("stash-zero-music-mounted", "true");
+    }
     setShowMusicPlayer(!showMusicPlayer);
   };
 
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
-    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
-  };
+  const mouseMoveRaf = useRef(0);
+  const handleMouseMove = useCallback((e) => {
+    const target = e.currentTarget;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    if (mouseMoveRaf.current) return;
+    mouseMoveRaf.current = requestAnimationFrame(() => {
+      mouseMoveRaf.current = 0;
+      const rect = target.getBoundingClientRect();
+      target.style.setProperty("--mouse-x", `${clientX - rect.left}px`);
+      target.style.setProperty("--mouse-y", `${clientY - rect.top}px`);
+    });
+  }, []);
 
   return (
     <div className={`app-layout theme-${currentTheme} font-${currentFont} ${lowFx ? 'low-fx' : ''}`} style={{ "--app-font-scale": fontSize / 100 }}>
@@ -555,7 +622,7 @@ function App() {
               width="100%" height="450" scrolling="no" frameBorder="no"
               loading="lazy"
               allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true"
+              src={`https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/keinemusik&color=%23ff5500&auto_play=${localStorage.getItem("stash-zero-music-playing") === "true"}&hide_related=false&show_comments=true&show_user=true&show_reposts=true&show_teaser=true&visual=false&show_artwork=true`}
             ></iframe>
           </div>
         </>
@@ -576,9 +643,7 @@ function App() {
             </div>
             <div className="pill-sep" />
             <div className="pill-size">
-              {installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) > 0
-                ? (installers.filter(i => selected.has(i.path)).reduce((acc, curr) => acc + curr.size_bytes, 0) / (1024 * 1024)).toFixed(1) + " MB"
-                : "0 MB"}
+              {selectedTotalMb > 0 ? `${selectedTotalMb.toFixed(1)} MB` : "0 MB"}
             </div>
           </div>
           
