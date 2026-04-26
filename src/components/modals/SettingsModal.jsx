@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import { sounds } from "../../utils/audio";
 
 const THEMES = [
-  { id: "aurora",     label: "Aurora",     swatch: "linear-gradient(135deg, #7dd3fc 0%, #c4b5fd 50%, #f0abfc 100%)" },
-  { id: "obsidian",   label: "Obsidian",   swatch: "linear-gradient(135deg, #00ff9f, #00e5ff)" },
-  { id: "violet",     label: "Violet",     swatch: "linear-gradient(135deg, #a855f7, #ec4899)" },
-  { id: "arctic",     label: "Arctic",     swatch: "linear-gradient(135deg, #00d2ff, #94a3b8)" },
-  { id: "crimson",    label: "Crimson",    swatch: "linear-gradient(135deg, #ff003c, #ff6b81)" },
-  { id: "gold",       label: "Gold",       swatch: "linear-gradient(135deg, #fbbf24, #fcd34d)" },
-  { id: "minimalist", label: "Minimal",    swatch: "linear-gradient(135deg, #ffffff, #71717a)" }
+  { id: "aurora", label: "Aurora", swatch: "linear-gradient(135deg, #7dd3fc 0%, #c4b5fd 50%, #f0abfc 100%)" },
+  { id: "nebula", label: "Nebula", swatch: "linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #22d3ee 100%)" },
+  { id: "sunset", label: "Sunset", swatch: "linear-gradient(135deg, #fde047 0%, #fb923c 50%, #f472b6 100%)" },
+  { id: "mint",   label: "Mint",   swatch: "linear-gradient(135deg, #a7f3d0 0%, #34d399 50%, #22d3ee 100%)" },
+  { id: "onyx",   label: "Onyx",   swatch: "linear-gradient(135deg, #1f2937 0%, #475569 50%, #e2e8f0 100%)" }
 ];
 
 const FONTS = [

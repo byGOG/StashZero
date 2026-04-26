@@ -98,205 +98,279 @@
   box-shadow: 0 14px 36px -8px rgba(196, 181, 253, 0.6);
 }
 
-/* 1. OBSIDIAN: Classic Frosted Glass */
-.theme-obsidian {
-  --bg-main: radial-gradient(circle at top left, #0e101a 0%, #050608 100%);
-  --bg-sidebar: rgba(10, 11, 16, 0.85);
-  --bg-card: rgba(255, 255, 255, 0.04);
-  --bg-card-hover: rgba(255, 255, 255, 0.08);
-  --accent-primary: #00ff9f;
-  --accent-secondary: #00e5ff;
-  --accent-glow: rgba(0, 255, 159, 0.3);
-  --glass-blur: blur(18px);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-border-hover: rgba(0, 255, 159, 0.35);
+/* 1. NEBULA: Cosmic Indigo Glass */
+.theme-nebula {
+  --bg-main:
+    radial-gradient(at 15% 10%, rgba(167, 139, 250, 0.20) 0%, transparent 45%),
+    radial-gradient(at 85% 15%, rgba(129, 140, 248, 0.16) 0%, transparent 45%),
+    radial-gradient(at 50% 95%, rgba(34, 211, 238, 0.10) 0%, transparent 55%),
+    #06061a;
+  --bg-sidebar: rgba(14, 12, 30, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.085);
+  --accent-primary: #a78bfa;
+  --accent-secondary: #818cf8;
+  --accent-tertiary: #22d3ee;
+  --accent-glow: rgba(167, 139, 250, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(129, 140, 248, 0.45);
   color-scheme: dark;
 }
+.theme-nebula .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
+}
+.theme-nebula .app-card:hover {
+  border-color: rgba(129, 140, 248, 0.4);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(34, 211, 238, 0.05) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(167, 139, 250, 0.28),
+    0 0 0 1px rgba(129, 140, 248, 0.18);
+  transform: translateY(-3px);
+}
+.theme-nebula .sidebar {
+  backdrop-filter: blur(40px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.theme-nebula .search-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+.theme-nebula .search-container:focus-within {
+  border-color: rgba(167, 139, 250, 0.55);
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.12);
+}
+.theme-nebula .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(14, 12, 30, 0.7);
+  backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+}
+.theme-nebula .pill-btn-install {
+  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #22d3ee 100%);
+  color: #06061a;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(129, 140, 248, 0.5);
+}
+.theme-nebula .pill-btn-install:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px -8px rgba(129, 140, 248, 0.65);
+}
 
-/* 2. VIOLET: Heavy Glassmorphism / Floating Orbs */
-.theme-violet {
-  --accent-primary: #a855f7;
-  --accent-secondary: #ec4899;
-  --accent-glow: rgba(168, 85, 247, 0.4);
-  --bg-main: radial-gradient(circle at top left, #120b24 0%, #050508 100%);
-  --glass-border-hover: rgba(168, 85, 247, 0.4);
-  --bg-sidebar: rgba(168, 85, 247, 0.05);
+/* 2. SUNSET: Warm Coral Glass */
+.theme-sunset {
+  --bg-main:
+    radial-gradient(at 12% 8%, rgba(253, 224, 71, 0.16) 0%, transparent 45%),
+    radial-gradient(at 88% 14%, rgba(251, 146, 60, 0.18) 0%, transparent 45%),
+    radial-gradient(at 50% 95%, rgba(244, 114, 182, 0.12) 0%, transparent 55%),
+    #0d0508;
+  --bg-sidebar: rgba(22, 12, 14, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.085);
+  --accent-primary: #fb923c;
+  --accent-secondary: #f472b6;
+  --accent-tertiary: #fde047;
+  --accent-glow: rgba(251, 146, 60, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(244, 114, 182, 0.45);
+  color-scheme: dark;
 }
-.theme-violet .app-card {
-  border: none;
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.05);
-  border-radius: 30px;
+.theme-sunset .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
 }
-.theme-violet .app-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2);
+.theme-sunset .app-card:hover {
+  border-color: rgba(244, 114, 182, 0.4);
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.10) 0%, rgba(244, 114, 182, 0.05) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(251, 146, 60, 0.28),
+    0 0 0 1px rgba(244, 114, 182, 0.18);
+  transform: translateY(-3px);
+}
+.theme-sunset .sidebar {
+  backdrop-filter: blur(40px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.theme-sunset .search-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+.theme-sunset .search-container:focus-within {
+  border-color: rgba(251, 146, 60, 0.55);
+  box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.12);
+}
+.theme-sunset .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(22, 12, 14, 0.7);
+  backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+}
+.theme-sunset .pill-btn-install {
+  background: linear-gradient(135deg, #fde047 0%, #fb923c 50%, #f472b6 100%);
+  color: #0d0508;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(251, 146, 60, 0.5);
+}
+.theme-sunset .pill-btn-install:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px -8px rgba(244, 114, 182, 0.6);
 }
 
-/* 3. ARCTIC: Minimalist Flat UI / Clean Lines */
-.theme-arctic {
-  --accent-primary: #00d2ff;
+/* 3. MINT: Fresh Emerald Glass */
+.theme-mint {
+  --bg-main:
+    radial-gradient(at 12% 10%, rgba(167, 243, 208, 0.14) 0%, transparent 45%),
+    radial-gradient(at 88% 14%, rgba(52, 211, 153, 0.18) 0%, transparent 45%),
+    radial-gradient(at 50% 95%, rgba(34, 211, 238, 0.10) 0%, transparent 55%),
+    #03100c;
+  --bg-sidebar: rgba(8, 22, 18, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.085);
+  --accent-primary: #34d399;
+  --accent-secondary: #22d3ee;
+  --accent-tertiary: #a7f3d0;
+  --accent-glow: rgba(52, 211, 153, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(52, 211, 153, 0.45);
+  color-scheme: dark;
+}
+.theme-mint .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
+}
+.theme-mint .app-card:hover {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.10) 0%, rgba(34, 211, 238, 0.05) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(52, 211, 153, 0.25),
+    0 0 0 1px rgba(34, 211, 238, 0.18);
+  transform: translateY(-3px);
+}
+.theme-mint .sidebar {
+  backdrop-filter: blur(40px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.theme-mint .search-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+.theme-mint .search-container:focus-within {
+  border-color: rgba(52, 211, 153, 0.55);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12);
+}
+.theme-mint .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(8, 22, 18, 0.7);
+  backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+}
+.theme-mint .pill-btn-install {
+  background: linear-gradient(135deg, #a7f3d0 0%, #34d399 50%, #22d3ee 100%);
+  color: #03100c;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(52, 211, 153, 0.5);
+}
+.theme-mint .pill-btn-install:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px -8px rgba(34, 211, 238, 0.6);
+}
+
+/* 4. ONYX: Deep Dark Platinum */
+.theme-onyx {
+  --bg-main:
+    radial-gradient(at 15% 12%, rgba(226, 232, 240, 0.06) 0%, transparent 45%),
+    radial-gradient(at 85% 18%, rgba(148, 163, 184, 0.05) 0%, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(71, 85, 105, 0.08) 0%, transparent 60%),
+    #040406;
+  --bg-sidebar: rgba(8, 9, 12, 0.65);
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --accent-primary: #e2e8f0;
   --accent-secondary: #94a3b8;
-  --accent-glow: rgba(0, 210, 255, 0.4);
-  --bg-main: #060b10;
-  --glass-border-hover: rgba(0, 210, 255, 0.4);
+  --accent-tertiary: #475569;
+  --accent-glow: rgba(226, 232, 240, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(226, 232, 240, 0.35);
+  color-scheme: dark;
 }
-.theme-arctic .app-card {
-  border: 1px solid rgba(0, 210, 255, 0.2);
-  border-left: 4px solid var(--accent-primary);
-  border-radius: 6px;
-  background: transparent;
-  box-shadow: none;
+.theme-onyx .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.2);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
 }
-.theme-arctic .app-card:hover {
-  background: rgba(0, 210, 255, 0.05);
-  transform: translateX(4px); /* Slide effect instead of lift */
+.theme-onyx .app-card:hover {
+  border-color: rgba(226, 232, 240, 0.3);
+  background: linear-gradient(135deg, rgba(226, 232, 240, 0.05) 0%, rgba(148, 163, 184, 0.03) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(226, 232, 240, 0.12);
+  transform: translateY(-3px);
 }
-
-/* 4. CRIMSON: Retro Aggressive Cyberpunk / Brutalist */
-.theme-crimson {
-  --accent-primary: #ff003c;
-  --accent-secondary: #ff6b81;
-  --accent-glow: rgba(255, 0, 60, 0.6);
-  --bg-main: #080303;
-  --glass-border-hover: rgba(255, 0, 60, 0.6);
+.theme-onyx .sidebar {
+  backdrop-filter: blur(40px) saturate(1.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
-.theme-crimson .app-card {
-  border: 1px solid #ff003c;
-  background: #000;
-  border-radius: 0;
-  box-shadow: 4px 4px 0px rgba(255, 0, 60, 0.5);
-  transition: all 0.1s ease-out;
+.theme-onyx .search-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
 }
-.theme-crimson .app-card:hover {
-  box-shadow: 8px 8px 0px rgba(255, 0, 60, 0.8);
-  transform: translate(-4px, -4px);
-  background: rgba(255, 0, 60, 0.05);
+.theme-onyx .search-container:focus-within {
+  border-color: rgba(226, 232, 240, 0.45);
+  box-shadow: 0 0 0 4px rgba(226, 232, 240, 0.08);
 }
-.theme-crimson .sidebar { border-right: 2px solid #ff003c; border-radius: 0; }
-.theme-crimson .search-container { border-radius: 0; }
-.theme-crimson .neon-button { border-radius: 0; box-shadow: 2px 2px 0px rgba(255, 0, 60, 0.5); }
-
-/* 5. GOLD: Luxury Neumorphic Soft Surfaces */
-.theme-gold {
-  --accent-primary: #fbbf24;
-  --accent-secondary: #fcd34d;
-  --accent-glow: rgba(251, 191, 36, 0.3);
-  --bg-main: #141416;
-  --glass-border-hover: rgba(251, 191, 36, 0.4);
-  --bg-sidebar: #141416;
+.theme-onyx .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(8, 9, 12, 0.75);
+  backdrop-filter: blur(40px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
 }
-.theme-gold .app-card {
-  border: none;
-  background: #18181A;
-  box-shadow: 8px 8px 16px rgba(0,0,0,0.6), -8px -8px 16px rgba(255,255,255,0.02);
-  border-radius: 16px;
+.theme-onyx .pill-btn-install {
+  background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #475569 100%);
+  color: #040406;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(226, 232, 240, 0.3);
 }
-.theme-gold .app-card:hover {
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.8), -4px -4px 8px rgba(255,255,255,0.03);
-  transform: scale(0.98); /* Press down effect */
-  background: #1a1a1d;
-}
-.theme-gold .search-container { 
-  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -4px -4px 8px rgba(255,255,255,0.02); 
-  border: none; 
+.theme-onyx .pill-btn-install:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 14px 36px -8px rgba(226, 232, 240, 0.45);
 }
 
-/* 6. MINIMALIST: Ultra-Flat Monochromatic / No-Frills */
-.theme-minimalist {
-  --bg-main: #050505;
-  --bg-sidebar: #0a0a0a;
-  --bg-card: #0a0a0a;
-  --bg-card-hover: #0f0f0f;
-  --accent-primary: #ffffff;
-  --accent-secondary: #71717a;
-  --accent-glow: transparent;
-  --glass-blur: none;
-  --glass-border: #1a1a1a;
-  --glass-border-hover: #3f3f46;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-glow: none;
-}
-.theme-minimalist .mesh-gradient { 
-  display: block; 
-  background: radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.03) 0%, transparent 70%), #050505;
-}
-.theme-minimalist .app-card {
-  border: 1px solid #1a1a1a;
-  border-radius: 8px;
-  background: #0a0a0a;
-  box-shadow: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.theme-minimalist .app-card:hover {
-  background: #0f0f0f;
-  border-color: #333;
-  transform: translateY(-2px);
-}
-.theme-minimalist .sidebar {
-  border-right: 1px solid #1a1a1a;
-  box-shadow: none;
-  background: #0a0a0a;
-}
-.theme-minimalist .top-bar {
-  border-bottom: 1px solid #1a1a1a;
-  background: #050505;
-  backdrop-filter: none;
-}
-.theme-minimalist .search-container {
-  border: 1px solid #1a1a1a;
-  border-radius: 4px;
-  background: #0a0a0a;
-  box-shadow: none;
-}
-.theme-minimalist .search-container:focus-within {
-  border-color: #fff;
-  box-shadow: none;
-}
-.theme-minimalist .sidebar-logo {
-  border: 1px solid #1a1a1a;
-  border-radius: 4px;
-  background: #0a0a0a;
-}
-.theme-minimalist .logo-glow { display: none; }
-.theme-minimalist .project-logo-svg { filter: none; animation: none; }
-.theme-minimalist .sidebar-item.active {
-  border-left: 2px solid #fff;
-  background: #111;
-  border-radius: 0;
-}
-.theme-minimalist .sidebar-item:hover {
-  background: #111;
-  transform: none;
-}
-.theme-minimalist .floating-install-pill {
-  border-radius: 4px;
-  border: 1px solid #1a1a1a;
-  box-shadow: none;
-  background: #0a0a0a;
-}
-.theme-minimalist .pill-inner {
-  border-radius: 4px;
-}
-.theme-minimalist .pill-btn-install {
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
-}
-.theme-minimalist .pill-btn-install:hover {
-  background: #e4e4e7;
-}
-.theme-minimalist .sidebar-count {
-  border-radius: 2px;
-  background: #1a1a1a;
-}
-.theme-minimalist .main-content::before {
-  display: none;
-}
-
-/* â”€â”€â”€ 5 Modern Fonts â”€â”€â”€ */
+/* ─── 5 Modern Fonts ─── */
 .font-orbitron {
   --font-family: 'Orbitron', 'Inter', sans-serif;
 }
@@ -2003,37 +2077,6 @@ body {
   color: var(--text-muted);
   text-align: center;
 }
-
-/* Minimalist override — flat, no glow, square corners */
-.theme-minimalist .about-modern-glass {
-  background: #0a0a0a;
-  border-radius: 8px;
-  border-color: #1a1a1a;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-.theme-minimalist .about-hero-overlay {
-  background: linear-gradient(to bottom, transparent 35%, #0a0a0a 100%);
-}
-.theme-minimalist .about-brand-float h3 {
-  background: none;
-  -webkit-text-fill-color: var(--text-primary);
-  color: var(--text-primary);
-}
-.theme-minimalist .version-tag-float {
-  border-radius: 2px;
-  background: #111;
-  border-color: #2a2a2a;
-  color: #fff;
-}
-.theme-minimalist .about-inspiration { border-radius: 0; }
-.theme-minimalist .bygog-cyber-link,
-.theme-minimalist .sordum-link {
-  border-radius: 4px;
-  box-shadow: none;
-}
-.theme-minimalist .bygog-cyber-link:hover,
-.theme-minimalist .sordum-link:hover { box-shadow: none; }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -3948,111 +3991,279 @@ button {
   box-shadow: 0 14px 36px -8px rgba(196, 181, 253, 0.6);
 }
 
-/* 1. OBSIDIAN: Classic Frosted Glass */
-.theme-obsidian {
-  --bg-main: radial-gradient(circle at top left, #0e101a 0%, #050608 100%);
-  --bg-sidebar: rgba(10, 11, 16, 0.85);
-  --bg-card: rgba(255, 255, 255, 0.04);
-  --bg-card-hover: rgba(255, 255, 255, 0.08);
-  --accent-primary: #00ff9f;
-  --accent-secondary: #00e5ff;
-  --accent-glow: rgba(0, 255, 159, 0.3);
-  --glass-blur: blur(18px);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-border-hover: rgba(0, 255, 159, 0.35);
+/* 1. NEBULA: Cosmic Indigo Glass */
+.theme-nebula {
+  --bg-main:
+    radial-gradient(at 15% 10%, rgba(167, 139, 250, 0.20) 0%, transparent 45%),
+    radial-gradient(at 85% 15%, rgba(129, 140, 248, 0.16) 0%, transparent 45%),
+    radial-gradient(at 50% 95%, rgba(34, 211, 238, 0.10) 0%, transparent 55%),
+    #06061a;
+  --bg-sidebar: rgba(14, 12, 30, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.085);
+  --accent-primary: #a78bfa;
+  --accent-secondary: #818cf8;
+  --accent-tertiary: #22d3ee;
+  --accent-glow: rgba(167, 139, 250, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(129, 140, 248, 0.45);
   color-scheme: dark;
 }
+.theme-nebula .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
+}
+.theme-nebula .app-card:hover {
+  border-color: rgba(129, 140, 248, 0.4);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(34, 211, 238, 0.05) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(167, 139, 250, 0.28),
+    0 0 0 1px rgba(129, 140, 248, 0.18);
+  transform: translateY(-3px);
+}
+.theme-nebula .sidebar {
+  backdrop-filter: blur(40px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.theme-nebula .search-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+.theme-nebula .search-container:focus-within {
+  border-color: rgba(167, 139, 250, 0.55);
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.12);
+}
+.theme-nebula .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(14, 12, 30, 0.7);
+  backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+}
+.theme-nebula .pill-btn-install {
+  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #22d3ee 100%);
+  color: #06061a;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(129, 140, 248, 0.5);
+}
+.theme-nebula .pill-btn-install:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px -8px rgba(129, 140, 248, 0.65);
+}
 
-/* 2. VIOLET: Heavy Glassmorphism / Floating Orbs */
-.theme-violet {
-  --accent-primary: #a855f7;
-  --accent-secondary: #ec4899;
-  --accent-glow: rgba(168, 85, 247, 0.4);
-  --bg-main: radial-gradient(circle at top left, #120b24 0%, #050508 100%);
-  --glass-border-hover: rgba(168, 85, 247, 0.4);
-  --bg-sidebar: rgba(168, 85, 247, 0.05);
+/* 2. SUNSET: Warm Coral Glass */
+.theme-sunset {
+  --bg-main:
+    radial-gradient(at 12% 8%, rgba(253, 224, 71, 0.16) 0%, transparent 45%),
+    radial-gradient(at 88% 14%, rgba(251, 146, 60, 0.18) 0%, transparent 45%),
+    radial-gradient(at 50% 95%, rgba(244, 114, 182, 0.12) 0%, transparent 55%),
+    #0d0508;
+  --bg-sidebar: rgba(22, 12, 14, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.085);
+  --accent-primary: #fb923c;
+  --accent-secondary: #f472b6;
+  --accent-tertiary: #fde047;
+  --accent-glow: rgba(251, 146, 60, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(244, 114, 182, 0.45);
+  color-scheme: dark;
 }
-.theme-violet .app-card {
-  border: none;
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.05);
-  border-radius: 30px;
+.theme-sunset .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
 }
-.theme-violet .app-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2);
+.theme-sunset .app-card:hover {
+  border-color: rgba(244, 114, 182, 0.4);
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.10) 0%, rgba(244, 114, 182, 0.05) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(251, 146, 60, 0.28),
+    0 0 0 1px rgba(244, 114, 182, 0.18);
+  transform: translateY(-3px);
+}
+.theme-sunset .sidebar {
+  backdrop-filter: blur(40px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.theme-sunset .search-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+.theme-sunset .search-container:focus-within {
+  border-color: rgba(251, 146, 60, 0.55);
+  box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.12);
+}
+.theme-sunset .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(22, 12, 14, 0.7);
+  backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+}
+.theme-sunset .pill-btn-install {
+  background: linear-gradient(135deg, #fde047 0%, #fb923c 50%, #f472b6 100%);
+  color: #0d0508;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(251, 146, 60, 0.5);
+}
+.theme-sunset .pill-btn-install:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px -8px rgba(244, 114, 182, 0.6);
 }
 
-/* 3. ARCTIC: Minimalist Flat UI / Clean Lines */
-.theme-arctic {
-  --accent-primary: #00d2ff;
+/* 3. MINT: Fresh Emerald Glass */
+.theme-mint {
+  --bg-main:
+    radial-gradient(at 12% 10%, rgba(167, 243, 208, 0.14) 0%, transparent 45%),
+    radial-gradient(at 88% 14%, rgba(52, 211, 153, 0.18) 0%, transparent 45%),
+    radial-gradient(at 50% 95%, rgba(34, 211, 238, 0.10) 0%, transparent 55%),
+    #03100c;
+  --bg-sidebar: rgba(8, 22, 18, 0.55);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.085);
+  --accent-primary: #34d399;
+  --accent-secondary: #22d3ee;
+  --accent-tertiary: #a7f3d0;
+  --accent-glow: rgba(52, 211, 153, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(52, 211, 153, 0.45);
+  color-scheme: dark;
+}
+.theme-mint .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.3);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
+}
+.theme-mint .app-card:hover {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.10) 0%, rgba(34, 211, 238, 0.05) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(52, 211, 153, 0.25),
+    0 0 0 1px rgba(34, 211, 238, 0.18);
+  transform: translateY(-3px);
+}
+.theme-mint .sidebar {
+  backdrop-filter: blur(40px) saturate(1.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.theme-mint .search-container {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+.theme-mint .search-container:focus-within {
+  border-color: rgba(52, 211, 153, 0.55);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12);
+}
+.theme-mint .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(8, 22, 18, 0.7);
+  backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+}
+.theme-mint .pill-btn-install {
+  background: linear-gradient(135deg, #a7f3d0 0%, #34d399 50%, #22d3ee 100%);
+  color: #03100c;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(52, 211, 153, 0.5);
+}
+.theme-mint .pill-btn-install:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px -8px rgba(34, 211, 238, 0.6);
+}
+
+/* 4. ONYX: Deep Dark Platinum */
+.theme-onyx {
+  --bg-main:
+    radial-gradient(at 15% 12%, rgba(226, 232, 240, 0.06) 0%, transparent 45%),
+    radial-gradient(at 85% 18%, rgba(148, 163, 184, 0.05) 0%, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(71, 85, 105, 0.08) 0%, transparent 60%),
+    #040406;
+  --bg-sidebar: rgba(8, 9, 12, 0.65);
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --accent-primary: #e2e8f0;
   --accent-secondary: #94a3b8;
-  --accent-glow: rgba(0, 210, 255, 0.4);
-  --bg-main: #060b10;
-  --glass-border-hover: rgba(0, 210, 255, 0.4);
+  --accent-tertiary: #475569;
+  --accent-glow: rgba(226, 232, 240, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(226, 232, 240, 0.35);
+  color-scheme: dark;
 }
-.theme-arctic .app-card {
-  border: 1px solid rgba(0, 210, 255, 0.2);
-  border-left: 4px solid var(--accent-primary);
-  border-radius: 6px;
-  background: transparent;
-  box-shadow: none;
+.theme-onyx .app-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 100%);
+  border-radius: 22px;
+  backdrop-filter: blur(20px) saturate(1.2);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background 0.35s ease,
+              box-shadow 0.35s ease;
 }
-.theme-arctic .app-card:hover {
-  background: rgba(0, 210, 255, 0.05);
-  transform: translateX(4px); /* Slide effect instead of lift */
+.theme-onyx .app-card:hover {
+  border-color: rgba(226, 232, 240, 0.3);
+  background: linear-gradient(135deg, rgba(226, 232, 240, 0.05) 0%, rgba(148, 163, 184, 0.03) 100%);
+  box-shadow:
+    0 20px 40px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(226, 232, 240, 0.12);
+  transform: translateY(-3px);
 }
-
-/* 4. CRIMSON: Retro Aggressive Cyberpunk / Brutalist */
-.theme-crimson {
-  --accent-primary: #ff003c;
-  --accent-secondary: #ff6b81;
-  --accent-glow: rgba(255, 0, 60, 0.6);
-  --bg-main: #080303;
-  --glass-border-hover: rgba(255, 0, 60, 0.6);
+.theme-onyx .sidebar {
+  backdrop-filter: blur(40px) saturate(1.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
-.theme-crimson .app-card {
-  border: 1px solid #ff003c;
-  background: #000;
-  border-radius: 0;
-  box-shadow: 4px 4px 0px rgba(255, 0, 60, 0.5);
-  transition: all 0.1s ease-out;
+.theme-onyx .search-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
 }
-.theme-crimson .app-card:hover {
-  box-shadow: 8px 8px 0px rgba(255, 0, 60, 0.8);
-  transform: translate(-4px, -4px);
-  background: rgba(255, 0, 60, 0.05);
+.theme-onyx .search-container:focus-within {
+  border-color: rgba(226, 232, 240, 0.45);
+  box-shadow: 0 0 0 4px rgba(226, 232, 240, 0.08);
 }
-.theme-crimson .sidebar { border-right: 2px solid #ff003c; border-radius: 0; }
-.theme-crimson .search-container { border-radius: 0; }
-.theme-crimson .neon-button { border-radius: 0; box-shadow: 2px 2px 0px rgba(255, 0, 60, 0.5); }
-
-/* 5. GOLD: Luxury Neumorphic Soft Surfaces */
-.theme-gold {
-  --accent-primary: #fbbf24;
-  --accent-secondary: #fcd34d;
-  --accent-glow: rgba(251, 191, 36, 0.3);
-  --bg-main: #141416;
-  --glass-border-hover: rgba(251, 191, 36, 0.4);
-  --bg-sidebar: #141416;
+.theme-onyx .floating-install-pill {
+  border-radius: 24px;
+  background: rgba(8, 9, 12, 0.75);
+  backdrop-filter: blur(40px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
 }
-.theme-gold .app-card {
-  border: none;
-  background: #18181A;
-  box-shadow: 8px 8px 16px rgba(0,0,0,0.6), -8px -8px 16px rgba(255,255,255,0.02);
-  border-radius: 16px;
+.theme-onyx .pill-btn-install {
+  background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #475569 100%);
+  color: #040406;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -8px rgba(226, 232, 240, 0.3);
 }
-.theme-gold .app-card:hover {
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.8), -4px -4px 8px rgba(255,255,255,0.03);
-  transform: scale(0.98); /* Press down effect */
-  background: #1a1a1d;
-}
-.theme-gold .search-container { 
-  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -4px -4px 8px rgba(255,255,255,0.02); 
-  border: none; 
+.theme-onyx .pill-btn-install:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 14px 36px -8px rgba(226, 232, 240, 0.45);
 }
 
-/* â”€â”€â”€ 5 Modern Fonts â”€â”€â”€ */
+/* ─── 5 Modern Fonts ─── */
 .font-orbitron {
   --font-family: 'Orbitron', 'Inter', sans-serif;
 }
@@ -7866,6 +8077,29 @@ button {
 .app-layout.low-fx [class*="drop-shadow"],
 .app-layout.low-fx .brand-logo {
   filter: none !important;
+}
+
+/* ─── Grid render perf ─── */
+.category-apps .app-card {
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 110px;
+}
+.category-apps.enter-anim .app-card {
+  animation: card-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.category-apps.no-anim .app-card {
+  animation: none !important;
+}
+.app-card.no-anim {
+  transition: none !important;
+}
+.app-card.no-anim:hover {
+  transform: none !important;
 }
 
 /* ─── Update Modal ─── */
