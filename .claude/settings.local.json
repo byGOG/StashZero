@@ -8,7 +8,12 @@
       "Bash(tasklist)",
       "Bash(tee /tmp/tauri-build.log)",
       "Bash(npx vite *)",
-      "Bash(grep -c 'check_path: \"\\\\$' c:/Users/byGOG/StashZero/src/data/library.js)"
+      "Bash(grep -c 'check_path: \"\\\\$' c:/Users/byGOG/StashZero/src/data/library.js)",
+      "Bash(node /c/Users/byGOG/StashZero/scripts/sync-version.mjs)",
+      "Bash(npm install *)",
+      "Bash(cargo test *)",
+      "Bash(cargo clippy *)",
+      "Bash(cargo fmt *)"
     ]
   }
 }

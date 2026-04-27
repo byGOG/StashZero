@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const STORAGE_KEY = "stash-zero-perf-mode";
+import { SettingKeys, getString, setString } from "../utils/settings";
 
 const detectAuto = () => {
   if (typeof window === "undefined") return false;
@@ -21,9 +20,8 @@ const detectAuto = () => {
 
 export function usePerformanceMode() {
   const [mode, setMode] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "low" || saved === "full" || saved === "auto") return saved;
-    return "auto";
+    const saved = getString(SettingKeys.perfMode, "auto");
+    return saved === "low" || saved === "full" || saved === "auto" ? saved : "auto";
   });
 
   const [autoLow, setAutoLow] = useState(detectAuto);
@@ -40,7 +38,7 @@ export function usePerformanceMode() {
 
   const setModePersist = (next) => {
     setMode(next);
-    localStorage.setItem(STORAGE_KEY, next);
+    setString(SettingKeys.perfMode, next);
   };
 
   return { mode, setMode: setModePersist, lowFx, autoLow };

@@ -1,9 +1,9 @@
+use once_cell::sync::Lazy;
 use serde::Serialize;
+use std::os::windows::process::CommandExt;
 use std::sync::Mutex;
 use std::time::Instant;
-use once_cell::sync::Lazy;
-use std::os::windows::process::CommandExt;
-use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt};
+use sysinfo::{CpuExt, DiskExt, NetworkExt, System, SystemExt};
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
@@ -32,7 +32,8 @@ pub static SYS_HANDLE: Lazy<Mutex<System>> = Lazy::new(|| {
 });
 
 // Cached local IP — rarely changes; refreshed only on slow tick.
-pub static LOCAL_IP_CACHE: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("Detecting...")));
+pub static LOCAL_IP_CACHE: Lazy<Mutex<String>> =
+    Lazy::new(|| Mutex::new(String::from("Detecting...")));
 
 pub struct StaticSystemInfo {
     pub gpu_model: String,
@@ -124,16 +125,25 @@ fn collect_disks(sys: &System, static_info_ref: Option<&StaticSystemInfo>) -> (V
         let available = disk.available_space();
         let name = disk.name().to_string_lossy().to_string();
         let mount_point = disk.mount_point().to_string_lossy().to_string();
-        
-        let letter_only = mount_point.split(':').next().unwrap_or("").to_string().to_uppercase();
+
+        let letter_only = mount_point
+            .split(':')
+            .next()
+            .unwrap_or("")
+            .to_string()
+            .to_uppercase();
         let lookup_key = format!("{}:", letter_only);
-        
+
         let mut model = "Bilinmeyen Sürücü".to_string();
         let mut bus = "Bilinmeyen".to_string();
         let mut media = "Bilinmeyen".to_string();
 
         if let Some(si) = static_info_ref {
-            let disk_id = si.drive_to_disk.get(&lookup_key).cloned().unwrap_or("Bilinmeyen".to_string());
+            let disk_id = si
+                .drive_to_disk
+                .get(&lookup_key)
+                .cloned()
+                .unwrap_or("Bilinmeyen".to_string());
             if let Some((m, b, med)) = si.phys_map.get(&disk_id).cloned() {
                 model = m;
                 bus = b;
@@ -157,7 +167,11 @@ fn collect_disks(sys: &System, static_info_ref: Option<&StaticSystemInfo>) -> (V
         }
 
         disks_info.push(DiskInfo {
-            name: if name.is_empty() { mount_point.clone() } else { name },
+            name: if name.is_empty() {
+                mount_point.clone()
+            } else {
+                name
+            },
             mount_point,
             total_space: total,
             available_space: available,
@@ -189,8 +203,10 @@ fn compute_net_speeds(sys: &System) -> (f32, f32) {
         let now = Instant::now();
         let elapsed_sec = now.duration_since(state.last_time).as_secs_f32();
         if elapsed_sec > 0.0 && state.last_total_in > 0 {
-            net_in_kb = (total_in.saturating_sub(state.last_total_in) as f32) / 1024.0 / elapsed_sec;
-            net_out_kb = (total_out.saturating_sub(state.last_total_out) as f32) / 1024.0 / elapsed_sec;
+            net_in_kb =
+                (total_in.saturating_sub(state.last_total_in) as f32) / 1024.0 / elapsed_sec;
+            net_out_kb =
+                (total_out.saturating_sub(state.last_total_out) as f32) / 1024.0 / elapsed_sec;
         }
         state.last_total_in = total_in;
         state.last_total_out = total_out;
@@ -230,7 +246,9 @@ pub fn get_system_info() -> SystemInfo {
 
     let local_ip = if static_info_ref.is_some() {
         let ip = detect_local_ip();
-        if let Ok(mut cache) = LOCAL_IP_CACHE.lock() { *cache = ip.clone(); }
+        if let Ok(mut cache) = LOCAL_IP_CACHE.lock() {
+            *cache = ip.clone();
+        }
         ip
     } else {
         "Detecting...".to_string()
@@ -240,7 +258,12 @@ pub fn get_system_info() -> SystemInfo {
         cpu_usage: sys.global_cpu_info().cpu_usage(),
         total_memory: sys.total_memory(),
         used_memory: sys.used_memory(),
-        os_version: static_info_ref.map(|s| s.os_full_name.clone()).unwrap_or_else(|| sys.long_os_version().unwrap_or_else(|| "Unknown Windows".to_string())),
+        os_version: static_info_ref
+            .map(|s| s.os_full_name.clone())
+            .unwrap_or_else(|| {
+                sys.long_os_version()
+                    .unwrap_or_else(|| "Unknown Windows".to_string())
+            }),
         disk_usage: disk_pct,
         cpu_model: sys.global_cpu_info().brand().to_string(),
         hostname: sys.host_name().unwrap_or_else(|| "PC".to_string()),
@@ -252,14 +275,22 @@ pub fn get_system_info() -> SystemInfo {
         local_ip,
         swap_total: sys.total_swap(),
         swap_used: sys.used_swap(),
-        gpu_model: static_info_ref.map(|s| s.gpu_model.clone()).unwrap_or("Detecting...".to_string()),
-        motherboard: static_info_ref.map(|s| s.motherboard.clone()).unwrap_or("Detecting...".to_string()),
-        bios_info: static_info_ref.map(|s| s.bios_info.clone()).unwrap_or("Detecting...".to_string()),
+        gpu_model: static_info_ref
+            .map(|s| s.gpu_model.clone())
+            .unwrap_or("Detecting...".to_string()),
+        motherboard: static_info_ref
+            .map(|s| s.motherboard.clone())
+            .unwrap_or("Detecting...".to_string()),
+        bios_info: static_info_ref
+            .map(|s| s.bios_info.clone())
+            .unwrap_or("Detecting...".to_string()),
         uefi_boot: static_info_ref.map(|s| s.uefi_boot).unwrap_or(false),
         secure_boot: static_info_ref.map(|s| s.secure_boot).unwrap_or(false),
         tpm_status: static_info_ref.map(|s| s.tpm_status).unwrap_or(false),
         hvci_status: static_info_ref.map(|s| s.hvci_status).unwrap_or(false),
-        dns_servers: static_info_ref.map(|s| s.dns_servers.clone()).unwrap_or("Tespit ediliyor...".to_string()),
+        dns_servers: static_info_ref
+            .map(|s| s.dns_servers.clone())
+            .unwrap_or("Tespit ediliyor...".to_string()),
         defender_active: static_info_ref.map(|s| s.defender_active).unwrap_or(false),
         uac_level: static_info_ref.map(|s| s.uac_level).unwrap_or(0),
         is_windows_dark: static_info_ref.map(|s| s.is_windows_dark).unwrap_or(false),
@@ -300,10 +331,16 @@ pub fn get_slow_telemetry() -> SlowTelemetry {
     let (disks_info, _disk_pct) = collect_disks(&sys, static_info_ref);
 
     let local_ip = {
-        let cached = LOCAL_IP_CACHE.lock().ok().map(|s| s.clone()).unwrap_or_default();
+        let cached = LOCAL_IP_CACHE
+            .lock()
+            .ok()
+            .map(|s| s.clone())
+            .unwrap_or_default();
         if cached.is_empty() || cached == "Detecting..." || cached == "127.0.0.1" {
             let ip = detect_local_ip();
-            if let Ok(mut cache) = LOCAL_IP_CACHE.lock() { *cache = ip.clone(); }
+            if let Ok(mut cache) = LOCAL_IP_CACHE.lock() {
+                *cache = ip.clone();
+            }
             ip
         } else {
             cached
@@ -315,7 +352,9 @@ pub fn get_slow_telemetry() -> SlowTelemetry {
         defender_active: get_dynamic_defender_status(),
         uac_level: get_dynamic_uac_level(),
         is_windows_dark: get_dynamic_windows_theme(),
-        dns_servers: static_info_ref.map(|s| s.dns_servers.clone()).unwrap_or("Tespit ediliyor...".to_string()),
+        dns_servers: static_info_ref
+            .map(|s| s.dns_servers.clone())
+            .unwrap_or("Tespit ediliyor...".to_string()),
         local_ip,
     }
 }
@@ -323,25 +362,42 @@ pub fn get_slow_telemetry() -> SlowTelemetry {
 fn get_dynamic_uac_level() -> i32 {
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x08000000;
-    
+
     let output = std::process::Command::new("reg")
-        .args(["query", "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "/v", "ConsentPromptBehaviorAdmin"])
+        .args([
+            "query",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+            "/v",
+            "ConsentPromptBehaviorAdmin",
+        ])
         .creation_flags(CREATE_NO_WINDOW)
         .output();
-    
+
     if let Ok(out) = output {
         let text = String::from_utf8_lossy(&out.stdout);
-        if text.contains("0x0") { return 0; }
-        if text.contains("0x2") { return 3; }
+        if text.contains("0x0") {
+            return 0;
+        }
+        if text.contains("0x2") {
+            return 3;
+        }
         if text.contains("0x5") {
             let output2 = std::process::Command::new("reg")
-                .args(["query", "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "/v", "PromptOnSecureDesktop"])
+                .args([
+                    "query",
+                    "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+                    "/v",
+                    "PromptOnSecureDesktop",
+                ])
                 .creation_flags(CREATE_NO_WINDOW)
                 .output();
             if let Ok(out2) = output2 {
                 let text2 = String::from_utf8_lossy(&out2.stdout);
-                if text2.contains("0x1") { return 2; }
-                else { return 1; }
+                if text2.contains("0x1") {
+                    return 2;
+                } else {
+                    return 1;
+                }
             }
         }
     }
@@ -354,15 +410,21 @@ fn get_dynamic_defender_status() -> bool {
 
     // Fast check via PowerShell (only one property)
     let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "(Get-MpComputerStatus).RealTimeProtectionEnabled"])
+        .args([
+            "-NoProfile",
+            "-Command",
+            "(Get-MpComputerStatus).RealTimeProtectionEnabled",
+        ])
         .creation_flags(CREATE_NO_WINDOW)
         .output();
-        
+
     if let Ok(out) = output {
         let res = String::from_utf8_lossy(&out.stdout).trim().to_lowercase();
-        if res == "true" { return true; }
+        if res == "true" {
+            return true;
+        }
     }
-    
+
     // Fallback/Secondary check via SecurityCenter2 (faster sometimes)
     let output_av = std::process::Command::new("powershell")
         .args(["-NoProfile", "-Command", "$av = Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct | Where-Object { $_.displayName -like '*Defender*' }; if ($av) { $hex = [convert]::ToString($av.productState, 16).PadLeft(6, '0'); $mid = $hex.Substring(2, 2); if ($mid -eq '10' -or $mid -eq '11') { 'true' } else { 'false' } } else { 'false' }"])
@@ -379,12 +441,17 @@ fn get_dynamic_defender_status() -> bool {
 fn get_dynamic_windows_theme() -> bool {
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x08000000;
-    
+
     let output = std::process::Command::new("reg")
-        .args(["query", "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "/v", "AppsUseLightTheme"])
+        .args([
+            "query",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+            "/v",
+            "AppsUseLightTheme",
+        ])
         .creation_flags(CREATE_NO_WINDOW)
         .output();
-        
+
     if let Ok(out) = output {
         let text = String::from_utf8_lossy(&out.stdout);
         // If AppsUseLightTheme is 0, it is Dark mode
@@ -503,7 +570,9 @@ pub fn prefetch_static_info() {
         let output = std::process::Command::new("powershell")
             .creation_flags(CREATE_NO_WINDOW)
             .args(["-NoProfile", "-Command", master_script])
-            .output().map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+            .unwrap_or_default();
 
         let mut gpu = "Bilinmeyen GPU".to_string();
         let mut mb = "Bilinmeyen Anakart".to_string();
@@ -523,16 +592,28 @@ pub fn prefetch_static_info() {
         let mut in_data = false;
         for line in output.lines() {
             let line = line.trim();
-            if line == "START_DATA" { in_data = true; continue; }
-            if line == "END_DATA" { break; }
-            if !in_data { continue; }
+            if line == "START_DATA" {
+                in_data = true;
+                continue;
+            }
+            if line == "END_DATA" {
+                break;
+            }
+            if !in_data {
+                continue;
+            }
 
-            if let Some(val) = line.strip_prefix("GPU:") { gpu = val.to_string(); }
-            else if let Some(val) = line.strip_prefix("MOBO:") { mb = val.to_string(); }
-            else if let Some(val) = line.strip_prefix("DNS:") { dns = val.to_string(); }
-            else if let Some(val) = line.strip_prefix("BIOS:") { bios = val.to_string(); }
-            else if let Some(val) = line.strip_prefix("OS:") { os_full = val.to_string(); }
-            else if let Some(val) = line.strip_prefix("FEAT:") {
+            if let Some(val) = line.strip_prefix("GPU:") {
+                gpu = val.to_string();
+            } else if let Some(val) = line.strip_prefix("MOBO:") {
+                mb = val.to_string();
+            } else if let Some(val) = line.strip_prefix("DNS:") {
+                dns = val.to_string();
+            } else if let Some(val) = line.strip_prefix("BIOS:") {
+                bios = val.to_string();
+            } else if let Some(val) = line.strip_prefix("OS:") {
+                os_full = val.to_string();
+            } else if let Some(val) = line.strip_prefix("FEAT:") {
                 let f_parts: Vec<&str> = val.split('|').collect();
                 uefi = f_parts.get(0).unwrap_or(&"false").trim().to_lowercase() == "true";
                 sb = f_parts.get(1).unwrap_or(&"false").trim().to_lowercase() == "true";
@@ -541,15 +622,16 @@ pub fn prefetch_static_info() {
                 defender = f_parts.get(4).unwrap_or(&"false").trim().to_lowercase() == "true";
                 uac = f_parts.get(5).unwrap_or(&"0").parse::<i32>().unwrap_or(0);
                 is_dark = f_parts.get(6).unwrap_or(&"false").trim().to_lowercase() == "true";
-            }
-            else if let Some(val) = line.strip_prefix("D:") {
+            } else if let Some(val) = line.strip_prefix("D:") {
                 let p: Vec<&str> = val.split('|').collect();
                 if p.len() >= 3 {
                     let index = p[0].to_string();
-                    phys_map.insert(index.clone(), (p[1].to_string(), p[2].to_string(), String::new()));
+                    phys_map.insert(
+                        index.clone(),
+                        (p[1].to_string(), p[2].to_string(), String::new()),
+                    );
                 }
-            }
-            else if let Some(val) = line.strip_prefix("L:") {
+            } else if let Some(val) = line.strip_prefix("L:") {
                 let p: Vec<&str> = val.split('|').collect();
                 if p.len() >= 3 {
                     let drive = p[0].to_string();

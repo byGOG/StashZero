@@ -16,6 +16,13 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/test/setup.js"],
+    include: ["src/**/*.{test,spec}.{js,jsx}"],
+    exclude: ["node_modules", "dist", "src-tauri"],
+  },
   build: {
     target: 'chrome110',
     cssMinify: true,

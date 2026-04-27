@@ -1,14 +1,12 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "enables the default permissions",
+  "description": "Minimum permissions actually used by the StashZero frontend.",
   "windows": [
     "main"
   ],
   "permissions": [
     "core:default",
-    "dialog:default",
-    "shell:default",
     {
       "identifier": "shell:allow-open",
       "scope": [
@@ -16,8 +14,6 @@
           "schemes": ["http", "https"]
         }
       ]
-    },
-    "fs:default",
-    "notification:default"
+    }
   ]
 }

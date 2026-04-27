@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { sounds } from "../../utils/audio";
+import { SettingKeys, setJSON } from "../../utils/settings";
 
 const THEMES = [
   { id: "aurora", label: "Aurora", swatch: "linear-gradient(135deg, #7dd3fc 0%, #c4b5fd 50%, #f0abfc 100%)" },
@@ -98,13 +99,13 @@ const SettingsModal = ({
     handleMenuAction("change-font", "inter");
     setFontSize(100);
     setLocalFontSize(100);
-    localStorage.setItem("stash-zero-font-size", JSON.stringify(100));
+    setJSON(SettingKeys.fontSize, 100);
     setPerfMode("auto");
     setAutoCleanup(false);
-    localStorage.setItem("stash-zero-cleanup", JSON.stringify(false));
+    setJSON(SettingKeys.cleanup, false);
     setSoundEnabled(true);
     sounds.setEnabled(true);
-    localStorage.setItem("stash-zero-sound", JSON.stringify(true));
+    setJSON(SettingKeys.sound, true);
   };
 
   return (
@@ -162,11 +163,11 @@ const SettingsModal = ({
                   onChange={(e) => setLocalFontSize(parseInt(e.target.value))}
                   onMouseUp={() => {
                     setFontSize(localFontSize);
-                    localStorage.setItem("stash-zero-font-size", JSON.stringify(localFontSize));
+                    setJSON(SettingKeys.fontSize, localFontSize);
                   }}
                   onTouchEnd={() => {
                     setFontSize(localFontSize);
-                    localStorage.setItem("stash-zero-font-size", JSON.stringify(localFontSize));
+                    setJSON(SettingKeys.fontSize, localFontSize);
                   }}
                   className="modern-slider v2"
                   style={{ "--slider-progress": `${((localFontSize - 40) / (170 - 40)) * 100}%` }}
@@ -186,7 +187,7 @@ const SettingsModal = ({
                   checked={autoCleanup}
                   onChange={(e) => {
                     setAutoCleanup(e.target.checked);
-                    localStorage.setItem("stash-zero-cleanup", JSON.stringify(e.target.checked));
+                    setJSON(SettingKeys.cleanup, e.target.checked);
                   }}
                 />
                 <span className="slider"></span>
@@ -209,7 +210,7 @@ const SettingsModal = ({
                   onChange={(e) => {
                     setSoundEnabled(e.target.checked);
                     sounds.setEnabled(e.target.checked);
-                    localStorage.setItem("stash-zero-sound", JSON.stringify(e.target.checked));
+                    setJSON(SettingKeys.sound, e.target.checked);
                   }}
                 />
                 <span className="slider"></span>

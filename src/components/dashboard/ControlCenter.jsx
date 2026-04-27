@@ -1,9 +1,9 @@
 import { memo } from "react";
+import { motion } from "framer-motion";
 import { safeInvoke } from "../../utils/tauri";
 import TelemetryIcon from "../icons/TelemetryIcon";
 import { POPULAR_DNS, SPECIAL_LOGOS } from "../../data/library";
 import { sounds } from "../../utils/audio";
-import { motion } from 'framer-motion';
 import './SecurityCenter.css';
 
 const PerformanceSection = memo(function PerformanceSection({ cpu_usage, used_memory, total_memory }) {
