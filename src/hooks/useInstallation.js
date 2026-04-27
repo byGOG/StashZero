@@ -67,7 +67,7 @@ export const useInstallation = () => {
   // Initial load
   useEffect(() => {
     refreshInstalledStatus();
-  }, []);
+  }, [refreshInstalledStatus]);
 
   // Listen for progress events
   useEffect(() => {
