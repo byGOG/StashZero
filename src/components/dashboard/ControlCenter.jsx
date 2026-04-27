@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { safeInvoke } from "../../utils/tauri";
 import TelemetryIcon from "../icons/TelemetryIcon";
 import { POPULAR_DNS, SPECIAL_LOGOS } from "../../data/library";
@@ -46,7 +46,7 @@ const SecurityGrid = memo(function SecurityGrid({ is_windows_dark, defender_acti
     <div className="cc-section">
       <h3 className="cc-section-title">Hızlı Denetim</h3>
       <div className="cc-unified-grid">
-        <motion.div
+        <Motion.div
           className="security-card modern-glass-v2 unified"
           whileHover={{ scale: 1.02, translateY: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -62,9 +62,9 @@ const SecurityGrid = memo(function SecurityGrid({ is_windows_dark, defender_acti
               <span className="security-status-text">Düzen Ayarları</span>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           className="security-card modern-glass-v2 unified"
           whileHover={{ scale: 1.02, translateY: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -80,9 +80,9 @@ const SecurityGrid = memo(function SecurityGrid({ is_windows_dark, defender_acti
               <span className="security-status-text">Plan Yönetimi</span>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           className="security-card modern-glass-v2 unified"
           whileHover={{ scale: 1.02, translateY: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -106,9 +106,9 @@ const SecurityGrid = memo(function SecurityGrid({ is_windows_dark, defender_acti
               <span className="security-status-text">{is_windows_dark ? 'Koyu Mod' : 'Açık Mod'}</span>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           className={`security-card modern-glass-v2 unified ${defender_active ? 'safe' : 'danger'}`}
           whileHover={{ scale: 1.02, translateY: -2 }}
           whileTap={{ scale: 0.98 }}
@@ -124,7 +124,7 @@ const SecurityGrid = memo(function SecurityGrid({ is_windows_dark, defender_acti
               <span className="security-status-text">{defender_active ? 'Koruma Aktif' : 'Risk Altında'}</span>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
 
       <div
