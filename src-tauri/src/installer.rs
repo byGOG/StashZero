@@ -285,7 +285,7 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
 fn clean_version(raw: &str) -> String {
     let trimmed = raw.trim().trim_start_matches(|c| c == 'v' || c == 'V');
     let cut: &str = trimmed
-        .split(|c| c == '-' || c == '+')
+        .split(|c| c == '-' || c == '+' || c == ' ')
         .next()
         .unwrap_or(trimmed);
     cut.to_string()

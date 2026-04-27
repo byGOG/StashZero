@@ -13,7 +13,12 @@
       "Bash(npm install *)",
       "Bash(cargo test *)",
       "Bash(cargo clippy *)",
-      "Bash(cargo fmt *)"
+      "Bash(cargo fmt *)",
+      "PowerShell($ErrorActionPreference = 'Continue'; $paths = @\\('C:\\\\StashZero\\\\Tor Browser', 'C:\\\\StashZero\\\\Browser', 'C:\\\\StashZero\\\\Tor Browser.lnk', 'C:\\\\Users\\\\byGOG\\\\Desktop\\\\Tor Browser.lnk'\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Write-Output \"EXISTS: $p\"; try { Remove-Item -Path $p -Recurse -Force -ErrorAction Stop; Write-Output \"  REMOVED OK\" } catch { Write-Output \"  FAILED: $\\($_.Exception.Message\\)\" } } else { Write-Output \"MISSING: $p\" } })",
+      "PowerShell(Write-Output $test)",
+      "PowerShell($test = \"powershell -Command `\"`$ErrorActionPreference = 'SilentlyContinue'; `$paths = @\\('a','b'\\); foreach \\(`$p in `$paths\\) { Write-Output `\"got: `$p`\" }`\"\")",
+      "Bash(cat)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File /tmp/test_wrap.ps1)"
     ]
   }
 }
