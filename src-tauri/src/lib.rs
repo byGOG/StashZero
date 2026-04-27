@@ -1,13 +1,14 @@
-pub mod sysinfo;
 pub mod installer;
-pub mod scripts;
 pub mod network;
+pub mod scripts;
+pub mod sysinfo;
+pub mod updater;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use tauri::Manager;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::Manager;
 
 static QUIT_REQUESTED: AtomicBool = AtomicBool::new(false);
 
@@ -43,20 +44,12 @@ fn toggle_main_window(app: &tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    #[cfg(target_os = "windows")]
-    {
-        let existing = std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").unwrap_or_default();
-        let flags = "--disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows";
-        let combined = if existing.is_empty() {
-            flags.to_string()
-        } else {
-            format!("{existing} {flags}")
-        };
-        std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", combined);
-    }
-
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new().level(log::LevelFilter::Debug).build())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Debug)
+                .build(),
+        )
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             reveal_main_window(app);
         }))
@@ -139,7 +132,8 @@ pub fn run() {
             scripts::set_desktop_icon_visibility,
             scripts::open_desktop_icon_settings,
             scripts::open_power_settings,
-            scripts::ensure_terminal_session
+            scripts::ensure_terminal_session,
+            updater::check_for_update
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

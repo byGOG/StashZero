@@ -1,16 +1,18 @@
-use std::sync::Arc;
 use once_cell::sync::Lazy;
-use tauri::Window as TauriWindow;
-use tauri::Emitter;
-use tokio::sync::Mutex as TokioMutex;
 use std::os::windows::process::CommandExt;
+use std::sync::Arc;
+use tauri::Emitter;
+use tauri::Window as TauriWindow;
 use tokio::io::AsyncWriteExt;
+use tokio::sync::Mutex as TokioMutex;
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 // Global interactive script stdin + child handle
-pub static SCRIPT_STDIN: Lazy<Arc<TokioMutex<Option<tokio::process::ChildStdin>>>> = Lazy::new(|| Arc::new(TokioMutex::new(None)));
-pub static SCRIPT_CHILD: Lazy<Arc<TokioMutex<Option<tokio::process::Child>>>> = Lazy::new(|| Arc::new(TokioMutex::new(None)));
+pub static SCRIPT_STDIN: Lazy<Arc<TokioMutex<Option<tokio::process::ChildStdin>>>> =
+    Lazy::new(|| Arc::new(TokioMutex::new(None)));
+pub static SCRIPT_CHILD: Lazy<Arc<TokioMutex<Option<tokio::process::Child>>>> =
+    Lazy::new(|| Arc::new(TokioMutex::new(None)));
 
 #[tauri::command]
 pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), String> {
@@ -18,7 +20,10 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
     let _ = window.emit("backend-log", serde_json::json!({ "msg": "PowerShell betiği çalıştırılıyor (Gizli Pencere)", "log_type": "info" }));
 
     log::debug!("Betik içeriği: {}", script);
-    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Betik: {}", script), "log_type": "info" }));
+    let _ = window.emit(
+        "backend-log",
+        serde_json::json!({ "msg": format!("Betik: {}", script), "log_type": "info" }),
+    );
 
     // Write script to a temp .ps1 file so we don't have to escape quotes
     // through multiple layers (outer cmd -> outer powershell -> Start-Process
@@ -67,23 +72,40 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
     let _ = std::fs::remove_file(&script_path);
 
     if status.success() {
-        let _ = window.emit("backend-log", serde_json::json!({ "msg": "Betik tamamlandı.", "log_type": "success" }));
+        let _ = window.emit(
+            "backend-log",
+            serde_json::json!({ "msg": "Betik tamamlandı.", "log_type": "success" }),
+        );
         Ok(())
     } else {
         let code = status.code().unwrap_or(-1);
-        let msg = format!("Betik hatayla sonlandı (Exit code {}). UAC reddedilmiş olabilir.", code);
+        let msg = format!(
+            "Betik hatayla sonlandı (Exit code {}). UAC reddedilmiş olabilir.",
+            code
+        );
         log::error!("{}", msg);
-        let _ = window.emit("backend-log", serde_json::json!({ "msg": msg.clone(), "log_type": "error" }));
+        let _ = window.emit(
+            "backend-log",
+            serde_json::json!({ "msg": msg.clone(), "log_type": "error" }),
+        );
         Err(msg)
     }
 }
 
 #[tauri::command]
-pub async fn run_shell_script_logged(window: TauriWindow, script: String, shell_type: String) -> Result<(), String> {
-    let shell_name = if shell_type.to_lowercase() == "cmd" { "CMD" } else { "PowerShell" };
+pub async fn run_shell_script_logged(
+    window: TauriWindow,
+    script: String,
+    shell_type: String,
+) -> Result<(), String> {
+    let shell_name = if shell_type.to_lowercase() == "cmd" {
+        "CMD"
+    } else {
+        "PowerShell"
+    };
     log::info!("İnteraktif {} oturumu başlatılıyor", shell_name);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İnteraktif {} oturumu başlatılıyor", shell_name), "log_type": "info" }));
-    
+
     use tokio::io::AsyncBufReadExt;
 
     // Kill any existing interactive session
@@ -109,14 +131,16 @@ pub async fn run_shell_script_logged(window: TauriWindow, script: String, shell_
             "-NoProfile",
             "-NoLogo",
             "-NoExit",
-            "-ExecutionPolicy", "Bypass",
+            "-ExecutionPolicy",
+            "Bypass",
             "-Command",
             &script,
         ]);
         c
     };
 
-    let mut child = cmd.stdin(std::process::Stdio::piped())
+    let mut child = cmd
+        .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
@@ -139,7 +163,7 @@ pub async fn run_shell_script_logged(window: TauriWindow, script: String, shell_
             loop {
                 let mut chunk = [0u8; 1024];
                 let timeout = tokio::time::sleep(tokio::time::Duration::from_millis(30));
-                
+
                 tokio::select! {
                     res = reader.read(&mut chunk) => {
                         match res {
@@ -208,7 +232,10 @@ pub async fn run_shell_script_logged(window: TauriWindow, script: String, shell_
     // If CMD, send the script via stdin manually to avoid pipe races with /K
     // DO THIS AFTER READERS ARE STARTED
     if shell_type.to_lowercase() == "cmd" && !script.is_empty() {
-        stdin.write_all(format!("{}\n", script).as_bytes()).await.ok();
+        stdin
+            .write_all(format!("{}\n", script).as_bytes())
+            .await
+            .ok();
         stdin.flush().await.ok();
     }
 
@@ -254,7 +281,10 @@ pub async fn run_shell_script_logged(window: TauriWindow, script: String, shell_
 }
 
 #[tauri::command]
-pub async fn ensure_terminal_session(window: tauri::Window, shell_type: String) -> Result<(), String> {
+pub async fn ensure_terminal_session(
+    window: tauri::Window,
+    shell_type: String,
+) -> Result<(), String> {
     let child_guard = SCRIPT_CHILD.lock().await;
     if child_guard.is_some() {
         // TODO: check if existing shell matches requested shell_type?
@@ -262,7 +292,7 @@ pub async fn ensure_terminal_session(window: tauri::Window, shell_type: String) 
         return Ok(());
     }
     drop(child_guard);
-    
+
     let init_msg = if shell_type.to_lowercase() == "cmd" {
         ""
     } else {
@@ -272,13 +302,14 @@ pub async fn ensure_terminal_session(window: tauri::Window, shell_type: String) 
     run_shell_script_logged(window, init_msg.to_string(), shell_type).await
 }
 
-
 #[tauri::command]
 pub async fn send_script_input(input: String) -> Result<(), String> {
     log::debug!("Girdi gönderiliyor: {}", input);
     let mut guard = SCRIPT_STDIN.lock().await;
     if let Some(ref mut stdin) = *guard {
-        stdin.write_all(format!("{}\n", input).as_bytes()).await
+        stdin
+            .write_all(format!("{}\n", input).as_bytes())
+            .await
             .map_err(|e| {
                 log::error!("Girdi gönderilemedi: {}", e);
                 format!("Girdi gönderilemedi: {}", e)
@@ -362,7 +393,7 @@ pub async fn set_uac_level(level: i32) -> Result<(), String> {
 #[tauri::command]
 pub async fn set_windows_theme(dark: bool) -> Result<(), String> {
     let val = if dark { 0 } else { 1 };
-    
+
     let script = format!(
         "$p = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize'; \
          Set-ItemProperty -Path $p -Name AppsUseLightTheme -Value {v}; \
@@ -377,7 +408,13 @@ pub async fn set_windows_theme(dark: bool) -> Result<(), String> {
 
     std::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
-        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &script])
+        .args([
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            &script,
+        ])
         .spawn()
         .map_err(|e| format!("Tema değiştirilemedi: {}", e))?;
 
@@ -412,7 +449,13 @@ pub async fn set_desktop_icon_visibility(icon_type: String, visible: bool) -> Re
     const CREATE_NO_WINDOW: u32 = 0x08000000;
     std::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
-        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &script])
+        .args([
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            &script,
+        ])
         .spawn()
         .map_err(|e| format!("İkon durumu değiştirilemedi: {}", e))?;
 
@@ -436,4 +479,3 @@ pub async fn open_power_settings() -> Result<(), String> {
         .map_err(|e| format!("Güç ayarları açılamadı: {}", e))?;
     Ok(())
 }
-

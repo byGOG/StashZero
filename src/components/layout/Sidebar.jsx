@@ -2,6 +2,7 @@ import { memo } from "react";
 import SidebarIcon from "../icons/SidebarIcon";
 import ProjectLogo from "../icons/ProjectLogo";
 import { sounds } from "../../utils/audio";
+import { SettingKeys, setString } from "../../utils/settings";
 
 const Sidebar = memo(function Sidebar({ categories, activeCategory, setActiveCategory, handleMenuAction }) {
   return (
@@ -21,7 +22,7 @@ const Sidebar = memo(function Sidebar({ categories, activeCategory, setActiveCat
             className={`sidebar-item ${activeCategory === cat.name ? 'active' : ''}`}
             onClick={() => {
               setActiveCategory(cat.name);
-              localStorage.setItem("stash-zero-active-category", cat.name);
+              setString(SettingKeys.activeCategory, cat.name);
               sounds.playClick();
             }}
           >

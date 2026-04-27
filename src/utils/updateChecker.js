@@ -1,9 +1,8 @@
-const GITHUB_REPO = "byGOG/StashZero";
-const RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
-const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/latest`;
+import { invoke } from "@tauri-apps/api/core";
+import { SettingKeys, getJSON, setJSON, getString, setString, remove } from "./settings";
+
+const RELEASES_PAGE = "https://github.com/byGOG/StashZero/releases/latest";
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
-const CACHE_KEY = "stash-zero-update-check";
-const SKIP_KEY = "stash-zero-update-skip";
 
 export function cleanVersion(raw) {
   if (!raw) return "";
@@ -31,36 +30,17 @@ export function compareVersions(a, b) {
 }
 
 function readCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return getJSON(SettingKeys.updateCache, null);
 }
 
 function writeCache(payload) {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ ...payload, checkedAt: Date.now() }));
-  } catch {
-    /* ignore */
-  }
+  setJSON(SettingKeys.updateCache, { ...payload, checkedAt: Date.now() });
 }
 
 async function fetchLatestRelease() {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-  try {
-    const res = await fetch(RELEASES_API, {
-      headers: { Accept: "application/vnd.github+json" },
-      signal: controller.signal,
-    });
-    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(timeout);
-  }
+  // Rust tarafında çalışan check_for_update komutu reqwest ile çağrı yapar,
+  // timeout/redirect ve User-Agent başlığını yönetir; arızada Err döndürür.
+  return await invoke("check_for_update");
 }
 
 export async function checkForUpdates(currentVersion, { force = false } = {}) {
@@ -74,11 +54,11 @@ export async function checkForUpdates(currentVersion, { force = false } = {}) {
     try {
       const data = await fetchLatestRelease();
       release = {
-        version: data.tag_name || data.name,
+        version: data.version,
         name: data.name,
-        notes: data.body || "",
-        url: data.html_url || RELEASES_PAGE,
-        publishedAt: data.published_at,
+        notes: data.notes || "",
+        url: data.url || RELEASES_PAGE,
+        publishedAt: data.publishedAt,
       };
       writeCache({ release });
     } catch (err) {
@@ -89,7 +69,7 @@ export async function checkForUpdates(currentVersion, { force = false } = {}) {
   }
 
   const hasUpdate = compareVersions(release.version, currentVersion) > 0;
-  const skipped = localStorage.getItem(SKIP_KEY);
+  const skipped = getString(SettingKeys.updateSkip, "");
   const userSkipped = skipped && compareVersions(skipped, release.version) >= 0;
 
   return {
@@ -105,19 +85,11 @@ export async function checkForUpdates(currentVersion, { force = false } = {}) {
 }
 
 export function skipVersion(version) {
-  try {
-    localStorage.setItem(SKIP_KEY, version);
-  } catch {
-    /* ignore */
-  }
+  setString(SettingKeys.updateSkip, version);
 }
 
 export function clearSkip() {
-  try {
-    localStorage.removeItem(SKIP_KEY);
-  } catch {
-    /* ignore */
-  }
+  remove(SettingKeys.updateSkip);
 }
 
 export { RELEASES_PAGE };
