@@ -83,7 +83,10 @@ const SettingsModal = ({
   setFontSize,
   handleMenuAction,
   perfMode = "auto",
-  setPerfMode = () => {}
+  setPerfMode = () => {},
+  lang = "tr",
+  changeLanguage = () => {},
+  t
 }) => {
   const [localFontSize, setLocalFontSize] = useState(fontSize);
 
@@ -97,6 +100,7 @@ const SettingsModal = ({
     sounds.playClick();
     handleMenuAction("change-theme", "aurora");
     handleMenuAction("change-font", "inter");
+    changeLanguage("tr");
     setFontSize(100);
     setLocalFontSize(100);
     setJSON(SettingKeys.fontSize, 100);
@@ -115,36 +119,36 @@ const SettingsModal = ({
 
         <div className="settings-header">
           <div className="settings-title-block">
-            <h2>Ayarlar</h2>
-            <span className="settings-subtitle">Görünümü ve davranışı kişiselleştirin</span>
+            <h2>{t('modals.settings.title')}</h2>
+            <span className="settings-subtitle">{t('modals.settings.subtitle')}</span>
           </div>
-          <button className="settings-close" onClick={() => setShowSettings(false)} aria-label="Kapat">
+          <button className="settings-close" onClick={() => setShowSettings(false)} aria-label={t('modals.installed.close')}>
             <SettingsIcon name="close" />
           </button>
         </div>
 
         <div className="settings-body v2">
           <div className="settings-section">
-            <div className="settings-section-label">Görünüm</div>
+            <div className="settings-section-label">{t('modals.settings.appearance')}</div>
 
-            <SettingRow icon="palette" title="Tema" desc="Arayüzün renk şemasını seçin." full>
+            <SettingRow icon="palette" title={t('modals.settings.theme')} desc={t('modals.settings.theme_desc')} full>
               <div className="theme-grid">
-                {THEMES.map(t => (
+                {THEMES.map(t_item => (
                   <button
-                    key={t.id}
-                    className={`theme-tile ${currentTheme === t.id ? "active" : ""}`}
-                    onClick={() => handleMenuAction("change-theme", t.id)}
-                    aria-label={t.label}
+                    key={t_item.id}
+                    className={`theme-tile ${currentTheme === t_item.id ? "active" : ""}`}
+                    onClick={() => handleMenuAction("change-theme", t_item.id)}
+                    aria-label={t_item.label}
                   >
-                    <span className="theme-swatch" style={{ background: t.swatch }} />
-                    <span className="theme-tile-label">{t.label}</span>
-                    {currentTheme === t.id && <span className="theme-tile-check"><SettingsIcon name="check" /></span>}
+                    <span className="theme-swatch" style={{ background: t_item.swatch }} />
+                    <span className="theme-tile-label">{t_item.label}</span>
+                    {currentTheme === t_item.id && <span className="theme-tile-check"><SettingsIcon name="check" /></span>}
                   </button>
                 ))}
               </div>
             </SettingRow>
 
-            <SettingRow icon="type" title="Yazı Tipi" desc="Modern tipografi ailesini belirleyin." full>
+            <SettingRow icon="type" title={t('modals.settings.font')} desc={t('modals.settings.font_desc')} full>
               <Segmented
                 value={currentFont}
                 options={FONTS}
@@ -153,7 +157,7 @@ const SettingsModal = ({
               />
             </SettingRow>
 
-            <SettingRow icon="scale" title="Arayüz Ölçeği" desc="Tüm arayüz boyutunu yüzde cinsinden ayarlayın.">
+            <SettingRow icon="scale" title={t('modals.settings.scale')} desc={t('modals.settings.scale_desc')}>
               <div className="scale-control">
                 <input
                   type="range"
@@ -178,9 +182,9 @@ const SettingsModal = ({
           </div>
 
           <div className="settings-section">
-            <div className="settings-section-label">Davranış</div>
+            <div className="settings-section-label">{t('modals.settings.behavior')}</div>
 
-            <SettingRow icon="broom" title="Otomatik Temizlik" desc="Kurulum sonrası kalıntı dosyaları otomatik siler.">
+            <SettingRow icon="broom" title={t('modals.settings.cleanup')} desc={t('modals.settings.cleanup_desc')}>
               <label className="toggle-switch">
                 <input
                   type="checkbox"
@@ -194,15 +198,19 @@ const SettingsModal = ({
               </label>
             </SettingRow>
 
-            <SettingRow icon="gauge" title="Performans Modu" desc="Düşük donanım için bulanıklık ve animasyonları azaltır." full>
+            <SettingRow icon="gauge" title={t('modals.settings.perf')} desc={t('modals.settings.perf_desc')} full>
               <Segmented
                 value={perfMode}
-                options={PERF_MODES}
+                options={[
+                  { id: "auto", label: t('modals.settings.perf_auto') },
+                  { id: "full", label: t('modals.settings.perf_high') },
+                  { id: "low",  label: t('modals.settings.perf_low') }
+                ]}
                 onChange={setPerfMode}
               />
             </SettingRow>
 
-            <SettingRow icon="speaker" title="Ses Efektleri" desc="Etkileşimlerde ufak ses bildirimleri çalınsın.">
+            <SettingRow icon="speaker" title={t('modals.settings.sound')} desc={t('modals.settings.sound_desc')}>
               <label className="toggle-switch">
                 <input
                   type="checkbox"
@@ -219,22 +227,33 @@ const SettingsModal = ({
           </div>
 
           <div className="settings-section">
-            <div className="settings-section-label">Sistem</div>
+            <div className="settings-section-label">{t('modals.settings.system')}</div>
 
-            <SettingRow icon="download" title="Güncellemeler" desc="GitHub üzerinden yayınlanan yeni sürümleri kontrol edin.">
+            <SettingRow icon="palette" title="Dil / Language" desc="Uygulama dilini seçin." full>
+               <Segmented
+                value={lang}
+                options={[
+                  { id: "tr", label: "Türkçe" },
+                  { id: "en", label: "English" }
+                ]}
+                onChange={changeLanguage}
+              />
+            </SettingRow>
+
+            <SettingRow icon="download" title={t('modals.settings.updates')} desc={t('modals.settings.updates_desc')}>
               <button
                 className="settings-action-btn"
                 onClick={() => handleMenuAction("check-updates")}
               >
-                Denetle
+                {t('modals.settings.check_now')}
               </button>
             </SettingRow>
           </div>
         </div>
 
         <div className="settings-footer v2">
-          <button className="settings-btn-ghost" onClick={resetDefaults}>Varsayılanlara Sıfırla</button>
-          <button className="settings-btn-primary" onClick={() => setShowSettings(false)}>Tamamlandı</button>
+          <button className="settings-btn-ghost" onClick={resetDefaults}>{t('modals.settings.reset')}</button>
+          <button className="settings-btn-primary" onClick={() => setShowSettings(false)}>{t('modals.settings.done')}</button>
         </div>
       </div>
     </div>

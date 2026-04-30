@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { safeInvoke } from "../utils/tauri";
+import { listen } from "@tauri-apps/api/event";
 
 export function useTelemetry({ lowFx }) {
   const [systemInfo, setSystemInfo] = useState(null);
@@ -11,33 +12,33 @@ export function useTelemetry({ lowFx }) {
       setSystemInfo((prev) => (prev ? { ...prev, ...patch } : patch));
     };
 
+    // Initial and Slow data still polled or fetched once
     const fetchInitial = async () => {
       const info = await safeInvoke("get_system_info");
       if (!cancelled && info) setSystemInfo(info);
     };
-    const fetchFast = async () => {
-      const info = await safeInvoke("get_fast_telemetry");
-      if (!cancelled && info) merge(info);
-    };
+
     const fetchSlow = async () => {
       const info = await safeInvoke("get_slow_telemetry");
       if (!cancelled && info) merge(info);
     };
 
-    const fastMs = lowFx ? 5000 : 2500;
-    const slowMs = lowFx ? 60000 : 30000;
-
     fetchInitial();
-    const fastTimer = setInterval(() => {
-      if (document.visibilityState === "visible") fetchFast();
-    }, fastMs);
+
+    // Fast data now comes from Rust events
+    const unlistenFast = listen("fast-telemetry", (event) => {
+      if (!cancelled && document.visibilityState === "visible") {
+        merge(event.payload);
+      }
+    });
+
+    const slowMs = lowFx ? 60000 : 30000;
     const slowTimer = setInterval(() => {
       if (document.visibilityState === "visible") fetchSlow();
     }, slowMs);
 
     const onVis = () => {
       if (document.visibilityState === "visible") {
-        fetchFast();
         fetchSlow();
       }
     };
@@ -45,7 +46,7 @@ export function useTelemetry({ lowFx }) {
 
     return () => {
       cancelled = true;
-      clearInterval(fastTimer);
+      unlistenFast.then(f => f());
       clearInterval(slowTimer);
       document.removeEventListener("visibilitychange", onVis);
     };

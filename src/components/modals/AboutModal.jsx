@@ -3,8 +3,8 @@ import ProjectLogo from "../icons/ProjectLogo";
 import AboutHero from "../../assets/about-hero.png";
 import ByGogMark from "../../assets/bygog-mark.png";
 
-const AboutModal = ({ showAbout, setShowAbout }) => {
-  if (!showAbout) return null;
+const AboutModal = ({ isOpen, onClose, t }) => {
+  if (!isOpen) return null;
 
   const handleLinkClick = async (e, url) => {
     e.preventDefault();
@@ -16,15 +16,15 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={() => setShowAbout(false)}>
+    <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content about-modern-glass" onClick={e => e.stopPropagation()}>
-        <button className="close-btn-glass" onClick={() => setShowAbout(false)}>
+        <button className="close-btn-glass" onClick={onClose}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         
         <div className="about-hero-container">
           <img src={AboutHero} alt="StashZero Art" className="about-hero-img" />
-          <span className="version-tag-float">STABLE v0.3.1</span>
+          <span className="version-tag-float">STABLE v0.3.2</span>
           <div className="about-hero-overlay">
             <div className="about-brand-float">
               <ProjectLogo size={40} />
@@ -35,12 +35,12 @@ const AboutModal = ({ showAbout, setShowAbout }) => {
 
         <div className="about-body-glass">
           <div className="about-header-glass">
-            <h2>Minimalist Ecosystem</h2>
-            <p>Modern ve hız odaklı çevrimdışı uygulama ekosistemi. Profesyonel sistem yönetimi süreçlerini tek merkezden yönetin.</p>
+            <h2>{t('modals.about.title')}</h2>
+            <p>{t('modals.about.description')}</p>
           </div>
 
           <div className="about-inspiration">
-            <p>Sordum.net topluluğunun sade ve kullanıcı odaklı anlayışından ilham alınarak geliştirilmiştir. Emeklerine ve vizyonlarına derin saygılarımızla.</p>
+            <p>Inspired by the simple and user-oriented approach of the Sordum.net community. With deep respect for their work and vision.</p>
           </div>
 
           <div className="about-footer-glass">

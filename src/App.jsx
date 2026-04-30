@@ -14,6 +14,7 @@ import AdminRequestModal from "./components/modals/AdminRequestModal";
 import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
 import UpdateModal from "./components/modals/UpdateModal";
+import InstalledAppsModal from "./components/modals/InstalledAppsModal";
 
 // Hooks
 import { useInstallation } from "./hooks/useInstallation";
@@ -23,7 +24,9 @@ import { useLogPanelResize } from "./hooks/useLogPanelResize";
 import { useTelemetry } from "./hooks/useTelemetry";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useCommandHistory } from "./hooks/useCommandHistory";
+import { useLibrary } from "./hooks/useLibrary";
 import { useSoundCloudPlayer } from "./hooks/useSoundCloudPlayer";
+import { useTranslation } from "./i18n/useTranslation";
 
 const CATEGORY_ICON_MAP = {
   "Web Tarayıcıları": "globe",
@@ -53,26 +56,33 @@ const CATEGORY_ICON_MAP = {
 
 function App() {
   const {
-    installers,
     selected,
     installing,
     isUninstalling,
     installStatus,
     installedApps,
+    installProgress,
     appProgress,
     logs,
     isSessionActive,
+    updatesAvailable,
     toggleSelect,
     addLog,
     proceedUninstall,
     startInstall,
     selectAll,
     clearSelection,
+    exportSelection,
+    importSelection,
+    getAllSystemSoftware,
     setLogs,
     shellType,
     setShellType,
     ensureTerminalSession
   } = useInstallation();
+
+  const { apps: installers, isUpdating: isLibraryUpdating, updateLibrary } = useLibrary();
+  const { t, lang, changeLanguage } = useTranslation();
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,6 +90,7 @@ function App() {
   const [currentFont, setCurrentFont] = useState(() => getString(SettingKeys.font, "inter"));
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [showInstalled, setShowInstalled] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
 
@@ -88,6 +99,7 @@ function App() {
   const [soundEnabled, setSoundEnabled] = useState(() => getJSON(SettingKeys.sound, true));
   const [dnsOpen, setDnsOpen] = useState(false);
   const [fontSize, setFontSize] = useState(() => getJSON(SettingKeys.fontSize, 100));
+  const [favorites, setFavorites] = useState(() => new Set(getJSON(SettingKeys.favorites, [])));
 
   const searchInputRef = useRef(null);
   const logEndRef = useRef(null);
@@ -154,21 +166,28 @@ function App() {
   };
 
   const categories = useMemo(() => {
-    const map = new Map();
-    for (const app of installers) {
-      const cat = app.category;
-      if (!map.has(cat)) {
-        map.set(cat, {
-          name: cat,
-          order: app.category_order,
+    const map = {};
+    installers.forEach((app) => {
+      if (!map[app.category]) {
+        map[app.category] = {
+          name: app.category,
+          icon: CATEGORY_ICON_MAP[app.category] || "package",
           count: 0,
-          icon: CATEGORY_ICON_MAP[cat] || "rect"
-        });
+          order: app.category_order || 999,
+        };
       }
-      map.get(cat).count++;
+      map[app.category].count++;
+    });
+    const baseCats = Object.values(map).sort((a, b) => a.order - b.order);
+    
+    if (favorites.size > 0) {
+      return [
+        { name: "Favoriler", icon: "star", count: favorites.size, order: -1 },
+        ...baseCats
+      ];
     }
-    return Array.from(map.values()).sort((a, b) => a.order - b.order);
-  }, [installers]);
+    return baseCats;
+  }, [installers, favorites]);
 
   const effectiveCategory = useMemo(() => {
     if (categories.length === 0) return null;
@@ -186,10 +205,11 @@ function App() {
       return installers.filter(app => app.name.toLowerCase().includes(term));
     }
     if (!effectiveCategory) return installers;
-    return installers.filter(app => app.category === effectiveCategory);
-  }, [installers, deferredSearchTerm, effectiveCategory]);
-
-
+    if (activeCategory === "Favoriler") {
+      return installers.filter(a => favorites.has(a.id));
+    }
+    return installers.filter(a => a.category === effectiveCategory);
+  }, [installers, deferredSearchTerm, activeCategory, favorites]);
 
   const startUninstall = async (targetApp) => {
     if (!targetApp) return;
@@ -209,13 +229,24 @@ function App() {
     switch (action) {
       case "show-settings": setShowSettings(true); break;
       case "show-about": setShowAbout(true); break;
+      case "show-installed": setShowInstalled(true); break;
       case "toggle-logs": 
         if (!showLogs) setLogPanelHeight(450);
         setShowLogs(!showLogs); 
         break;
       case "change-theme": setCurrentTheme(data); setString(SettingKeys.theme, data); break;
       case "change-font": setCurrentFont(data); setString(SettingKeys.font, data); break;
+      case "change-lang": changeLanguage(data); break;
       case "check-updates": updateChecker.checkNow(); break;
+      case "toggle-favorite": 
+        setFavorites(prev => {
+          const next = new Set(prev);
+          if (next.has(data)) next.delete(data);
+          else next.add(data);
+          setJSON(SettingKeys.favorites, Array.from(next));
+          return next;
+        });
+        break;
       default: break;
     }
   };
@@ -252,6 +283,7 @@ function App() {
         activeCategory={effectiveCategory} 
         setActiveCategory={setActiveCategory} 
         handleMenuAction={handleMenuAction} 
+        t={t}
       />
 
       <main className="main-content">
@@ -278,7 +310,12 @@ function App() {
           startUninstall={startUninstall}
           addLog={addLog}
           setShowLogs={setShowLogs}
-          lowFx={lowFx}
+          lowFx={perfMode === "low"}
+          t={t}
+          lang={lang}
+          updatesAvailable={updatesAvailable}
+          favorites={favorites}
+          onToggleFavorite={(id) => handleMenuAction("toggle-favorite", id)}
         />
 
         <LogPanel 
@@ -328,21 +365,29 @@ function App() {
         handleMenuAction={handleMenuAction}
         perfMode={perfMode}
         setPerfMode={setPerfMode}
+        lang={lang}
+        changeLanguage={(l) => handleMenuAction("change-lang", l)}
+        t={t}
       />
 
       <AboutModal
         showAbout={showAbout}
         setShowAbout={setShowAbout}
+        t={t}
       />
 
       <UpdateModal
-        visible={updateChecker.visible}
-        info={updateChecker.updateInfo}
-        checking={updateChecker.checking}
+        isOpen={updateChecker.showModal}
+        onClose={() => updateChecker.setShowModal(false)}
+        updateData={updateChecker.updateData}
         currentVersion={updateChecker.currentVersion}
-        onClose={updateChecker.dismiss}
-        onSkip={updateChecker.skip}
         onCheckNow={updateChecker.checkNow}
+      />
+
+      <InstalledAppsModal
+        isOpen={showInstalled}
+        onClose={() => setShowInstalled(false)}
+        getAllSystemSoftware={getAllSystemSoftware}
       />
 
       {/* Global Music Player Layer — iframe mounts lazily on first open */}
@@ -377,18 +422,42 @@ function App() {
       >
         <div className="pill-inner">
           <div className="pill-info">
-            <div className="pill-count">
-              <span className="count-num">{selected.size}</span>
-              <span className="count-label">Uygulama Seçildi</span>
-            </div>
-            <div className="pill-sep" />
-            <div className="pill-size">
-              {selectedTotalMb > 0 ? `${selectedTotalMb.toFixed(1)} MB` : "0 MB"}
-            </div>
+            {installing ? (
+              <div className="pill-install-progress">
+                <div className="pill-progress-text">
+                  <span className="count-num">{installProgress.done} / {installProgress.total}</span>
+                  <span className="count-label">Tamamlandı</span>
+                </div>
+                <div className="pill-mini-progress">
+                  <div 
+                    className="pill-mini-fill" 
+                    style={{ width: `${(installProgress.done / installProgress.total) * 100}%` }} 
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="pill-count">
+                  <span className="count-num">{selected.size}</span>
+                  <span className="count-label">Uygulama Seçildi</span>
+                </div>
+                <div className="pill-sep" />
+                <div className="pill-size">
+                  {selectedTotalMb > 0 ? `${selectedTotalMb.toFixed(1)} MB` : "0 MB"}
+                </div>
+              </>
+            )}
           </div>
           
           <div className="pill-buttons">
-            <button className="pill-btn-clear" onClick={clearSelection} disabled={installing}>
+            <button className="pill-btn-secondary" onClick={importSelection} disabled={installing} title="Paket İçe Aktar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+            <button className="pill-btn-secondary" onClick={exportSelection} disabled={installing} title="Paket Dışa Aktar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </button>
+            <div className="pill-sep-v" />
+            <button className="pill-btn-clear" onClick={clearSelection} disabled={installing} title="Seçimi Temizle">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
             </button>
             <button className={`pill-btn-install ${installing ? 'active' : ''}`} onClick={() => startInstall(setShowLogs)} disabled={installing}>

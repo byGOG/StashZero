@@ -31,6 +31,34 @@ pub static SYS_HANDLE: Lazy<Mutex<System>> = Lazy::new(|| {
     Mutex::new(s)
 });
 
+pub fn start_telemetry_emitter(app_handle: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        loop {
+            let mut sys = SYS_HANDLE.lock().unwrap();
+            sys.refresh_cpu();
+            sys.refresh_memory();
+            sys.refresh_networks();
+
+            let (net_in_kb, net_out_kb) = compute_net_speeds(&sys);
+            
+            let data = FastTelemetry {
+                cpu_usage: sys.global_cpu_info().cpu_usage(),
+                total_memory: sys.total_memory(),
+                used_memory: sys.used_memory(),
+                net_in: net_in_kb,
+                net_out: net_out_kb,
+                uptime: sys.uptime(),
+            };
+
+            use tauri::Emitter;
+            let _ = app_handle.emit("fast-telemetry", data);
+            
+            drop(sys);
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+        }
+    });
+}
+
 // Cached local IP — rarely changes; refreshed only on slow tick.
 pub static LOCAL_IP_CACHE: Lazy<Mutex<String>> =
     Lazy::new(|| Mutex::new(String::from("Detecting...")));
@@ -54,7 +82,7 @@ pub struct StaticSystemInfo {
 
 pub static STATIC_SYS_INFO: Lazy<Mutex<Option<StaticSystemInfo>>> = Lazy::new(|| Mutex::new(None));
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct DiskInfo {
     name: String,
     mount_point: String,
@@ -65,7 +93,7 @@ pub struct DiskInfo {
     media_type: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct FastTelemetry {
     cpu_usage: f32,
     total_memory: u64,
@@ -75,7 +103,7 @@ pub struct FastTelemetry {
     uptime: u64,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct SlowTelemetry {
     disks: Vec<DiskInfo>,
     defender_active: bool,

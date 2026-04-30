@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { safeInvoke } from "../utils/tauri";
 import { listen } from '@tauri-apps/api/event';
+import { save, open } from "@tauri-apps/plugin-dialog";
+import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { sounds } from "../utils/audio";
 import { LEGENDARY_APPS } from "../data/library";
 
@@ -18,15 +20,34 @@ export const useInstallation = () => {
   const [logs, setLogs] = useState([]);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [shellType, setShellType] = useState("powershell");
+  const [updatesAvailable, setUpdatesAvailable] = useState({}); // id -> { latest: string, isNewer: boolean }
 
-  // Sync installers if LEGENDARY_APPS changes (Dev/HMR)
-  useEffect(() => {
-    setInstallers(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
-  }, []);
+  // Simple version comparison helper
+  const isVersionNewer = (current, latest) => {
+    if (!current || !latest) return false;
+    if (current === "Kurulu" || current === "Portable" || latest === "Son Sürüm" || latest === "Web") return false;
+    
+    const clean = (v) => v.replace(/^v/, '').split('.').map(n => parseInt(n) || 0);
+    const curParts = clean(current);
+    const latParts = clean(latest);
+    
+    for (let i = 0; i < Math.max(curParts.length, latParts.length); i++) {
+      const c = curParts[i] || 0;
+      const l = latParts[i] || 0;
+      if (l > c) return true;
+      if (c > l) return false;
+    }
+    return false;
+  };
 
   const addLog = useCallback((msg, type = "info") => {
     const time = new Date().toLocaleTimeString();
     setLogs(prev => [...prev, { time, msg, type }].slice(-100));
+  }, []);
+
+  // Sync installers if LEGENDARY_APPS changes (Dev/HMR)
+  useEffect(() => {
+    setInstallers(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
   }, []);
 
   const refreshInstalledStatus = useCallback(async () => {
@@ -38,22 +59,34 @@ export const useInstallation = () => {
       }));
       const newInstalledApps = await safeInvoke("batch_check_installations", { apps: payload }, {});
       const installedPaths = new Set();
+      const updates = {};
+
       for (const app of installers) {
-        if (newInstalledApps[app.id] && !app.script_cmd && !app.is_resource) {
+        const currentVersion = newInstalledApps[app.id];
+        if (currentVersion && !app.script_cmd && !app.is_resource) {
           installedPaths.add(app.path);
+          
+          // Check for update
+          if (isVersionNewer(currentVersion, app.version)) {
+            updates[app.id] = { current: currentVersion, latest: app.version };
+          }
         }
       }
 
       setInstalledApps(newInstalledApps);
+      setUpdatesAvailable(updates);
       
       // Kurulu olanları seçili listesinden çıkar
       setSelected(prev => {
         const next = new Set(prev);
         let changed = false;
         installedPaths.forEach(path => {
-          if (next.has(path)) {
-            next.delete(path);
-            changed = true;
+          if (next.has(path) && !updates[installers.find(i => i.path === path)?.id]) {
+             // If update available, keep it selectable maybe? 
+             // Actually, usually users want to see it as "Update" rather than just another selection.
+             // But for now, we'll keep it simple: if installed, remove from selection unless update is forced.
+             next.delete(path);
+             changed = true;
           }
         });
         return changed ? next : prev;
@@ -64,12 +97,10 @@ export const useInstallation = () => {
     }
   }, [installers]);
 
-  // Initial load
   useEffect(() => {
     refreshInstalledStatus();
   }, [refreshInstalledStatus]);
 
-  // Listen for progress events
   useEffect(() => {
     const unlisten = listen('install-progress', (event) => {
       const { package_id, percentage, message } = event.payload;
@@ -102,7 +133,6 @@ export const useInstallation = () => {
   const toggleSelect = useCallback(async (path) => {
     if (installing) return;
     
-    // Uygulama kurulu mu kontrol et
     const app = installers.find(i => i.path === path);
     if (app && installedApps[app.id] && !app.script_cmd && !app.is_resource) {
       addLog(`"${app.name}" zaten kurulu. Tekrar kurmak için önce kaldırmalısınız.`, "info");
@@ -117,6 +147,53 @@ export const useInstallation = () => {
       return next;
     });
     sounds.playClick();
+  }, [installing, installers, installedApps, addLog]);
+
+  const exportSelection = useCallback(async () => {
+    if (selected.size === 0) {
+      addLog("Dışa aktarılacak uygulama seçilmedi.", "error");
+      return;
+    }
+    try {
+      const data = JSON.stringify(Array.from(selected), null, 2);
+      const path = await save({
+        filters: [{ name: 'StashZero Paket', extensions: ['json'] }],
+        defaultPath: 'stashzero-paket.json'
+      });
+      if (path) {
+        await writeTextFile(path, data);
+        addLog("Seçim listesi başarıyla kaydedildi.", "success");
+        sounds.playSuccess();
+      }
+    } catch (e) {
+      addLog(`Dışa aktarma hatası: ${e}`, "error");
+    }
+  }, [selected, addLog]);
+
+  const importSelection = useCallback(async () => {
+    if (installing) return;
+    try {
+      const path = await open({
+        filters: [{ name: 'StashZero Paket', extensions: ['json'] }],
+        multiple: false
+      });
+      if (path) {
+        const content = await readTextFile(path);
+        const list = JSON.parse(content);
+        if (Array.isArray(list)) {
+          // Sadece kütüphanede olan ve kurulu olmayanları seç
+          const validPaths = list.filter(p => {
+            const app = installers.find(i => i.path === p);
+            return app && !(installedApps[app.id] && !app.script_cmd && !app.is_resource);
+          });
+          setSelected(new Set(validPaths));
+          addLog(`${validPaths.length} uygulama listeden yüklendi.`, "success");
+          sounds.playSuccess();
+        }
+      }
+    } catch (e) {
+      addLog(`İçe aktarma hatası: ${e}`, "error");
+    }
   }, [installing, installers, installedApps, addLog]);
 
   const proceedUninstall = useCallback(async (app, setShowLogs) => {
@@ -248,6 +325,7 @@ export const useInstallation = () => {
     appProgress,
     logs,
     isSessionActive,
+    updatesAvailable,
     toggleSelect,
     refreshInstalledStatus,
     addLog,
@@ -255,6 +333,16 @@ export const useInstallation = () => {
     startInstall,
     selectAll,
     clearSelection,
+    exportSelection,
+    importSelection,
+    getAllSystemSoftware: async () => {
+      try {
+        return await safeInvoke("get_all_installed_software", {}, []);
+      } catch (e) {
+        console.error("Failed to get system software", e);
+        return [];
+      }
+    },
     setLogs,
     setIsSessionActive,
     shellType,

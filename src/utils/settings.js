@@ -13,6 +13,8 @@ export const SettingKeys = {
   musicPosition: `${PREFIX}music-position`,
   updateCache: `${PREFIX}update-check`,
   updateSkip: `${PREFIX}update-skip`,
+  language: `${PREFIX}language`,
+  favorites: `${PREFIX}favorites`,
 };
 
 export const VALID_THEMES = ["aurora", "nebula", "sunset", "mint", "onyx"];

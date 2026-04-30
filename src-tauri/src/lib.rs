@@ -59,6 +59,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             sysinfo::prefetch_static_info();
+            sysinfo::start_telemetry_emitter(app.handle().clone());
 
             let show_i = MenuItem::with_id(app, "show", "StashZero'yu Göster", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Çıkış", true, None::<&str>)?;
@@ -111,6 +112,7 @@ pub fn run() {
             sysinfo::get_fast_telemetry,
             sysinfo::get_slow_telemetry,
             installer::get_installed_winget_ids,
+            installer::get_all_installed_software,
             installer::batch_check_installations,
             installer::install_exe_from_url,
             installer::uninstall_software,

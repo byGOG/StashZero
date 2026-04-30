@@ -282,6 +282,19 @@ pub async fn get_installed_winget_ids() -> Result<Vec<(String, String)>, String>
     Ok(fetch_winget_list().await)
 }
 
+#[tauri::command]
+pub async fn get_all_installed_software() -> Result<Vec<serde_json::Value>, String> {
+    let list = fetch_winget_list().await;
+    let mut result = Vec::new();
+    for (name, version) in list {
+        result.push(serde_json::json!({
+            "name": name,
+            "version": version
+        }));
+    }
+    Ok(result)
+}
+
 fn clean_version(raw: &str) -> String {
     let trimmed = raw.trim().trim_start_matches(|c| c == 'v' || c == 'V');
     let cut: &str = trimmed
@@ -765,10 +778,17 @@ pub async fn install_exe_from_url(
 
     let target_str = target_path.to_str().unwrap();
     let final_args = install_args.unwrap_or_else(|| "/S".to_string());
-    let args_part = if final_args.is_empty() {
+    
+    // Split arguments by space and wrap each in single quotes for PowerShell array
+    let args_list: Vec<String> = final_args
+        .split_whitespace()
+        .map(|s| format!("'{}'", s.replace('\'', "''")))
+        .collect();
+    
+    let args_part = if args_list.is_empty() {
         "".to_string()
     } else {
-        format!("-ArgumentList '{}'", final_args)
+        format!("-ArgumentList @({})", args_list.join(", "))
     };
 
     log::info!(
