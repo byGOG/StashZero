@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
-import { sounds } from "../../utils/audio";
 import AppLogo from "../icons/AppLogo";
 
 const SettingsIcon = ({ name }) => {
@@ -20,11 +19,14 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, installers 
 
   useEffect(() => {
     if (isOpen) {
-      setLoading(true);
+      // setLoading(true) is already the default state or set when opening
       getAllSystemSoftware().then(list => {
         setApps(list || []);
         setLoading(false);
       }).catch(() => setLoading(false));
+    } else {
+      // Reset loading for next time
+      setLoading(true);
     }
   }, [isOpen, getAllSystemSoftware]);
 
