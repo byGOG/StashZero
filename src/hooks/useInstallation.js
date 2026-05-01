@@ -149,52 +149,7 @@ export const useInstallation = () => {
     sounds.playClick();
   }, [installing, installers, installedApps, addLog]);
 
-  const exportSelection = useCallback(async () => {
-    if (selected.size === 0) {
-      addLog("Dışa aktarılacak uygulama seçilmedi.", "error");
-      return;
-    }
-    try {
-      const data = JSON.stringify(Array.from(selected), null, 2);
-      const path = await save({
-        filters: [{ name: 'StashZero Paket', extensions: ['json'] }],
-        defaultPath: 'stashzero-paket.json'
-      });
-      if (path) {
-        await writeTextFile(path, data);
-        addLog("Seçim listesi başarıyla kaydedildi.", "success");
-        sounds.playSuccess();
-      }
-    } catch (e) {
-      addLog(`Dışa aktarma hatası: ${e}`, "error");
-    }
-  }, [selected, addLog]);
 
-  const importSelection = useCallback(async () => {
-    if (installing) return;
-    try {
-      const path = await open({
-        filters: [{ name: 'StashZero Paket', extensions: ['json'] }],
-        multiple: false
-      });
-      if (path) {
-        const content = await readTextFile(path);
-        const list = JSON.parse(content);
-        if (Array.isArray(list)) {
-          // Sadece kütüphanede olan ve kurulu olmayanları seç
-          const validPaths = list.filter(p => {
-            const app = installers.find(i => i.path === p);
-            return app && !(installedApps[app.id] && !app.script_cmd && !app.is_resource);
-          });
-          setSelected(new Set(validPaths));
-          addLog(`${validPaths.length} uygulama listeden yüklendi.`, "success");
-          sounds.playSuccess();
-        }
-      }
-    } catch (e) {
-      addLog(`İçe aktarma hatası: ${e}`, "error");
-    }
-  }, [installing, installers, installedApps, addLog]);
 
   const proceedUninstall = useCallback(async (app, setShowLogs) => {
     setInstalling(true);
@@ -333,12 +288,7 @@ export const useInstallation = () => {
     startInstall,
     selectAll,
     clearSelection,
-    loadSelection: (paths) => {
-      if (installing) return;
-      setSelected(new Set(paths));
-    },
-    exportSelection,
-    importSelection,
+
     getAllSystemSoftware: useCallback(async () => {
       try {
         return await safeInvoke("get_all_installed_software", {}, []);
