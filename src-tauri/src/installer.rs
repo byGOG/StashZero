@@ -778,13 +778,13 @@ pub async fn install_exe_from_url(
 
     let target_str = target_path.to_str().unwrap();
     let final_args = install_args.unwrap_or_else(|| "/S".to_string());
-    
+
     // Split arguments by space and wrap each in single quotes for PowerShell array
     let args_list: Vec<String> = final_args
         .split_whitespace()
         .map(|s| format!("'{}'", s.replace('\'', "''")))
         .collect();
-    
+
     let args_part = if args_list.is_empty() {
         "".to_string()
     } else {
