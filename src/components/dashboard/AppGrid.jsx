@@ -16,8 +16,6 @@ const AppCard = memo(function AppCard({
   onLaunch,
   onOpenUrl,
   onMouseMove,
-  t,
-  lang = "tr",
   updateInfo = null,
   isFavorite = false,
   onToggleFavorite = () => {}
@@ -59,7 +57,7 @@ const AppCard = memo(function AppCard({
         <div className="installed-overlay">
           <div className="overlay-content">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <span className="glass-status-text">{t('app_card.installed')}</span>
+            <span className="glass-status-text">Kuruldu</span>
           </div>
         </div>
       )}
@@ -73,13 +71,13 @@ const AppCard = memo(function AppCard({
            </div>
            <button className="update-action-btn" onClick={(e) => { e.stopPropagation(); onClick(); }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>{t('app_card.update')}</span>
+              <span>Güncelle</span>
            </button>
         </div>
       )}
 
       <div className={`haptic-toast ${shake ? "shake-toast show" : ""}`}>
-        {lang === 'tr' ? 'Yeniden kurmak için önce kaldırın!' : 'Uninstall before reinstalling!'}
+        Yeniden kurmak için önce kaldırın!
       </div>
 
       <div className="app-info">
@@ -91,8 +89,8 @@ const AppCard = memo(function AppCard({
         </div>
 
         <div className="badges-row">
-          {app.portable && <span className="app-badge badge-portable">{t('app_card.portable')}</span>}
-          {(!app.is_resource && installedVersion) && <span className="app-badge badge-installed">{t('app_card.installed')}</span>}
+          {app.portable && <span className="app-badge badge-portable">Taşınabilir</span>}
+          {(!app.is_resource && installedVersion) && <span className="app-badge badge-installed">Kurulu</span>}
           <span className="app-badge badge-version">{versionLabel}</span>
           {!app.is_resource && !app.script_cmd && app.size_bytes && (
             <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
@@ -115,7 +113,7 @@ const AppCard = memo(function AppCard({
             <button
               className="icon-action-btn"
               onClick={(e) => { e.stopPropagation(); onOpenUrl(app.official_url); }}
-              title={t('modals.about.links')}
+              title="Bağlantılar"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             </button>
@@ -124,7 +122,7 @@ const AppCard = memo(function AppCard({
             <button
               className="icon-action-btn delete-vibe"
               onClick={(e) => { e.stopPropagation(); onUninstall(app); }}
-              title={t('app_card.uninstall')}
+              title="Kaldır"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
@@ -132,7 +130,7 @@ const AppCard = memo(function AppCard({
           {((isInstalled && app.portable) || app.script_cmd) && !app.hide_launch && (
             <button
               className={`primary-launch-btn ${app.script_cmd ? 'script-vibe' : ''}`}
-              title={app.script_cmd ? t('app_card.script') : t('app_card.launch')}
+              title={app.script_cmd ? 'Betik' : 'Başlat'}
               onClick={(e) => { e.stopPropagation(); onLaunch(app); }}
             >
               {app.script_cmd ? (
@@ -164,8 +162,6 @@ const AppGrid = ({
   addLog,
   setShowLogs,
   lowFx = false,
-  t,
-  lang = "tr",
   updatesAvailable = {},
   favorites = new Set(),
   onToggleFavorite = () => {}
@@ -202,7 +198,7 @@ const AppGrid = ({
   if (filteredApps.length === 0) {
     return (
       <div className="content-scroll">
-        <div className="empty-state">{t('modals.installed.empty')}</div>
+        <div className="empty-state">Yüklü uygulama bulunamadı.</div>
       </div>
     );
   }
@@ -212,7 +208,7 @@ const AppGrid = ({
       <div className={`category-apps ${lowFx ? 'no-anim' : 'enter-anim'}`}>
         {filteredApps.map((app) => (
           <AppCard
-            key={app.path}
+            key={app.id}
             app={app}
             isSelected={selected.has(app.path)}
             status={installStatus[app.path]}
@@ -225,8 +221,6 @@ const AppGrid = ({
             onLaunch={handleLaunch}
             onOpenUrl={openUrl}
             onMouseMove={handleMouseMove}
-            t={t}
-            lang={lang}
             updateInfo={updatesAvailable[app.id]}
             isFavorite={favorites.has(app.id)}
             onToggleFavorite={onToggleFavorite}

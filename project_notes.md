@@ -20,14 +20,10 @@
 - [x] Sistem performansı panelindeki anlık CPU, RAM ve Disk değerleri için Rust event listener'larının kurulması. (Fast-telemetry emitter eklendi, polling kaldırıldı)
 - [x] **Paket İçe/Dışa Aktarma:** Seçili uygulamaları JSON olarak yedekleme ve geri yükleme.
 - [x] **Sistem Yazılım Algılama (Deep Scan):** Kayıt defteri üzerinden kurulu tüm programları listeleme.
-- [x] **Çoklu Dil Desteği (i18n):** Türkçe ve İngilizce dil seçenekleri entegre edildi.
+- [x] **Türkçe Dil Desteği:** Uygulama tamamen Türkçe arayüze sabitlendi (i18n kaldırıldı).
 - [x] **Dinamik Uygulama Veritabanı:** Kütüphane verilerinin GitHub üzerinden anlık güncellenmesi sağlandı.
 - [x] **Güncelleme Kontrolü (Update Support):** Kurulu uygulamaların yeni sürümlerini algılama ve görsel uyarı sistemi eklendi.
 - [x] **Kategori Yönetimi (Favoriler):** Uygulamaları favorilere ekleme ve özel favoriler kategorisi desteği.
-- [x] **Gelişmiş Filtreleme:** Boyut, sürüm ve kategoriye göre gelişmiş arama ve sıralama seçenekleri. (Gelişmiş sıralama eklendi)
-- [x] **Kullanıcı Profilleri:** Farklı kurulum paketlerini farklı profil isimleri altında saklama. (Profil Modal'ı eklendi)
-- [x] **Topluluk Paylaşımı (Community Sync):** Profil paketlerini URL üzerinden (Gist, GitHub vb.) içe aktarma ve panoya kopyalama desteği.
-- [x] **Gelişmiş Paket Editörü:** Mevcut profilleri düzenleme, isim değiştirme ve içerik güncelleme seçenekleri.
 - [x] **Gelişmiş Log Analizi:** Logları türüne göre (Hata, Başarı, Süreç) filtreleme, arama ve dosyaya (.log) kaydetme desteği.
 - [x] **Premium UI/UX Cilalama:** Glassmorphism efektleri, rim lighting, mikro-animasyonlar ve dinamik mesh gradient geçişleri ile görsel kalite artırıldı.
 
