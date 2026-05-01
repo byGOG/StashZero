@@ -30,14 +30,12 @@ const Header = memo(function Header({
   searchInputRef,
   searchTerm,
   setSearchTerm,
-  sortBy,
-  setSortBy,
-  showMusicPlayer,
   handleIslandClick,
   currentTrackArt,
   isMusicPlaying,
   currentTrackTitle,
-  systemInfo
+  systemInfo,
+  showMusicPlayer
 }) {
   return (
     <header className="top-bar">
@@ -57,14 +55,6 @@ const Header = memo(function Header({
           />
           {!searchTerm && <div className="search-shortcut">CTRL + F</div>}
         </div>
-        
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
-          <option value="default">Sıralama: Varsayılan</option>
-          <option value="name_asc">İsim (A-Z)</option>
-          <option value="name_desc">İsim (Z-A)</option>
-          <option value="size_asc">Boyut (Küçükten)</option>
-          <option value="size_desc">Boyut (Büyükten)</option>
-        </select>
       </div>
 
       <div className={`music-island ${showMusicPlayer ? 'active' : ''}`}>

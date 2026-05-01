@@ -66,11 +66,14 @@ const LogPanel = ({
       <div className="log-resize-handle" onMouseDown={startLogResize} />
       
       <div className="terminal-header">
-        <div className="terminal-title">
-          <div className="terminal-icon-box">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+        <div className="log-header-left">
+          <div className="log-header-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
           </div>
-          <span>STASHZERO TERMİNAL</span>
+          <div className="log-header-title">
+            <h3>Log Analizi + Terminal</h3>
+            <span className="log-count">{logs.length} Kayıt</span>
+          </div>
         </div>
 
         <div className="terminal-controls">
@@ -84,11 +87,11 @@ const LogPanel = ({
             />
           </div>
 
-          <div className="log-filters">
-            <button className={`filter-btn ${logFilter === 'all' ? 'active' : ''}`} onClick={() => setLogFilter('all')}>Hepsi</button>
-            <button className={`filter-btn error ${logFilter === 'error' ? 'active' : ''}`} onClick={() => setLogFilter('error')}>Hatalar</button>
-            <button className={`filter-btn success ${logFilter === 'success' ? 'active' : ''}`} onClick={() => setLogFilter('success')}>Başarılı</button>
-            <button className={`filter-btn process ${logFilter === 'process' ? 'active' : ''}`} onClick={() => setLogFilter('process')}>Süreç</button>
+          <div className="log-filter-tabs">
+            <button className={`filter-tab ${logFilter === 'all' ? 'active' : ''}`} onClick={() => setLogFilter('all')}>Hepsi</button>
+            <button className={`filter-tab ${logFilter === 'error' ? 'active' : ''}`} onClick={() => setLogFilter('error')}>Hatalar</button>
+            <button className={`filter-tab ${logFilter === 'success' ? 'active' : ''}`} onClick={() => setLogFilter('success')}>Başarı</button>
+            <button className={`filter-tab ${logFilter === 'process' ? 'active' : ''}`} onClick={() => setLogFilter('process')}>Süreç</button>
           </div>
 
           <div className="terminal-divider" />

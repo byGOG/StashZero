@@ -339,14 +339,14 @@ export const useInstallation = () => {
     },
     exportSelection,
     importSelection,
-    getAllSystemSoftware: async () => {
+    getAllSystemSoftware: useCallback(async () => {
       try {
         return await safeInvoke("get_all_installed_software", {}, []);
       } catch (e) {
         console.error("Failed to get system software", e);
         return [];
       }
-    },
+    }, []),
     setLogs,
     setIsSessionActive,
     shellType,

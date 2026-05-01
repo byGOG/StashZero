@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { sounds } from "../../utils/audio";
+import AppLogo from "../icons/AppLogo";
 
 const SettingsIcon = ({ name }) => {
   const props = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -12,7 +13,7 @@ const SettingsIcon = ({ name }) => {
   }
 };
 
-const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, t }) => {
+const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, installers = [] }) => {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -26,6 +27,17 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, t }) => {
       }).catch(() => setLoading(false));
     }
   }, [isOpen, getAllSystemSoftware]);
+
+  const getAppId = (appName) => {
+    const term = appName.toLowerCase();
+    // Library içinde tam veya kısmi eşleşme ara
+    const match = installers.find(i => 
+      term === i.name.toLowerCase() ||
+      term.startsWith(i.name.toLowerCase() + " ") ||
+      (i.id && term.includes(i.id.toLowerCase()))
+    );
+    return match ? match.id : null;
+  };
 
   const filtered = useMemo(() => {
     return apps.filter(a => a.name.toLowerCase().includes(search.toLowerCase()))
@@ -46,10 +58,10 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, t }) => {
 
         <div className="settings-header">
           <div className="settings-title-block">
-            <h2>{t('modals.installed.title')}</h2>
-            <span className="settings-subtitle">{t('modals.installed.subtitle', { count: apps.length })}</span>
+            <h2>Sistemdeki Yazılımlar</h2>
+            <span className="settings-subtitle">{apps.length} uygulama bulundu</span>
           </div>
-          <button className="settings-close" onClick={onClose} aria-label={t('modals.installed.close')}>
+          <button className="settings-close" onClick={onClose} aria-label="Kapat">
             <SettingsIcon name="close" />
           </button>
         </div>
@@ -59,7 +71,7 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, t }) => {
             <SettingsIcon name="search" />
             <input 
               type="text" 
-              placeholder={t('modals.installed.search_placeholder')}
+              placeholder="Uygulama ara..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoFocus
@@ -71,30 +83,34 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, t }) => {
           {loading ? (
             <div className="modal-loading">
               <div className="spinner" />
-              <span>{t('modals.installed.loading')}</span>
+              <span>Sistem taranıyor...</span>
             </div>
           ) : (
             <div className="installed-apps-grid">
               {filtered.map((app, idx) => (
                 <div key={idx} className="installed-app-row">
                   <div className="app-icon-mini">
-                    <SettingsIcon name="box" />
+                    {getAppId(app.name) ? (
+                      <AppLogo id={getAppId(app.name)} className="mini-brand-logo" />
+                    ) : (
+                      <SettingsIcon name="box" />
+                    )}
                   </div>
                   <div className="app-details-mini">
                     <span className="app-name-mini">{app.name}</span>
-                    <span className="app-version-mini">{app.version || t('app_card.version') + ": ?"}</span>
+                    <span className="app-version-mini">{app.version || "Sürüm: ?"}</span>
                   </div>
                 </div>
               ))}
               {filtered.length === 0 && (
-                <div className="empty-search">{t('modals.installed.empty')}</div>
+                <div className="empty-search">Sonuç bulunamadı.</div>
               )}
             </div>
           )}
         </div>
 
         <div className="settings-footer v2">
-          <button className="settings-btn-primary" onClick={onClose}>{t('modals.installed.close')}</button>
+          <button className="settings-btn-primary" onClick={onClose}>Kapat</button>
         </div>
       </Motion.div>
     </div>

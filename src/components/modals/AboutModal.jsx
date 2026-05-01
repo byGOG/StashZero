@@ -3,7 +3,7 @@ import ProjectLogo from "../icons/ProjectLogo";
 import AboutHero from "../../assets/about-hero.png";
 import ByGogMark from "../../assets/bygog-mark.png";
 
-const AboutModal = ({ isOpen, onClose, t }) => {
+const AboutModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const handleLinkClick = async (e, url) => {
@@ -35,8 +35,8 @@ const AboutModal = ({ isOpen, onClose, t }) => {
 
         <div className="about-body-glass">
           <div className="about-header-glass">
-            <h2>{t('modals.about.title')}</h2>
-            <p>{t('modals.about.description')}</p>
+            <h2>Hakkında</h2>
+            <p>StashZero, Windows sistemleri için minimalist, hızlı ve güçlü bir uygulama yönetim ve sistem optimizasyon aracıdır.</p>
           </div>
 
           <div className="about-inspiration">

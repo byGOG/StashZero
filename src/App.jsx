@@ -16,7 +16,6 @@ import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
 import UpdateModal from "./components/modals/UpdateModal";
 import InstalledAppsModal from "./components/modals/InstalledAppsModal";
-import ProfilesModal from "./components/modals/ProfilesModal";
 
 // Hooks
 import { useInstallation } from "./hooks/useInstallation";
@@ -28,7 +27,6 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useCommandHistory } from "./hooks/useCommandHistory";
 import { useLibrary } from "./hooks/useLibrary";
 import { useSoundCloudPlayer } from "./hooks/useSoundCloudPlayer";
-import { useTranslation } from "./i18n/useTranslation";
 
 const CATEGORY_ICON_MAP = {
   "Web Tarayıcıları": "globe",
@@ -85,18 +83,15 @@ function App() {
   } = useInstallation();
 
   const { apps: installers, isUpdating: isLibraryUpdating, updateLibrary } = useLibrary();
-  const { t, lang, changeLanguage } = useTranslation();
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("default");
   const [currentTheme, setCurrentTheme] = useState(() => getString(SettingKeys.theme, "aurora"));
   const [currentFont, setCurrentFont] = useState(() => getString(SettingKeys.font, "inter"));
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showInstalled, setShowInstalled] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
-  const [showProfiles, setShowProfiles] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
 
   const [activeCategory, setActiveCategory] = useState(() => getString(SettingKeys.activeCategory, null));
@@ -218,18 +213,8 @@ function App() {
       }
     }
 
-    if (sortBy !== "default") {
-      result = [...result].sort((a, b) => {
-        if (sortBy === "name_asc") return a.name.localeCompare(b.name);
-        if (sortBy === "name_desc") return b.name.localeCompare(a.name);
-        if (sortBy === "size_asc") return (a.size_bytes || 0) - (b.size_bytes || 0);
-        if (sortBy === "size_desc") return (b.size_bytes || 0) - (a.size_bytes || 0);
-        return 0;
-      });
-    }
-
     return result;
-  }, [installers, deferredSearchTerm, activeCategory, favorites, effectiveCategory, sortBy]);
+  }, [installers, deferredSearchTerm, activeCategory, favorites, effectiveCategory]);
 
   const startUninstall = async (targetApp) => {
     if (!targetApp) return;
@@ -256,7 +241,6 @@ function App() {
         break;
       case "change-theme": setCurrentTheme(data); setString(SettingKeys.theme, data); break;
       case "change-font": setCurrentFont(data); setString(SettingKeys.font, data); break;
-      case "change-lang": changeLanguage(data); break;
       case "check-updates": updateChecker.checkNow(); break;
       case "toggle-favorite": 
         setFavorites(prev => {
@@ -304,7 +288,6 @@ function App() {
         activeCategory={effectiveCategory} 
         setActiveCategory={setActiveCategory} 
         handleMenuAction={handleMenuAction} 
-        t={t}
       />
 
       <main className="main-content">
@@ -312,8 +295,6 @@ function App() {
           searchInputRef={searchInputRef}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
           showMusicPlayer={musicPanelOpen}
           handleIslandClick={toggleMusicPanel}
           currentTrackArt={musicTrackArt}
@@ -334,8 +315,6 @@ function App() {
           addLog={addLog}
           setShowLogs={setShowLogs}
           lowFx={lowFx}
-          t={t}
-          lang={lang}
           updatesAvailable={updatesAvailable}
           favorites={favorites}
           onToggleFavorite={(id) => handleMenuAction("toggle-favorite", id)}
@@ -375,44 +354,7 @@ function App() {
           lowFx={lowFx}
         />
 
-      <SettingsModal
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
-        autoCleanup={autoCleanup}
-        setAutoCleanup={setAutoCleanup}
-        soundEnabled={soundEnabled}
-        setSoundEnabled={setSoundEnabled}
-        currentTheme={currentTheme}
-        currentFont={currentFont}
-        fontSize={fontSize}
-        setFontSize={setFontSize}
-        handleMenuAction={handleMenuAction}
-        perfMode={perfMode}
-        setPerfMode={setPerfMode}
-        lang={lang}
-        changeLanguage={(l) => handleMenuAction("change-lang", l)}
-        t={t}
-      />
-
-      <AboutModal
-        showAbout={showAbout}
-        setShowAbout={setShowAbout}
-        t={t}
-      />
-
-      <UpdateModal
-        isOpen={updateChecker.showModal}
-        onClose={() => updateChecker.setShowModal(false)}
-        updateData={updateChecker.updateData}
-        currentVersion={updateChecker.currentVersion}
-        onCheckNow={updateChecker.checkNow}
-      />
-
-      <InstalledAppsModal
-        isOpen={showInstalled}
-        onClose={() => setShowInstalled(false)}
-        getAllSystemSoftware={getAllSystemSoftware}
-      />
+      {/* Modals are rendered at the bottom for better layering */}
 
       {/* Global Music Player Layer — iframe mounts lazily on first open */}
       {musicMounted && (
@@ -474,10 +416,6 @@ function App() {
           </div>
           
           <div className="pill-buttons">
-            <button className="pill-btn-secondary" onClick={() => setShowProfiles(true)} disabled={installing} title="Profiller & Paket Yönetimi">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            </button>
-            <div className="pill-sep-v" />
             <button className="pill-btn-clear" onClick={clearSelection} disabled={installing} title="Seçimi Temizle">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
             </button>
@@ -504,17 +442,44 @@ function App() {
         onCancel={() => setAdminRequest({ show: false, app: null, action: "" })}
       />
 
-      <ProfilesModal
-        isOpen={showProfiles}
-        onClose={() => setShowProfiles(false)}
-        selected={selected}
-        setSelected={loadSelection}
+
+
+      <AboutModal
+        isOpen={showAbout}
+        onClose={() => setShowAbout(false)}
+      />
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        autoCleanup={autoCleanup}
+        setAutoCleanup={setAutoCleanup}
+        soundEnabled={soundEnabled}
+        setSoundEnabled={setSoundEnabled}
+        currentTheme={currentTheme}
+        currentFont={currentFont}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        handleMenuAction={handleMenuAction}
+        perfMode={perfMode}
+        setPerfMode={setPerfMode}
+      />
+
+      <UpdateModal
+        visible={updateChecker.visible}
+        onClose={updateChecker.dismiss}
+        onSkip={updateChecker.skip}
+        onCheckNow={updateChecker.checkNow}
+        info={updateChecker.updateInfo}
+        checking={updateChecker.checking}
+        currentVersion={updateChecker.currentVersion}
+      />
+
+      <InstalledAppsModal
+        isOpen={showInstalled}
+        onClose={() => setShowInstalled(false)}
+        getAllSystemSoftware={getAllSystemSoftware}
         installers={installers}
-        installedApps={installedApps}
-        exportSelection={exportSelection}
-        importSelection={importSelection}
-        addLog={addLog}
-        t={t}
       />
     </div>
     </MotionConfig>
