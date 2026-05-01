@@ -24,16 +24,21 @@
 - [x] **Dinamik Uygulama Veritabanı:** Kütüphane verilerinin GitHub üzerinden anlık güncellenmesi sağlandı.
 - [x] **Güncelleme Kontrolü (Update Support):** Kurulu uygulamaların yeni sürümlerini algılama ve görsel uyarı sistemi eklendi.
 - [x] **Kategori Yönetimi (Favoriler):** Uygulamaları favorilere ekleme ve özel favoriler kategorisi desteği.
-- [ ] **Gelişmiş Filtreleme:** Boyut, sürüm ve kategoriye göre gelişmiş arama ve sıralama seçenekleri.
-- [ ] **Kullanıcı Profilleri:** Farklı kurulum paketlerini farklı profil isimleri altında saklama.
+- [x] **Gelişmiş Filtreleme:** Boyut, sürüm ve kategoriye göre gelişmiş arama ve sıralama seçenekleri. (Gelişmiş sıralama eklendi)
+- [x] **Kullanıcı Profilleri:** Farklı kurulum paketlerini farklı profil isimleri altında saklama. (Profil Modal'ı eklendi)
+- [x] **Topluluk Paylaşımı (Community Sync):** Profil paketlerini URL üzerinden (Gist, GitHub vb.) içe aktarma ve panoya kopyalama desteği.
+- [x] **Gelişmiş Paket Editörü:** Mevcut profilleri düzenleme, isim değiştirme ve içerik güncelleme seçenekleri.
+- [x] **Gelişmiş Log Analizi:** Logları türüne göre (Hata, Başarı, Süreç) filtreleme, arama ve dosyaya (.log) kaydetme desteği.
+- [x] **Premium UI/UX Cilalama:** Glassmorphism efektleri, rim lighting, mikro-animasyonlar ve dinamik mesh gradient geçişleri ile görsel kalite artırıldı.
 
 ## Roadmap & Gelecek Planları 🚀
-- **v0.4.0 (Mevcut):** Güncelleme Desteği ve Favori Sistemi tamamlandı.
-- **v0.5.0:** Topluluk Odaklı Paylaşım ve Gelişmiş Paket Yönetimi.
+- **v0.4.0 (Tamamlandı):** Güncelleme Desteği, Favori Sistemi ve Performans Optimizasyonu.
+- **v0.5.0 (Tamamlandı):** Topluluk Odaklı Paylaşım ve Gelişmiş Paket Yönetimi.
+- **v0.6.0 (Geliştiriliyor):** Gelişmiş Log Analizi ve Cloud Sync (Opsiyonel).
 
 ## 🐛 Bilinen Hatalar (Bugs)
 - [ ] *Henüz bilinen bir hata raporlanmadı. Test aşamasında tespit edildikçe buraya eklenecek.*
 
 ## 💡 Notlar ve Fikirler
 - **Dinamik Uygulama Veritabanı:** Uygulama indirme linklerini uygulama içerisine gömmek yerine, GitHub üzerinden çekilen dinamik bir JSON dosyasıyla beslemek linkler güncellendiğinde uygulamanın tekrar derlenmesini önleyecektir.
-- **Optimizasyon:** Performans modu devreye girdiğinde Framer Motion animasyonlarını tamamen kapatarak düşük donanımlı sistemlerde CPU yükünü azaltmak hedeflenmeli.
+- **Optimizasyon:** [x] Performans modu devreye girdiğinde Framer Motion animasyonlarını tamamen kapatarak düşük donanımlı sistemlerde CPU yükünü azaltmak sağlandı (MotionConfig & Global CSS override).
