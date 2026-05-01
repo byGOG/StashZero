@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { safeInvoke } from "../../utils/tauri";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { sounds } from "../../utils/audio";
 
 const LogPanel = ({
   showLogs,
@@ -19,6 +22,8 @@ const LogPanel = ({
   handleHistoryNavigation
 }) => {
   const [copied, setCopied] = useState(false);
+  const [logFilter, setLogFilter] = useState("all"); // all, error, success, process
+  const [logSearch, setLogSearch] = useState("");
 
   const handleCopyAll = () => {
     const text = logs.map(l => `[${l.time}] ${l.msg}`).join('\n');
@@ -26,6 +31,30 @@ const LogPanel = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleSaveLogs = async () => {
+    try {
+      const text = logs.map(l => `[${l.time}] [${l.type.toUpperCase()}] ${l.msg}`).join('\n');
+      const path = await save({
+        filters: [{ name: 'StashZero Log', extensions: ['log', 'txt'] }],
+        defaultPath: `stashzero-session-${new Date().getTime()}.log`
+      });
+      if (path) {
+        await writeTextFile(path, text);
+        sounds.playSuccess();
+      }
+    } catch (e) {
+      console.error("Failed to save logs", e);
+    }
+  };
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      const matchesFilter = logFilter === "all" || log.type === logFilter;
+      const matchesSearch = log.msg.toLowerCase().includes(logSearch.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [logs, logFilter, logSearch]);
 
   if (!showLogs) return null;
 
@@ -45,6 +74,25 @@ const LogPanel = ({
         </div>
 
         <div className="terminal-controls">
+          <div className="log-search-box">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input 
+              type="text" 
+              placeholder="Loglarda ara..." 
+              value={logSearch}
+              onChange={(e) => setLogSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="log-filters">
+            <button className={`filter-btn ${logFilter === 'all' ? 'active' : ''}`} onClick={() => setLogFilter('all')}>Hepsi</button>
+            <button className={`filter-btn error ${logFilter === 'error' ? 'active' : ''}`} onClick={() => setLogFilter('error')}>Hatalar</button>
+            <button className={`filter-btn success ${logFilter === 'success' ? 'active' : ''}`} onClick={() => setLogFilter('success')}>Başarılı</button>
+            <button className={`filter-btn process ${logFilter === 'process' ? 'active' : ''}`} onClick={() => setLogFilter('process')}>Süreç</button>
+          </div>
+
+          <div className="terminal-divider" />
+
           <div className="shell-switcher-modern">
             <button 
               className={`shell-tab ${shellType === 'powershell' ? 'active' : ''}`}
@@ -54,7 +102,7 @@ const LogPanel = ({
                 await ensureTerminalSession('powershell');
               }}
             >
-              PowerShell
+              PS
             </button>
             <button 
               className={`shell-tab ${shellType === 'cmd' ? 'active' : ''}`}
@@ -64,7 +112,7 @@ const LogPanel = ({
                 await ensureTerminalSession('cmd');
               }}
             >
-              Komut İstemi
+              CMD
             </button>
           </div>
 
@@ -73,7 +121,7 @@ const LogPanel = ({
           {isSessionActive && (
              <div className="session-status">
                <span className="status-dot pulsing" />
-               ÇEVRİMİÇİ
+               ONLINE
              </div>
           )}
 
@@ -87,6 +135,10 @@ const LogPanel = ({
             ) : (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             )}
+          </button>
+
+          <button className="terminal-action-btn" onClick={handleSaveLogs} title="Logları Dosyaya Kaydet">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           </button>
 
           <button className="terminal-action-btn" onClick={() => setLogs([])} title="Terminali Temizle">
@@ -114,12 +166,16 @@ const LogPanel = ({
         </div>
 
         <div className="log-entries-container">
-          {logs.map((log, i) => (
-            <div key={i} className={`terminal-log-entry ${log.type}`}>
-              <span className="log-timestamp">[{log.time}]</span>
-              <span className="log-content-text">{log.msg}</span>
-            </div>
-          ))}
+          {filteredLogs.length === 0 ? (
+            <div className="empty-logs">Filtreye uygun log bulunamadı.</div>
+          ) : (
+            filteredLogs.map((log, i) => (
+              <div key={i} className={`terminal-log-entry ${log.type}`}>
+                <span className="log-timestamp">[{log.time}]</span>
+                <span className="log-content-text">{log.msg}</span>
+              </div>
+            ))
+          )}
           <div ref={logEndRef} />
         </div>
       </div>

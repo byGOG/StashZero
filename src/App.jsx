@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } from "react";
+import { MotionConfig } from "framer-motion";
 import { safeInvoke } from "./utils/tauri";
 import { sounds } from "./utils/audio";
 import { SettingKeys, getString, setString, getJSON } from "./utils/settings";
@@ -15,6 +16,7 @@ import SettingsModal from "./components/modals/SettingsModal";
 import AboutModal from "./components/modals/AboutModal";
 import UpdateModal from "./components/modals/UpdateModal";
 import InstalledAppsModal from "./components/modals/InstalledAppsModal";
+import ProfilesModal from "./components/modals/ProfilesModal";
 
 // Hooks
 import { useInstallation } from "./hooks/useInstallation";
@@ -72,6 +74,7 @@ function App() {
     startInstall,
     selectAll,
     clearSelection,
+    loadSelection,
     exportSelection,
     importSelection,
     getAllSystemSoftware,
@@ -86,12 +89,14 @@ function App() {
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("default");
   const [currentTheme, setCurrentTheme] = useState(() => getString(SettingKeys.theme, "aurora"));
   const [currentFont, setCurrentFont] = useState(() => getString(SettingKeys.font, "inter"));
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showInstalled, setShowInstalled] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [showProfiles, setShowProfiles] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
 
   const [activeCategory, setActiveCategory] = useState(() => getString(SettingKeys.activeCategory, null));
@@ -201,15 +206,30 @@ function App() {
 
   const filteredApps = useMemo(() => {
     const term = deferredSearchTerm.toLowerCase();
+    let result = installers;
+
     if (term) {
-      return installers.filter(app => app.name.toLowerCase().includes(term));
+      result = installers.filter(app => app.name.toLowerCase().includes(term));
+    } else if (effectiveCategory) {
+      if (activeCategory === "Favoriler") {
+        result = installers.filter(a => favorites.has(a.id));
+      } else {
+        result = installers.filter(a => a.category === effectiveCategory);
+      }
     }
-    if (!effectiveCategory) return installers;
-    if (activeCategory === "Favoriler") {
-      return installers.filter(a => favorites.has(a.id));
+
+    if (sortBy !== "default") {
+      result = [...result].sort((a, b) => {
+        if (sortBy === "name_asc") return a.name.localeCompare(b.name);
+        if (sortBy === "name_desc") return b.name.localeCompare(a.name);
+        if (sortBy === "size_asc") return (a.size_bytes || 0) - (b.size_bytes || 0);
+        if (sortBy === "size_desc") return (b.size_bytes || 0) - (a.size_bytes || 0);
+        return 0;
+      });
     }
-    return installers.filter(a => a.category === effectiveCategory);
-  }, [installers, deferredSearchTerm, activeCategory, favorites]);
+
+    return result;
+  }, [installers, deferredSearchTerm, activeCategory, favorites, effectiveCategory, sortBy]);
 
   const startUninstall = async (targetApp) => {
     if (!targetApp) return;
@@ -275,6 +295,7 @@ function App() {
   }, []);
 
   return (
+    <MotionConfig reducedMotion={lowFx ? "always" : "user"}>
     <div className={`app-layout theme-${currentTheme} font-${currentFont} ${lowFx ? 'low-fx' : ''}`} style={{ "--app-font-scale": fontSize / 100 }}>
       <div className="mesh-gradient" />
       
@@ -291,6 +312,8 @@ function App() {
           searchInputRef={searchInputRef}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           showMusicPlayer={musicPanelOpen}
           handleIslandClick={toggleMusicPanel}
           currentTrackArt={musicTrackArt}
@@ -310,7 +333,7 @@ function App() {
           startUninstall={startUninstall}
           addLog={addLog}
           setShowLogs={setShowLogs}
-          lowFx={perfMode === "low"}
+          lowFx={lowFx}
           t={t}
           lang={lang}
           updatesAvailable={updatesAvailable}
@@ -349,6 +372,7 @@ function App() {
           selectAll={selectAll}
           clearSelection={clearSelection}
           installing={installing}
+          lowFx={lowFx}
         />
 
       <SettingsModal
@@ -450,11 +474,8 @@ function App() {
           </div>
           
           <div className="pill-buttons">
-            <button className="pill-btn-secondary" onClick={importSelection} disabled={installing} title="Paket İçe Aktar">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
-            <button className="pill-btn-secondary" onClick={exportSelection} disabled={installing} title="Paket Dışa Aktar">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <button className="pill-btn-secondary" onClick={() => setShowProfiles(true)} disabled={installing} title="Profiller & Paket Yönetimi">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </button>
             <div className="pill-sep-v" />
             <button className="pill-btn-clear" onClick={clearSelection} disabled={installing} title="Seçimi Temizle">
@@ -482,7 +503,21 @@ function App() {
         }}
         onCancel={() => setAdminRequest({ show: false, app: null, action: "" })}
       />
+
+      <ProfilesModal
+        isOpen={showProfiles}
+        onClose={() => setShowProfiles(false)}
+        selected={selected}
+        setSelected={loadSelection}
+        installers={installers}
+        installedApps={installedApps}
+        exportSelection={exportSelection}
+        importSelection={importSelection}
+        addLog={addLog}
+        t={t}
+      />
     </div>
+    </MotionConfig>
   );
 }
 

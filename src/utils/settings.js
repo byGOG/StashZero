@@ -15,6 +15,7 @@ export const SettingKeys = {
   updateSkip: `${PREFIX}update-skip`,
   language: `${PREFIX}language`,
   favorites: `${PREFIX}favorites`,
+  profiles: `${PREFIX}profiles`,
 };
 
 export const VALID_THEMES = ["aurora", "nebula", "sunset", "mint", "onyx"];

@@ -30,6 +30,8 @@ const Header = memo(function Header({
   searchInputRef,
   searchTerm,
   setSearchTerm,
+  sortBy,
+  setSortBy,
   showMusicPlayer,
   handleIslandClick,
   currentTrackArt,
@@ -43,16 +45,26 @@ const Header = memo(function Header({
         {systemInfo && <NetMonitor netIn={systemInfo.net_in} netOut={systemInfo.net_out} />}
       </div>
 
-      <div className="search-container">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Uygulama ara..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        {!searchTerm && <div className="search-shortcut">CTRL + F</div>}
+      <div className="header-center-area">
+        <div className="search-container">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Uygulama ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {!searchTerm && <div className="search-shortcut">CTRL + F</div>}
+        </div>
+        
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
+          <option value="default">Sıralama: Varsayılan</option>
+          <option value="name_asc">İsim (A-Z)</option>
+          <option value="name_desc">İsim (Z-A)</option>
+          <option value="size_asc">Boyut (Küçükten)</option>
+          <option value="size_desc">Boyut (Büyükten)</option>
+        </select>
       </div>
 
       <div className={`music-island ${showMusicPlayer ? 'active' : ''}`}>

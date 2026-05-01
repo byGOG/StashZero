@@ -333,6 +333,10 @@ export const useInstallation = () => {
     startInstall,
     selectAll,
     clearSelection,
+    loadSelection: (paths) => {
+      if (installing) return;
+      setSelected(new Set(paths));
+    },
     exportSelection,
     importSelection,
     getAllSystemSoftware: async () => {
