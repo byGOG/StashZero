@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { safeInvoke } from "../utils/tauri";
 import { listen } from '@tauri-apps/api/event';
-import { save, open } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { sounds } from "../utils/audio";
 import { LEGENDARY_APPS } from "../data/library";
 

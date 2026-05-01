@@ -19,14 +19,10 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, installers 
 
   useEffect(() => {
     if (isOpen) {
-      // setLoading(true) is already the default state or set when opening
       getAllSystemSoftware().then(list => {
         setApps(list || []);
         setLoading(false);
       }).catch(() => setLoading(false));
-    } else {
-      // Reset loading for next time
-      setLoading(true);
     }
   }, [isOpen, getAllSystemSoftware]);
 
