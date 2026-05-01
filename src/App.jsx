@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } f
 import { MotionConfig } from "framer-motion";
 import { safeInvoke } from "./utils/tauri";
 import { sounds } from "./utils/audio";
-import { SettingKeys, getString, setString, getJSON } from "./utils/settings";
+import { SettingKeys, getString, setString, getJSON, setJSON } from "./utils/settings";
 import "./App.css";
 
 // Components
@@ -72,9 +72,6 @@ function App() {
     startInstall,
     selectAll,
     clearSelection,
-    loadSelection,
-    exportSelection,
-    importSelection,
     getAllSystemSoftware,
     setLogs,
     shellType,
@@ -82,7 +79,7 @@ function App() {
     ensureTerminalSession
   } = useInstallation();
 
-  const { apps: installers, isUpdating: isLibraryUpdating, updateLibrary } = useLibrary();
+  const { apps: installers } = useLibrary();
 
   const [adminRequest, setAdminRequest] = useState({ show: false, app: null, action: "" });
   const [searchTerm, setSearchTerm] = useState("");
