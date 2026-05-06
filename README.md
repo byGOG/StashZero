@@ -8,7 +8,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows">
-  <img src="https://img.shields.io/badge/Sürüm-0.3.1-6366f1?style=for-the-badge" alt="Sürüm">
+  <img src="https://img.shields.io/badge/Sürüm-0.6.0-6366f1?style=for-the-badge" alt="Sürüm">
   <img src="https://img.shields.io/badge/Ücretsiz-Evet-10b981?style=for-the-badge" alt="Ücretsiz">
   <img src="https://img.shields.io/badge/Türkçe-Evet-ef4444?style=for-the-badge" alt="Türkçe">
 </p>
@@ -68,7 +68,7 @@ Kategorilere ayrılmış yüzlerce uygulama:
 | 🎬 **Multimedya** | VLC, Spotify, OBS, HandBrake, Audacity, Kodi |
 | 👨‍💻 **Geliştirme** | VS Code, Git, Node.js, Python, Docker, Postman |
 | 🤖 **Yapay Zeka** | Claude, Cursor, ChatGPT araçları |
-| ⚙️ **Sistem Araçları** | PowerToys, HWiNFO, CPU-Z, GPU-Z, Sysinternals |
+| ⚙️ **Sistem Araçları** | PowerToys, HWiNFO, CPU-Z, GPU-Z |
 | 🛡️ **Güvenlik** | Malwarebytes, Bitwarden, KeePass, Bitdefender, ESET |
 | 🔒 **Gizlilik & Ağ** | ProtonVPN, OpenVPN, GoodbyeDPI, NextDNS |
 | 🎮 **Oyun Platformları** | Steam, Epic Games, GOG, Origin |

@@ -3,6 +3,8 @@ import ProjectLogo from "../icons/ProjectLogo";
 import AboutHero from "../../assets/about-hero.png";
 import ByGogMark from "../../assets/bygog-mark.png";
 
+const APP_VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.0.0";
+
 const AboutModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
@@ -24,7 +26,7 @@ const AboutModal = ({ isOpen, onClose }) => {
         
         <div className="about-hero-container">
           <img src={AboutHero} alt="StashZero Art" className="about-hero-img" />
-          <span className="version-tag-float">STABLE v0.3.2</span>
+          <span className="version-tag-float">STABLE v{APP_VERSION}</span>
           <div className="about-hero-overlay">
             <div className="about-brand-float">
               <ProjectLogo size={40} />
@@ -40,7 +42,7 @@ const AboutModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="about-inspiration">
-            <p>Inspired by the simple and user-oriented approach of the Sordum.net community. With deep respect for their work and vision.</p>
+            <p>Sordum.net topluluğunun sade ve kullanıcı odaklı anlayışından ilham alınarak geliştirildi. Onların çalışmalarına ve vizyonuna saygıyla.</p>
           </div>
 
           <div className="about-footer-glass">
@@ -66,7 +68,7 @@ const AboutModal = ({ isOpen, onClose }) => {
                 Sordum.net Topluluğu
               </a>
             </div>
-            <span className="copyright-glass">© 2026 Software Environment</span>
+            <span className="copyright-glass">© 2026 Yazılım Ortamı</span>
           </div>
         </div>
       </div>

@@ -351,8 +351,6 @@ function App() {
           lowFx={lowFx}
         />
 
-      {/* Modals are rendered at the bottom for better layering */}
-
       {/* Global Music Player Layer — iframe mounts lazily on first open */}
       {musicMounted && (
         <>
@@ -439,8 +437,6 @@ function App() {
         onCancel={() => setAdminRequest({ show: false, app: null, action: "" })}
       />
 
-
-
       <AboutModal
         isOpen={showAbout}
         onClose={() => setShowAbout(false)}
@@ -472,12 +468,14 @@ function App() {
         currentVersion={updateChecker.currentVersion}
       />
 
-      <InstalledAppsModal
-        isOpen={showInstalled}
-        onClose={() => setShowInstalled(false)}
-        getAllSystemSoftware={getAllSystemSoftware}
-        installers={installers}
-      />
+      {showInstalled && (
+        <InstalledAppsModal
+          isOpen={showInstalled}
+          onClose={() => setShowInstalled(false)}
+          getAllSystemSoftware={getAllSystemSoftware}
+          installers={installers}
+        />
+      )}
     </div>
     </MotionConfig>
   );

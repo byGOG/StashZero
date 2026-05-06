@@ -197,11 +197,7 @@ const SettingsModal = ({
             <SettingRow icon="gauge" title="Performans Modu" desc="Düşük donanım için bulanıklık ve animasyonları azaltır." full>
               <Segmented
                 value={perfMode}
-                options={[
-                  { id: "auto", label: "Otomatik" },
-                  { id: "full", label: "Tam Efekt" },
-                  { id: "low",  label: "Yüksek Performans" }
-                ]}
+                options={PERF_MODES}
                 onChange={setPerfMode}
               />
             </SettingRow>

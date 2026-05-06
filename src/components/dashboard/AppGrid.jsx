@@ -22,16 +22,18 @@ const AppCard = memo(function AppCard({
 }) {
   const isInstalled = !!installedVersion && !app.script_cmd;
   const hasUpdate = !!updateInfo;
-  let cardClass = "app-card";
-  if (isSelected) cardClass += " selected";
-  if (status === "installing") cardClass += " installing";
-  if (status === "done" && !app.script_cmd) cardClass += " done";
-  if (status === "error") cardClass += " error";
-  if (isInstalled) cardClass += " installed";
-  if (hasUpdate) cardClass += " update-glow";
-  if (shake) cardClass += " shake-error";
-  if (app.is_resource) cardClass += " resource-vibe";
-  if (lowFx) cardClass += " no-anim";
+  const cardClass = [
+    "app-card",
+    isSelected && "selected",
+    status === "installing" && "installing",
+    status === "done" && !app.script_cmd && "done",
+    status === "error" && "error",
+    isInstalled && "installed",
+    hasUpdate && "update-glow",
+    shake && "shake-error",
+    app.is_resource && "resource-vibe",
+    lowFx && "no-anim",
+  ].filter(Boolean).join(" ");
 
   const versionLabel =
     installedVersion && installedVersion !== "Portable" && installedVersion !== "Kurulu"
@@ -185,13 +187,13 @@ const AppGrid = ({
     if (app.script_cmd) {
       const cmd = app.id === "officetoolplus" ? "run_ps_script_logged" : "run_ps_script";
       invoke(cmd, { script: app.script_cmd })
-        .then(() => addLog(`${app.name} running...`, "success"))
-        .catch((err) => addLog(`Error: ${err}`, "error"));
+        .then(() => addLog(`${app.name} çalıştırıldı.`, "success"))
+        .catch((err) => addLog(`Hata: ${err}`, "error"));
       setShowLogs(true);
     } else {
       invoke("launch_portable", { url: app.download_url, appName: app.name, launchFile: app.launch_file })
-        .then(() => addLog(`${app.name} launching...`, "success"))
-        .catch((err) => addLog(`Error: ${err}`, "error"));
+        .then(() => addLog(`${app.name} başlatıldı.`, "success"))
+        .catch((err) => addLog(`Hata: ${err}`, "error"));
     }
   };
 

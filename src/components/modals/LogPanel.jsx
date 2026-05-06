@@ -72,16 +72,19 @@ const LogPanel = ({
           </div>
           <div className="log-header-title">
             <h3>Log Analizi + Terminal</h3>
-            <span className="log-count">{logs.length} Kayıt</span>
+            <span className="log-count">
+              {logs.length} Kayıt
+              {isSessionActive && <span className="session-inline"><span className="status-dot pulsing" />AKTİF</span>}
+            </span>
           </div>
         </div>
 
         <div className="terminal-controls">
           <div className="log-search-box">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input 
-              type="text" 
-              placeholder="Loglarda ara..." 
+            <input
+              type="text"
+              placeholder="Loglarda ara..."
               value={logSearch}
               onChange={(e) => setLogSearch(e.target.value)}
             />
@@ -94,60 +97,28 @@ const LogPanel = ({
             <button className={`filter-tab ${logFilter === 'process' ? 'active' : ''}`} onClick={() => setLogFilter('process')}>Süreç</button>
           </div>
 
-          <div className="terminal-divider" />
-
-          <div className="shell-switcher-modern">
-            <button 
-              className={`shell-tab ${shellType === 'powershell' ? 'active' : ''}`}
-              onClick={async () => {
-                setShellType('powershell');
-                await safeInvoke("kill_script");
-                await ensureTerminalSession('powershell');
-              }}
+          <div className="terminal-action-group">
+            <button
+              className={`terminal-action-btn ${copied ? 'copied' : ''}`}
+              onClick={handleCopyAll}
+              title={copied ? "Kopyalandı!" : "Hepsini Kopyala"}
             >
-              PS
+              {copied ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              )}
             </button>
-            <button 
-              className={`shell-tab ${shellType === 'cmd' ? 'active' : ''}`}
-              onClick={async () => {
-                setShellType('cmd');
-                await safeInvoke("kill_script");
-                await ensureTerminalSession('cmd');
-              }}
-            >
-              CMD
+
+            <button className="terminal-action-btn" onClick={handleSaveLogs} title="Logları Dosyaya Kaydet">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </button>
+
+            <button className="terminal-action-btn" onClick={() => setLogs([])} title="Terminali Temizle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
             </button>
           </div>
 
-          <div className="terminal-divider" />
-
-          {isSessionActive && (
-             <div className="session-status">
-               <span className="status-dot pulsing" />
-               ONLINE
-             </div>
-          )}
-
-          <button 
-            className={`terminal-action-btn ${copied ? 'copied' : ''}`} 
-            onClick={handleCopyAll} 
-            title={copied ? "Kopyalandı!" : "Hepsini Kopyala"}
-          >
-            {copied ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-primary)' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            )}
-          </button>
-
-          <button className="terminal-action-btn" onClick={handleSaveLogs} title="Logları Dosyaya Kaydet">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          </button>
-
-          <button className="terminal-action-btn" onClick={() => setLogs([])} title="Terminali Temizle">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-          </button>
-          
           <button className="terminal-action-btn close" onClick={() => setShowLogs(false)} title="Terminali Kapat">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -184,6 +155,28 @@ const LogPanel = ({
       </div>
 
       <div className="terminal-input-container">
+        <div className="shell-switcher-modern compact">
+          <button
+            className={`shell-tab ${shellType === 'powershell' ? 'active' : ''}`}
+            onClick={async () => {
+              setShellType('powershell');
+              await safeInvoke("kill_script");
+              await ensureTerminalSession('powershell');
+            }}
+          >
+            PS
+          </button>
+          <button
+            className={`shell-tab ${shellType === 'cmd' ? 'active' : ''}`}
+            onClick={async () => {
+              setShellType('cmd');
+              await safeInvoke("kill_script");
+              await ensureTerminalSession('cmd');
+            }}
+          >
+            CMD
+          </button>
+        </div>
         <div className="terminal-input-wrapper">
           <div className="terminal-input-prompt">
             <span className="prompt-symbol">λ</span>

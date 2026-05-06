@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { motion as Motion, AnimatePresence } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import AppLogo from "../icons/AppLogo";
 
 const SettingsIcon = ({ name }) => {
@@ -26,15 +26,27 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, installers 
     }
   }, [isOpen, getAllSystemSoftware]);
 
+  const installerIndex = useMemo(() => {
+    const byName = new Map();
+    const ids = [];
+    for (const i of installers) {
+      byName.set(i.name.toLowerCase(), i.id);
+      if (i.id) ids.push({ id: i.id, lower: i.id.toLowerCase() });
+    }
+    return { byName, ids };
+  }, [installers]);
+
   const getAppId = (appName) => {
     const term = appName.toLowerCase();
-    // Library içinde tam veya kısmi eşleşme ara
-    const match = installers.find(i => 
-      term === i.name.toLowerCase() ||
-      term.startsWith(i.name.toLowerCase() + " ") ||
-      (i.id && term.includes(i.id.toLowerCase()))
-    );
-    return match ? match.id : null;
+    const exact = installerIndex.byName.get(term);
+    if (exact) return exact;
+    for (const [name, id] of installerIndex.byName) {
+      if (term.startsWith(name + " ")) return id;
+    }
+    for (const { id, lower } of installerIndex.ids) {
+      if (term.includes(lower)) return id;
+    }
+    return null;
   };
 
   const filtered = useMemo(() => {
@@ -85,11 +97,13 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, installers 
             </div>
           ) : (
             <div className="installed-apps-grid">
-              {filtered.map((app, idx) => (
+              {filtered.map((app, idx) => {
+                const matchedId = getAppId(app.name);
+                return (
                 <div key={idx} className="installed-app-row">
                   <div className="app-icon-mini">
-                    {getAppId(app.name) ? (
-                      <AppLogo id={getAppId(app.name)} className="mini-brand-logo" />
+                    {matchedId ? (
+                      <AppLogo id={matchedId} className="mini-brand-logo" />
                     ) : (
                       <SettingsIcon name="box" />
                     )}
@@ -99,7 +113,8 @@ const InstalledAppsModal = ({ isOpen, onClose, getAllSystemSoftware, installers 
                     <span className="app-version-mini">{app.version || "Sürüm: ?"}</span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <div className="empty-search">Sonuç bulunamadı.</div>
               )}

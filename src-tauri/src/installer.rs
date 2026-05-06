@@ -34,7 +34,7 @@ pub async fn uninstall_software(path: String) -> Result<String, String> {
             "Normal",
             "-Command",
             &format!(
-                "$ErrorActionPreference = 'Stop'; Start-Process -FilePath '{}' -Wait -Verb RunAs",
+                "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath '{}' -Wait -Verb RunAs -PassThru; exit $p.ExitCode",
                 path
             ),
         ])
@@ -51,8 +51,8 @@ pub async fn uninstall_software(path: String) -> Result<String, String> {
         Ok("Uygulama başarıyla kaldırıldı.".to_string())
     } else {
         let code = status.code().unwrap_or(-1);
-        log::error!("Kaldırma başarısız ({}): Exit code {}", path, code);
-        Err(format!("Kaldırma hatası: Exit code {}", code))
+        log::error!("Kaldırma başarısız ({}): Çıkış kodu {}", path, code);
+        Err(format!("Kaldırma hatası: Çıkış kodu {}", code))
     }
 }
 
@@ -133,7 +133,7 @@ pub async fn launch_portable(
         if let Some(name) = app_name {
             let folder = base.join(&name);
             if folder.exists() {
-                let ps_cmd = format!("Get-ChildItem -Path '{}' -Filter *.exe -Recurse | Select-Object -First 1 | Expand-Property FullName", folder.to_str().unwrap());
+                let ps_cmd = format!("Get-ChildItem -Path '{}' -Filter *.exe -Recurse | Select-Object -First 1 -ExpandProperty FullName", folder.to_str().unwrap());
                 let output = std::process::Command::new("powershell")
                     .creation_flags(0x08000000)
                     .args(["-NoProfile", "-Command", &ps_cmd])
@@ -194,9 +194,19 @@ fn expand_env_vars(path: &str) -> String {
         ("$env:Tmp", "TMP"),
     ];
     for (placeholder, var) in env_vars.iter() {
-        if result.contains(placeholder) {
-            if let Ok(val) = std::env::var(var) {
-                result = result.replace(placeholder, &val);
+        let lower_placeholder = placeholder.to_lowercase();
+        loop {
+            let lower_result = result.to_lowercase();
+            match lower_result.find(&lower_placeholder) {
+                Some(pos) => {
+                    if let Ok(val) = std::env::var(var) {
+                        let end = pos + placeholder.len();
+                        result = format!("{}{}{}", &result[..pos], val, &result[end..]);
+                    } else {
+                        break;
+                    }
+                }
+                None => break,
             }
         }
     }
@@ -471,9 +481,13 @@ pub async fn install_exe_from_url(
     if is_github_latest {
         let _ = window.emit("backend-log", serde_json::json!({ "msg": "GitHub üzerinden en güncel sürüm çözümleniyor...", "log_type": "info" }));
 
-        let api_url = url
-            .replace("github.com/", "api.github.com/repos/")
-            .replace("/releases/latest", "/releases/latest");
+        let api_url = match url.find("/releases/latest") {
+            Some(pos) => {
+                let prefix = &url[..pos + "/releases/latest".len()];
+                prefix.replace("github.com/", "api.github.com/repos/")
+            }
+            None => url.replace("github.com/", "api.github.com/repos/"),
+        };
         let output = tokio::process::Command::new("curl")
             .creation_flags(CREATE_NO_WINDOW)
             .args(["-s", "-L", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", &api_url])
@@ -484,10 +498,27 @@ pub async fn install_exe_from_url(
         let mut found_asset = false;
 
         if let Some(assets) = json.get("assets").and_then(|a| a.as_array()) {
-            let asset = assets.iter().find(|a| {
-                let name = a.get("name").and_then(|n| n.as_str()).unwrap_or("");
-                name.to_lowercase().ends_with(".exe") && !name.to_lowercase().contains("portable")
-            });
+            let asset = assets
+                .iter()
+                .find(|a| {
+                    let name = a
+                        .get("name")
+                        .and_then(|n| n.as_str())
+                        .unwrap_or("")
+                        .to_lowercase();
+                    name.ends_with(".exe") && !name.contains("portable")
+                })
+                .or_else(|| {
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".zip")
+                            && (name.contains("windows") || name.contains("win64") || name.contains("-win"))
+                    })
+                });
 
             if let Some(a) = asset {
                 if let Some(download_url) = a.get("browser_download_url").and_then(|u| u.as_str()) {
@@ -523,17 +554,22 @@ pub async fn install_exe_from_url(
         }),
     );
 
-    // Extract filename, but handle query strings by falling back to package_id.exe
-    let file_name = if final_url.contains('?')
-        || !final_url.split('/').last().unwrap_or("").ends_with(".exe")
+    // Preserve known extensions (.exe/.zip/.msi/.7z) from the resolved URL, otherwise fall back to <id>.exe
+    let url_filename = final_url
+        .split('?')
+        .next()
+        .unwrap_or(&final_url)
+        .split('/')
+        .last()
+        .unwrap_or("");
+    let known_exts = [".exe", ".zip", ".msi", ".7z"];
+    let file_name = if known_exts
+        .iter()
+        .any(|ext| url_filename.to_lowercase().ends_with(ext))
     {
-        format!("{}.exe", package_id)
+        url_filename.to_string()
     } else {
-        final_url
-            .split('/')
-            .last()
-            .unwrap_or("setup.exe")
-            .to_string()
+        format!("{}.exe", package_id)
     };
     let stash_base = std::path::PathBuf::from("C:\\StashZero");
     if !stash_base.exists() {
@@ -547,8 +583,8 @@ pub async fn install_exe_from_url(
             std::fs::create_dir_all(&app_dir)
                 .map_err(|e| format!("Uygulama klasörü oluşturulamadı: {}", e))?;
         }
-        // If it's a direct EXE, name it using its ID inside its folder (e.g. C:\StashZero\Rufus\rufus.exe)
-        if url.ends_with(".exe") {
+        // For direct EXE downloads, normalize to <id>.exe; for archives, keep the original filename so extension survives.
+        if file_name.to_lowercase().ends_with(".exe") {
             app_dir.join(format!("{}.exe", package_id))
         } else {
             app_dir.join(&file_name)
@@ -628,18 +664,18 @@ pub async fn install_exe_from_url(
     }
 
     let status = curl_cmd.wait().await.map_err(|e| {
-        log::error!("curl.exe error: {}", e);
-        format!("curl.exe process error: {}", e)
+        log::error!("curl.exe hatası: {}", e);
+        format!("curl.exe süreç hatası: {}", e)
     })?;
 
     if !status.success() {
         log::error!(
-            "İndirme başarısız ({}): Exit code {}",
+            "İndirme başarısız ({}): Çıkış kodu {}",
             app_name,
             status.code().unwrap_or(-1)
         );
         return Err(format!(
-            "İndirme başarısız (HTTP hatası veya bağlantı kesildi): Exit code {}",
+            "İndirme başarısız (HTTP hatası veya bağlantı kesildi): Çıkış kodu {}",
             status.code().unwrap_or(-1)
         ));
     }
@@ -701,7 +737,7 @@ pub async fn install_exe_from_url(
                 "-NoProfile",
                 "-Command",
                 &format!(
-                    "tar -xf '{}' -C '{}'",
+                    "Expand-Archive -Path '{}' -DestinationPath '{}' -Force",
                     target_path.to_str().unwrap(),
                     extract_path.to_str().unwrap()
                 ),
@@ -732,10 +768,42 @@ pub async fn install_exe_from_url(
             );
             if let Some(cmd) = post_install_cmd {
                 log::info!("Kurulum sonrası komut çalıştırılıyor: {}", cmd);
-                let _ = std::process::Command::new("powershell")
+                let _ = window.emit(
+                    "backend-log",
+                    serde_json::json!({
+                        "msg": format!("{}: ek paketler hazırlanıyor...", app_name),
+                        "log_type": "process"
+                    }),
+                );
+                let spawn_result = tokio::process::Command::new("powershell")
                     .creation_flags(CREATE_NO_WINDOW)
                     .args(["-NoProfile", "-Command", &cmd])
-                    .status();
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::piped())
+                    .spawn();
+                if let Ok(mut child) = spawn_result {
+                    if let Some(stdout) = child.stdout.take() {
+                        let window_clone = window.clone();
+                        tokio::spawn(async move {
+                            use tokio::io::AsyncBufReadExt;
+                            let mut lines = tokio::io::BufReader::new(stdout).lines();
+                            while let Ok(Some(line)) = lines.next_line().await {
+                                let trimmed = line.trim().to_string();
+                                if !trimmed.is_empty() {
+                                    log::info!("[post_install] {}", trimmed);
+                                    let _ = window_clone.emit(
+                                        "backend-log",
+                                        serde_json::json!({
+                                            "msg": trimmed,
+                                            "log_type": "process"
+                                        }),
+                                    );
+                                }
+                            }
+                        });
+                    }
+                    let _ = child.wait().await;
+                }
             }
             return Ok(msg);
         } else {
@@ -804,7 +872,7 @@ pub async fn install_exe_from_url(
             "-NoProfile",
             "-WindowStyle", "Hidden",
             "-Command",
-            &format!("$ErrorActionPreference = 'Stop'; Start-Process -FilePath '{}' {} -Wait -Verb RunAs", target_str, args_part)
+            &format!("$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath '{}' {} -Wait -Verb RunAs -PassThru; exit $p.ExitCode", target_str, args_part)
         ])
         .spawn()
         .map_err(|e| {
@@ -814,19 +882,58 @@ pub async fn install_exe_from_url(
 
     let install_status = install_cmd.wait().await.map_err(|e| {
         log::error!("Kurulum süreci hatası ({}): {}", app_name, e);
-        format!("Kurulum process error: {}", e)
+        format!("Kurulum süreç hatası: {}", e)
     })?;
 
     if install_status.success() {
-        log::info!("Kurulum başarıyla tamamlandı: {}", app_name);
-
         if let Some(cmd) = post_install_cmd {
             log::info!("Kurulum sonrası komut çalıştırılıyor: {}", cmd);
-            let _ = std::process::Command::new("powershell")
+            let _ = window.emit(
+                "backend-log",
+                serde_json::json!({
+                    "msg": format!("{}: ek paketler hazırlanıyor...", app_name),
+                    "log_type": "process"
+                }),
+            );
+
+            let spawn_result = tokio::process::Command::new("powershell")
                 .creation_flags(CREATE_NO_WINDOW)
                 .args(["-NoProfile", "-Command", &cmd])
-                .status();
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped())
+                .spawn();
+
+            match spawn_result {
+                Ok(mut child) => {
+                    if let Some(stdout) = child.stdout.take() {
+                        let window_clone = window.clone();
+                        tokio::spawn(async move {
+                            use tokio::io::AsyncBufReadExt;
+                            let mut lines = tokio::io::BufReader::new(stdout).lines();
+                            while let Ok(Some(line)) = lines.next_line().await {
+                                let trimmed = line.trim().to_string();
+                                if !trimmed.is_empty() {
+                                    log::info!("[post_install] {}", trimmed);
+                                    let _ = window_clone.emit(
+                                        "backend-log",
+                                        serde_json::json!({
+                                            "msg": trimmed,
+                                            "log_type": "process"
+                                        }),
+                                    );
+                                }
+                            }
+                        });
+                    }
+                    let _ = child.wait().await;
+                }
+                Err(e) => {
+                    log::error!("post_install_cmd başlatılamadı: {}", e);
+                }
+            }
         }
+
+        log::info!("Kurulum başarıyla tamamlandı: {}", app_name);
 
         if let Some(path) = shortcut_path {
             let _ = copy_shortcut_to_desktop(&path);
@@ -842,8 +949,8 @@ pub async fn install_exe_from_url(
         Ok(format!("{} başarıyla kuruldu.", app_name))
     } else {
         let code = install_status.code().unwrap_or(-1);
-        log::error!("Kurulum başarısız ({}): Exit code {}", app_name, code);
-        Err(format!("Kurulum hatası: Exit code {}", code))
+        log::error!("Kurulum başarısız ({}): Çıkış kodu {}", app_name, code);
+        Err(format!("Kurulum hatası: Çıkış kodu {}", code))
     }
 }
 

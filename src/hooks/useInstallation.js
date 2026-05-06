@@ -1,12 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { safeInvoke } from "../utils/tauri";
 import { listen } from '@tauri-apps/api/event';
 import { sounds } from "../utils/audio";
 import { LEGENDARY_APPS } from "../data/library";
+import { compareVersions } from "../utils/updateChecker";
 
 export const useInstallation = () => {
-  const [installers, setInstallers] = useState(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
+  const installers = useMemo(
+    () => LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })),
+    []
+  );
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
   const [isUninstalling, setIsUninstalling] = useState(false);
@@ -20,32 +24,9 @@ export const useInstallation = () => {
   const [shellType, setShellType] = useState("powershell");
   const [updatesAvailable, setUpdatesAvailable] = useState({}); // id -> { latest: string, isNewer: boolean }
 
-  // Simple version comparison helper
-  const isVersionNewer = (current, latest) => {
-    if (!current || !latest) return false;
-    if (current === "Kurulu" || current === "Portable" || latest === "Son Sürüm" || latest === "Web") return false;
-    
-    const clean = (v) => v.replace(/^v/, '').split('.').map(n => parseInt(n) || 0);
-    const curParts = clean(current);
-    const latParts = clean(latest);
-    
-    for (let i = 0; i < Math.max(curParts.length, latParts.length); i++) {
-      const c = curParts[i] || 0;
-      const l = latParts[i] || 0;
-      if (l > c) return true;
-      if (c > l) return false;
-    }
-    return false;
-  };
-
   const addLog = useCallback((msg, type = "info") => {
     const time = new Date().toLocaleTimeString();
     setLogs(prev => [...prev, { time, msg, type }].slice(-100));
-  }, []);
-
-  // Sync installers if LEGENDARY_APPS changes (Dev/HMR)
-  useEffect(() => {
-    setInstallers(LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })));
   }, []);
 
   const refreshInstalledStatus = useCallback(async () => {
@@ -56,16 +37,14 @@ export const useInstallation = () => {
         check_path: a.check_path || null,
       }));
       const newInstalledApps = await safeInvoke("batch_check_installations", { apps: payload }, {});
-      const installedPaths = new Set();
+      const installedByPath = new Map();
       const updates = {};
 
       for (const app of installers) {
         const currentVersion = newInstalledApps[app.id];
         if (currentVersion && !app.script_cmd && !app.is_resource) {
-          installedPaths.add(app.path);
-          
-          // Check for update
-          if (isVersionNewer(currentVersion, app.version)) {
+          installedByPath.set(app.path, app.id);
+          if (compareVersions(app.version, currentVersion) > 0) {
             updates[app.id] = { current: currentVersion, latest: app.version };
           }
         }
@@ -73,18 +52,14 @@ export const useInstallation = () => {
 
       setInstalledApps(newInstalledApps);
       setUpdatesAvailable(updates);
-      
-      // Kurulu olanları seçili listesinden çıkar
+
       setSelected(prev => {
         const next = new Set(prev);
         let changed = false;
-        installedPaths.forEach(path => {
-          if (next.has(path) && !updates[installers.find(i => i.path === path)?.id]) {
-             // If update available, keep it selectable maybe? 
-             // Actually, usually users want to see it as "Update" rather than just another selection.
-             // But for now, we'll keep it simple: if installed, remove from selection unless update is forced.
-             next.delete(path);
-             changed = true;
+        installedByPath.forEach((id, path) => {
+          if (next.has(path) && !updates[id]) {
+            next.delete(path);
+            changed = true;
           }
         });
         return changed ? next : prev;
@@ -227,6 +202,9 @@ export const useInstallation = () => {
           }
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`Başlatıldı: ${app.name}`, "success");
+          if (!app.is_resource) {
+            setInstalledApps(prev => ({ ...prev, [app.id]: app.version || "Kurulu" }));
+          }
         } else if (app.download_url) {
           await invoke("install_exe_from_url", {
             url: app.download_url,
@@ -239,8 +217,10 @@ export const useInstallation = () => {
           });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`Başarılı: ${app.name}`, "success");
+          if (!app.is_resource) {
+            setInstalledApps(prev => ({ ...prev, [app.id]: app.version || "Kurulu" }));
+          }
         }
-        refreshInstalledStatus();
       } catch (error) {
         setInstallStatus((prev) => ({ ...prev, [app.path]: "error" }));
         addLog(`Hata (${app.name}): ${error}`, "error");
@@ -252,6 +232,7 @@ export const useInstallation = () => {
     sounds.playSuccess();
     setCurrentInstall(null);
     setInstalling(false);
+    setTimeout(() => refreshInstalledStatus(), 1500);
   }, [selected, installing, installers, addLog, refreshInstalledStatus]);
 
   const selectAll = useCallback(() => { 
