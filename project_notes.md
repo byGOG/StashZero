@@ -48,8 +48,31 @@
 - [x] **Pre-existing seçim bug'ı:** `useLibrary` `LEGENDARY_APPS`'i `path: a.id` map'lemeden döndürüyordu. `selected.has(app.path)` her kart için `undefined` veriyor, tek tıkla tüm kartlar seçili görünüyordu. v0.4.0'dan beri latentmiş; canlı testte yakalandı. `useLibrary` şimdi `withPath()` helper ile her giriş için `path` alanını garanti ediyor.
 - [x] **post_install_cmd streaming:** [src-tauri/src/installer.rs](src-tauri/src/installer.rs) — eski "fire-and-forget" `std::process::Command::status()` çağrıları yerine `tokio::process::Command` + `BufReader::lines()` ile satır satır stdout yakalama. Her satır `[post_install]` etiketiyle log'a + `backend-log` event'iyle UI panele yansıtılıyor. "Kurulum başarıyla tamamlandı" mesajı artık post_install **sonra** atılıyor (sıra düzeltildi).
 
-## 🧪 v0.6.0 Live Test Matrisi (2026-05-04)
-*Refactor sonrası 27 işlem, 0 regresyon:*
+## 🛠️ v0.6.0 Backend Reliability (Live Test Bug Chain — 2026-05-06)
+*Canlı test sırasında ortaya çıkan ve yakalanan zincirleme Rust hataları. Her biri sessizce çalışan ya da başka bir hatayı maskeleyen bug'lardı; `-PassThru` fix'i ile silent-fail davranışı görünür hale geldi ve sonraki bug'lar art arda yakalandı.*
+- [x] **Silent-fail bug** ([installer.rs](src-tauri/src/installer.rs)): `Start-Process -Wait -Verb RunAs` (PowerShell) `-PassThru` olmadan elevated process'in exit code'unu döndürmüyordu → Rust her zaman `success=true` görüyordu. BleachBit `/S` flag'i `666660` (insufficient privileges) verdiği halde "kuruldu" raporlanıyordu. `$p = Start-Process ... -PassThru; exit $p.ExitCode` ile gerçek exit code propagate ediliyor. Hem `install_exe_from_url` hem `uninstall_software` aynı pattern.
+- [x] **GitHub API URL transform**: `url.replace("/releases/latest", "/releases/latest")` no-op idi; `/download/<file>.exe` suffix'i strip edilmiyordu → API `404` → "kurulum dosyası bulunamadı" (Rufus). Şimdi `.find("/releases/latest")` ile prefix kesilip transformasyon yapılıyor.
+- [x] **GitHub asset matcher Windows ZIP fallback**: Sadece `.exe` aranıyordu; Ventoy gibi ZIP-only release'leri reddediliyordu. Fallback olarak `.zip` + (`windows`/`win64`/`-win`) içeren asset'lere düşüyor.
+- [x] **Known extensions preserve**: `file_name` derivasyonu `.zip`/`.msi`/`.7z` URL'leri sessizce `<package_id>.exe`'ye düşürüyordu → indirilen dosya yanlış uzantıyla kaydediliyor → Expand-Archive reddediyor. Şimdi bilinen archive uzantıları korunuyor; sadece direkt `.exe`'ler `<id>.exe` olarak normalize ediliyor.
+- [x] **`tar` → `Expand-Archive`**: Windows'ta `tar` çağrısı POSIX tar'ı (Git Bash bundled) çağırıyordu, `C:\` yolunu remote host olarak yorumluyor ve `Cannot connect to C: resolve failed` hatası veriyordu. Native PowerShell `Expand-Archive -Force` ile değiştirildi.
+- [x] **`expand_env_vars` case-insensitive**: Map sadece `$env:LocalAppData` (camelCase) tanıyor, library'deki `$env:LOCALAPPDATA` (büyük harf) sessizce expand olmadan geçiyordu → `check_path` hep `false` → kurulu uygulamalar tespit edilmiyor. Loop case-insensitive find/replace ile yazıldı; tüm büyük/küçük varyantlar artık çalışıyor.
+- [x] **`Expand-Property` typo**: [installer.rs:136](src-tauri/src/installer.rs) `launch_portable` recursive .exe arama PowerShell komutunda `Expand-Property` yanlış cmdlet adıydı (doğrusu `Select-Object -ExpandProperty`). O&O AppBuster gibi nested klasör install'larında "Uygulama bulunamadı" hatasına yol açıyordu.
+- [x] **İngilizce error string'leri Türkçeleştirildi**: `curl.exe error/process error` → `curl.exe hatası/süreç hatası`, `Kurulum process error` → `Kurulum süreç hatası`, `Exit code` → `Çıkış kodu`. Frontend'de de `running.../launching.../Error:` → `çalıştırıldı./başlatıldı./Hata:`.
+
+## 🎨 v0.6.0 UI Modernization (2026-05-06)
+- [x] **LogPanel header düzeni**:
+  - PS/CMD shell switcher üst header'dan alt prompt çubuğuna taşındı (compact varyant — terminal ile bağlam içinde)
+  - 2 vertical divider kaldırıldı, sağ taraf nefes aldı
+  - "ONLINE" pill (separat element) → header başlığı altında inline `AKTİF` badge
+  - Action butonları (kopyala / kaydet / temizle) tek bir grup container'ında; close butonu ayrı durdu
+  - Filter tab'lar: kategori-renkli noktalar (Hepsi=beyaz, Hatalar=kırmızı, Başarı=yeşil, Süreç=sarı) + active state'te glow + hafif arka plan
+  - Title block: 36×36 yumuşak yeşil glow icon chip + tabular-nums count badge
+- [x] **Sidebar footer** items: `justify-content: space-between` → `flex-start` + 12px gap (icon + label sola yaslı, doğal okuma sırası)
+- [x] **AboutModal i18n**: "Inspired by the simple..." paragrafı + "© 2026 Software Environment" Türkçeleştirildi.
+- [x] **Tüm Türkçeleştirme**: AppGrid log mesajları (`running...`/`launching...` → `çalıştırıldı./başlatıldı.`), `Error:` → `Hata:`, Rust process error string'leri.
+
+## 🧪 v0.6.0 Live Test Matrisi (2026-05-04 / 2026-05-06)
+*Refactor + reliability sonrası 32+ işlem, 0 regresyon:*
 
 | Uygulama | Kur | Kaldır | Not |
 |---|---|---|---|
@@ -64,11 +87,21 @@
 | AIMP | ✅ ×3 | ✅ ×3 | `version: "Son Sürüm"` sentinel'a çevrildi (auto-latest URL) |
 | foobar2000 + Free Encoder Pack | ✅ ×4 | ✅ ×4 | Encoder Pack streaming akışıyla doğrulandı |
 | Resource Hacker | ✅ | ✅ | |
+| BleachBit 4.6.0 | ✅ ×2 | ✅ ×2 | `/S /allusers` flag eklendi; `-PassThru` fix sayesinde silent-fail tespit edildi |
+| Sysinternals Suite | — | — | Kataloğdan kaldırıldı (kullanıcı talebi) |
+| O&O AppBuster (portable) | ✅ | ✅ | URL `OOAppBuster.exe` → `OOAPB.exe` güncellendi |
+| Rufus 4.14 (portable) | ✅ | ✅ | GitHub API URL transform fix (auto-latest çözünürlük) |
+| Ventoy 1.1.12 (portable) | ✅ | ✅ | ZIP fallback + Expand-Archive + extension preserve zinciri |
+| Balena Etcher 2.1.4 | ✅ | ✅ | Squirrel.Windows pattern: `check_path` + post_install kill loop + `Update.exe --uninstall -s` |
 
 ## 📚 v0.6.0 Library Veri Düzeltmeleri
 - [x] **Tor Browser**: `version` 15.0.10 → 15.0.11; `download_url` benzer şekilde (eski URL torproject.org'da 404).
 - [x] **AIMP**: hardcoded `version: "5.40.2716"` → `"Son Sürüm"` sentinel; `download_url` zaten "latest stable" redirect'i.
+- [x] **O&O AppBuster**: `download_url` `OOAppBuster.exe` → `OOAPB.exe` (resmi sunucuda yeniden isimlendirilmiş, eski URL 404).
+- [x] **BleachBit**: `install_args` `/S` → `/S /allusers` (NSIS sadece `/S` ile insufficient-privileges silent-fail veriyor); `uninstall_path` eklendi.
+- [x] **Balena Etcher**: `check_path` + `post_install_cmd` (6 saniyelik kill loop ile auto-launch'ı kapat) + `uninstall_script` (Squirrel.Windows `Update.exe --uninstall -s` pattern + kalıntı klasör temizliği) eklendi.
 - [x] **foobar2000**: `post_install_cmd` `Write-Host` ile Türkçe ilerleme satırları + Encoder Pack URL'i log'a düşürülüyor (kullanıcı görünürlüğü).
+- [x] **Sysinternals Suite**: Kataloğdan ve README'den kaldırıldı (kullanıcı talebi).
 - [x] **ImageGlass Portable**: `imageglass-portable` entry'si kataloğdan çıkarıldı (kullanıcı talebi).
 
 ## 🐛 Bilinen Hatalar (Bugs)
