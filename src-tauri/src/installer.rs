@@ -516,7 +516,9 @@ pub async fn install_exe_from_url(
                             .unwrap_or("")
                             .to_lowercase();
                         name.ends_with(".zip")
-                            && (name.contains("windows") || name.contains("win64") || name.contains("-win"))
+                            && (name.contains("windows")
+                                || name.contains("win64")
+                                || name.contains("-win"))
                     })
                 });
 
