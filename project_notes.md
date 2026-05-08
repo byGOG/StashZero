@@ -104,6 +104,36 @@
 - [x] **Sysinternals Suite**: Kataloğdan ve README'den kaldırıldı (kullanıcı talebi).
 - [x] **ImageGlass Portable**: `imageglass-portable` entry'si kataloğdan çıkarıldı (kullanıcı talebi).
 
+## 🆕 v0.7.0 Yeni Özellikler (2026-05-08)
+
+### Backend (installer.rs)
+- [x] **`download_form_post`** field — TechPowerUp gibi 3-aşamalı CSRF/cookie POST akışı içeren mirror seçici siteler için. Library entry'de `{ id_regex, server_regex }` config; Rust internal'de curl + cookie jar + regex extract + Location header parse. Reusable (FOSSHUB-gated, MajorGeeks vb. için).
+- [x] **`install_path`** field — Portable mode için custom hedef klasör (default `C:\StashZero\<app>` yerine örn. `C:\Program Files\<app>`). Single-file portable uygulamaları "kalıcı" konuma indirmek için.
+- [x] **`create_desktop_shortcut`** field — Kurulum sonrası WScript.Shell ile masaüstü `.lnk` oluştur. Portable EXE → target path'a; ZIP extract → `launch_file` veya extracted klasördeki ilk `.exe`'ye.
+- [x] **`launch_file`** field — install_exe_from_url'e eklendi (önceden yalnız launch_portable'daydı). ZIP extract sonrası shortcut'ın hedef exe'sini belirler.
+- [x] **`install_kill_targets`** field — Inno [Run] section'da hardcoded auto-launch yapan installer'lar için (HWiNFO64 örneği). Elevated PS-of-PS (base64) ile install + 500ms aralıklı poll-kill aynı admin context'te → tek UAC, post-install pencere kalmıyor.
+- [x] **GitHub asset matcher 3. fallback** — Önceki: `.exe` non-portable veya `.zip + windows/win64/-win` keyword. Yeni: any `.zip` (linux/macos/arm/source/symbols hariç). DriverStoreExplorer-v1.0.26.zip gibi platform-suffix'i olmayan tek asset'ları yakalar.
+- [x] **`uninstall_portable` env expand** — `uninstall_paths` içindeki `$env:USERPROFILE\Desktop\App.lnk` benzeri girdiler artık expand_env_vars ile genişletiliyor.
+- [x] **`clean_version` PE comma normalization** — CPU-Z'nin `ProductVersion="2, 19, 0, 0"` formatı doğru "2.19" olarak gösterilir (önceden "2," çıkıyordu).
+
+### UI (AppGrid.jsx + App.css + useInstallation.js)
+- [x] **`isInstalled` hybrid logic** — Önceden `script_cmd` varsa otomatik suppress oluyordu. Yeni: `script_cmd && (uninstall_script || uninstall_path)` → real-install say (Kuruldu rozeti + Kaldır butonu görünür). Çalıştır butonu yalnız runner-style (uninstall_* yok) script_cmd entry'lerinde gösterilir.
+- [x] **`.app-description` görünürlük** — `font-size: 11px → 12.5px`, `color: --text-muted → --text-secondary` (kontrast iyileştirmesi).
+- [x] **`useInstallation` HMR fix** — `useMemo([], )` → `useMemo([LEGENDARY_APPS], )`; library.js HMR güncellemesi installers state'ine yansır (önceden F5 gerekiyordu).
+
+### Library Veri Düzeltmeleri (v0.7.0)
+- [x] **HWiNFO64**: `hwi_latest.exe` (404) → `hwi64_846.exe`; `install_kill_targets` ile auto-launch suppress.
+- [x] **CPU-Z**: `www.cpuid.com/downloads/...` (interstitial HTML) → `download.cpuid.com/...` (real 4.6MB EXE); Inno args.
+- [x] **GPU-Z**: TechPowerUp form-post download (3-step CSRF) + `-installSilent` (gerçek silent flag).
+- [x] **OCCT**: ocbase.com `edition:Personal/os:Windows` URL; portable + `create_desktop_shortcut`.
+- [x] **DriverStore Explorer**: GitHub fallback ZIP matcher; `launch_file: "Rapr.exe"` + `create_desktop_shortcut`.
+- [x] **BurnInTest, PerformanceTest**: `bit_setup.exe`/`petst.exe` 404 → `BurnInTest_Windows_x86-64.exe`/aynı isim ama doğru install_args; PassMark Inno pattern.
+- [x] **FurMark 2**: `dl/show/600` (HTML, ROG 0.8.1) → `dl/get/831` (302→34MB FurMark 2.10.2 setup).
+- [x] **Win11 MCT**: hardcoded `version: "v24H2"` → `"Son Sürüm"` (fwlink dinamik).
+- [x] **17 entry'de hardcoded version**: tek seferde `"Son Sürüm"`'e çevrildi (Tor, CopyQ, Subtitle Edit, HandBrake, ImageGlass, Spotify Downloader, PowerShell 7, Cursor AI, Antigravity AI, PowerToys, Flow Launcher, VMware, Defender Control/Remover, WUB, OpenVPN, DNS Jumper).
+- [x] **UniGetUI logo**: favicon.ico → resmi `Devolutions/UniGetUI/media/icon.svg` (jsdelivr CDN).
+- [x] **HWiNFO logo**: 1KB `logo-sm.png` → 4KB `hwi_logo_flat_square_192.png`.
+
 ## 🐛 Bilinen Hatalar (Bugs)
 - [ ] *Yeni hata raporlanmadı.*
 

@@ -18,6 +18,25 @@ fn copy_shortcut_to_desktop(source: &str) -> std::io::Result<()> {
     Ok(())
 }
 
+fn create_desktop_shortcut_fn(target_exe: &str, link_name: &str) -> std::io::Result<()> {
+    log::info!(
+        "Masaüstü kısayolu oluşturuluyor: {} -> {}",
+        link_name,
+        target_exe
+    );
+    let safe_target = target_exe.replace('\'', "''");
+    let safe_name = link_name.replace('\'', "''");
+    let ps_cmd = format!(
+        "$ws=New-Object -ComObject WScript.Shell; $l=$ws.CreateShortcut(\"$HOME\\Desktop\\{}.lnk\"); $l.TargetPath='{}'; $l.WorkingDirectory=Split-Path '{}' -Parent; $l.Save()",
+        safe_name, safe_target, safe_target
+    );
+    let _ = std::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-NoProfile", "-Command", &ps_cmd])
+        .status();
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn uninstall_software(path: String) -> Result<String, String> {
     log::info!("Kaldırma başlatılıyor: {}", path);
@@ -69,7 +88,8 @@ pub async fn uninstall_portable(
             paths
         );
         for path_str in paths {
-            let path = std::path::Path::new(&path_str);
+            let expanded = expand_env_vars(&path_str);
+            let path = std::path::Path::new(&expanded);
             if path.exists() {
                 if path.is_dir() {
                     let _ = std::fs::remove_dir_all(path);
@@ -307,11 +327,29 @@ pub async fn get_all_installed_software() -> Result<Vec<serde_json::Value>, Stri
 
 fn clean_version(raw: &str) -> String {
     let trimmed = raw.trim().trim_start_matches(|c| c == 'v' || c == 'V');
-    let cut: &str = trimmed
-        .split(|c| c == '-' || c == '+' || c == ' ')
+    let pre_cut: &str = trimmed
+        .split(|c| c == '-' || c == '+')
         .next()
         .unwrap_or(trimmed);
-    cut.to_string()
+    // Handle "2, 19, 0, 0" comma-separated PE format → "2.19" (strip trailing .0)
+    if pre_cut.contains(", ") {
+        let joined: String = pre_cut
+            .split(", ")
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>()
+            .join(".");
+        let mut s = joined.as_str();
+        while s.ends_with(".0") && s.matches('.').count() > 1 {
+            s = &s[..s.len() - 2];
+        }
+        return s.to_string();
+    }
+    pre_cut
+        .split(' ')
+        .next()
+        .unwrap_or(pre_cut)
+        .trim_end_matches(',')
+        .to_string()
 }
 
 #[derive(serde::Deserialize)]
@@ -319,6 +357,116 @@ pub struct AppCheckInput {
     pub id: String,
     pub name: String,
     pub check_path: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DownloadFormPost {
+    pub id_regex: String,
+    pub server_regex: String,
+}
+
+async fn resolve_form_post_url(
+    base_url: &str,
+    form_post: &DownloadFormPost,
+    package_id: &str,
+    app_name: &str,
+    window: &TauriWindow,
+) -> Result<String, String> {
+    let _ = window.emit(
+        "backend-log",
+        serde_json::json!({
+            "msg": format!("{} indirme adresi çözülüyor (form akışı)...", app_name),
+            "log_type": "info"
+        }),
+    );
+
+    let jar_path = std::env::temp_dir().join(format!("stashzero_jar_{}.txt", package_id));
+    let jar_str = jar_path
+        .to_str()
+        .ok_or_else(|| "Cookie jar yolu UTF-8 değil".to_string())?;
+    let _ = std::fs::remove_file(&jar_path);
+
+    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+    let page_out = tokio::process::Command::new("curl.exe")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-s", "-c", jar_str, "-b", jar_str, "-A", ua, base_url])
+        .output()
+        .await
+        .map_err(|e| format!("Form sayfası alınamadı: {}", e))?;
+    if !page_out.status.success() {
+        let _ = std::fs::remove_file(&jar_path);
+        return Err(format!(
+            "Form sayfası alınamadı (curl exit {})",
+            page_out.status.code().unwrap_or(-1)
+        ));
+    }
+    let page_html = String::from_utf8_lossy(&page_out.stdout);
+
+    let id_re =
+        regex::Regex::new(&form_post.id_regex).map_err(|e| format!("id_regex geçersiz: {}", e))?;
+    let id_val = id_re
+        .captures(&page_html)
+        .and_then(|c| c.get(1))
+        .ok_or_else(|| "Form id eşleşmedi".to_string())?
+        .as_str()
+        .to_string();
+
+    let body1 = format!("id={}", id_val);
+    let mirror_out = tokio::process::Command::new("curl.exe")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args([
+            "-s", "-c", jar_str, "-b", jar_str, "-A", ua, "-X", "POST", "-d", &body1, base_url,
+        ])
+        .output()
+        .await
+        .map_err(|e| format!("Mirror sayfası alınamadı: {}", e))?;
+    if !mirror_out.status.success() {
+        let _ = std::fs::remove_file(&jar_path);
+        return Err(format!(
+            "Mirror sayfası alınamadı (curl exit {})",
+            mirror_out.status.code().unwrap_or(-1)
+        ));
+    }
+    let mirror_html = String::from_utf8_lossy(&mirror_out.stdout);
+
+    let server_re = regex::Regex::new(&form_post.server_regex)
+        .map_err(|e| format!("server_regex geçersiz: {}", e))?;
+    let server_val = server_re
+        .captures(&mirror_html)
+        .and_then(|c| c.get(1))
+        .ok_or_else(|| "Server id eşleşmedi".to_string())?
+        .as_str()
+        .to_string();
+
+    let body2 = format!("id={}&server_id={}", id_val, server_val);
+    let resp_out = tokio::process::Command::new("curl.exe")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args([
+            "-s", "-c", jar_str, "-b", jar_str, "-A", ua, "-i", "-X", "POST", "-d", &body2,
+            base_url,
+        ])
+        .output()
+        .await
+        .map_err(|e| format!("Yönlendirme alınamadı: {}", e))?;
+    let _ = std::fs::remove_file(&jar_path);
+    if !resp_out.status.success() {
+        return Err(format!(
+            "Yönlendirme alınamadı (curl exit {})",
+            resp_out.status.code().unwrap_or(-1)
+        ));
+    }
+    let resp_text = String::from_utf8_lossy(&resp_out.stdout);
+    let loc_re = regex::Regex::new(r"(?im)^location:\s*(\S+)").unwrap();
+    let location = loc_re
+        .captures(&resp_text)
+        .and_then(|c| c.get(1))
+        .ok_or_else(|| "Location header bulunamadı".to_string())?
+        .as_str()
+        .trim()
+        .to_string();
+
+    Ok(location)
 }
 
 async fn batch_get_versions(
@@ -470,6 +618,11 @@ pub async fn install_exe_from_url(
     install_args: Option<String>,
     shortcut_path: Option<String>,
     post_install_cmd: Option<String>,
+    install_kill_targets: Option<Vec<String>>,
+    download_form_post: Option<DownloadFormPost>,
+    install_path: Option<String>,
+    create_desktop_shortcut: Option<bool>,
+    launch_file: Option<String>,
 ) -> Result<String, String> {
     log::info!("Kurulum başlatılıyor: {} ({})", app_name, package_id);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Kurulum başlatılıyor: {} ({})", app_name, package_id), "log_type": "info" }));
@@ -520,6 +673,22 @@ pub async fn install_exe_from_url(
                                 || name.contains("win64")
                                 || name.contains("-win"))
                     })
+                })
+                .or_else(|| {
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".zip")
+                            && !name.contains("linux")
+                            && !name.contains("macos")
+                            && !name.contains("darwin")
+                            && !name.contains("arm")
+                            && !name.contains("source")
+                            && !name.contains("symbols")
+                    })
                 });
 
             if let Some(a) = asset {
@@ -537,6 +706,11 @@ pub async fn install_exe_from_url(
                     .to_string(),
             );
         }
+    }
+
+    if let Some(form_post) = &download_form_post {
+        final_url =
+            resolve_form_post_url(&final_url, form_post, &package_id, &app_name, &window).await?;
     }
 
     log::debug!(
@@ -579,7 +753,18 @@ pub async fn install_exe_from_url(
             .map_err(|e| format!("StashZero klasörü oluşturulamadı: {}", e))?;
     }
 
-    let target_path = if is_portable {
+    let target_path = if let Some(custom_dir) = &install_path {
+        let dir = std::path::PathBuf::from(custom_dir);
+        if !dir.exists() {
+            std::fs::create_dir_all(&dir)
+                .map_err(|e| format!("Hedef klasör oluşturulamadı: {}", e))?;
+        }
+        if file_name.to_lowercase().ends_with(".exe") {
+            dir.join(format!("{}.exe", package_id))
+        } else {
+            dir.join(&file_name)
+        }
+    } else if is_portable {
         let app_dir = stash_base.join(&app_name);
         if !app_dir.exists() {
             std::fs::create_dir_all(&app_dir)
@@ -760,6 +945,38 @@ pub async fn install_exe_from_url(
             if let Some(path) = shortcut_path {
                 let _ = copy_shortcut_to_desktop(&path);
             }
+            if create_desktop_shortcut.unwrap_or(false) {
+                let lf = launch_file.as_deref();
+                let exe_in_extract: Option<std::path::PathBuf> = if let Some(name) = lf {
+                    let candidate = extract_path.join(name);
+                    if candidate.exists() {
+                        Some(candidate)
+                    } else {
+                        None
+                    }
+                } else {
+                    std::fs::read_dir(&extract_path).ok().and_then(|mut rd| {
+                        rd.find_map(|e| {
+                            let entry = e.ok()?;
+                            let p = entry.path();
+                            if p.extension()
+                                .and_then(|s| s.to_str())
+                                .map(|s| s.eq_ignore_ascii_case("exe"))
+                                .unwrap_or(false)
+                            {
+                                Some(p)
+                            } else {
+                                None
+                            }
+                        })
+                    })
+                };
+                if let Some(exe_path) = exe_in_extract {
+                    if let Some(target_str) = exe_path.to_str() {
+                        let _ = create_desktop_shortcut_fn(target_str, &app_name);
+                    }
+                }
+            }
             let _ = window.emit(
                 "install-progress",
                 serde_json::json!({
@@ -821,10 +1038,19 @@ pub async fn install_exe_from_url(
         }
     }
 
-    if is_portable {
-        let msg = format!("{} başarıyla C:\\StashZero klasörüne indirildi.", app_name);
+    if is_portable || install_path.is_some() {
+        let dest_dir = install_path
+            .as_deref()
+            .map(|p| p.to_string())
+            .unwrap_or_else(|| format!("C:\\StashZero\\{}", app_name));
+        let msg = format!("{} başarıyla {} konumuna kuruldu.", app_name, dest_dir);
         if let Some(path) = shortcut_path {
             let _ = copy_shortcut_to_desktop(&path);
+        }
+        if create_desktop_shortcut.unwrap_or(false) {
+            if let Some(target_str) = target_path.to_str() {
+                let _ = create_desktop_shortcut_fn(target_str, &app_name);
+            }
         }
         let _ = window.emit(
             "install-progress",
@@ -868,13 +1094,37 @@ pub async fn install_exe_from_url(
     );
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Yükleyici çalıştırılıyor: {} {}", target_str, final_args), "log_type": "process" }));
 
+    let install_command_str = match install_kill_targets.as_ref().filter(|v| !v.is_empty()) {
+        Some(targets) => {
+            let names_csv = targets
+                .iter()
+                .map(|n| format!("'{}'", n.replace('\'', "''")))
+                .collect::<Vec<_>>()
+                .join(",");
+            let inner = format!(
+                "$p = Start-Process -FilePath '{}' {} -PassThru; while (!$p.HasExited) {{ Get-Process -Name {} -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }}; exit $p.ExitCode",
+                target_str, args_part, names_csv
+            );
+            let inner_escaped = inner.replace('\'', "''");
+            format!(
+                "$ErrorActionPreference = 'Stop'; $cmd = '{}'; $b = [System.Text.Encoding]::Unicode.GetBytes($cmd); $e = [Convert]::ToBase64String($b); $pp = Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList @('-NoProfile','-EncodedCommand',$e) -PassThru; exit $pp.ExitCode",
+                inner_escaped
+            )
+        }
+        None => format!(
+            "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath '{}' {} -Wait -Verb RunAs -PassThru; exit $p.ExitCode",
+            target_str, args_part
+        ),
+    };
+
     let mut install_cmd = tokio::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
         .args([
             "-NoProfile",
-            "-WindowStyle", "Hidden",
+            "-WindowStyle",
+            "Hidden",
             "-Command",
-            &format!("$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath '{}' {} -Wait -Verb RunAs -PassThru; exit $p.ExitCode", target_str, args_part)
+            &install_command_str,
         ])
         .spawn()
         .map_err(|e| {
@@ -977,6 +1227,18 @@ mod tests {
     #[test]
     fn clean_version_trims_whitespace() {
         assert_eq!(clean_version("  v1.2.3  "), "1.2.3");
+    }
+
+    #[test]
+    fn clean_version_normalizes_pe_comma_format() {
+        assert_eq!(clean_version("2, 19, 0, 0"), "2.19");
+        assert_eq!(clean_version("1, 0, 0, 0"), "1.0");
+        assert_eq!(clean_version("3, 14, 1, 5"), "3.14.1.5");
+    }
+
+    #[test]
+    fn clean_version_strips_trailing_comma_legacy() {
+        assert_eq!(clean_version("2,"), "2");
     }
 
     #[test]

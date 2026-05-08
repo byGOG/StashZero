@@ -9,7 +9,7 @@ import { compareVersions } from "../utils/updateChecker";
 export const useInstallation = () => {
   const installers = useMemo(
     () => LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })),
-    []
+    [LEGENDARY_APPS]
   );
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
@@ -213,7 +213,12 @@ export const useInstallation = () => {
             isPortable: !!app.portable,
             installArgs: app.install_args,
             shortcutPath: app.shortcut_path,
-            postInstallCmd: app.post_install_cmd
+            postInstallCmd: app.post_install_cmd,
+            installKillTargets: app.install_kill_targets || null,
+            downloadFormPost: app.download_form_post || null,
+            installPath: app.install_path || null,
+            createDesktopShortcut: !!app.create_desktop_shortcut,
+            launchFile: app.launch_file || null
           });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`Başarılı: ${app.name}`, "success");
