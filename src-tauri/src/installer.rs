@@ -402,10 +402,7 @@ pub async fn get_all_installed_software() -> Result<Vec<serde_json::Value>, Stri
 
 fn clean_version(raw: &str) -> String {
     let trimmed = raw.trim().trim_start_matches(['v', 'V']);
-    let pre_cut: &str = trimmed
-        .split(['-', '+'])
-        .next()
-        .unwrap_or(trimmed);
+    let pre_cut: &str = trimmed.split(['-', '+']).next().unwrap_or(trimmed);
     // Handle "2, 19, 0, 0" comma-separated PE format → "2.19" (strip trailing .0)
     if pre_cut.contains(", ") {
         let joined: String = pre_cut

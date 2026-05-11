@@ -133,7 +133,6 @@ pub async fn run_shell_script_logged(
     log::info!("İnteraktif {} oturumu başlatılıyor", shell_name);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İnteraktif {} oturumu başlatılıyor", shell_name), "log_type": "info" }));
 
-
     {
         let mut child_guard = SCRIPT_CHILD.lock().await;
         if let Some(mut old) = child_guard.take() {
