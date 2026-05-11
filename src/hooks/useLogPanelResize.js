@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const MIN_HEIGHT = 100;
-const MAX_HEIGHT = 600;
+const MAX_HEIGHT = 900;
 
-export function useLogPanelResize(initialHeight = 220) {
+export function useLogPanelResize(initialHeight = 420) {
   const [height, setHeight] = useState(initialHeight);
   const isResizing = useRef(false);
   const startY = useRef(0);

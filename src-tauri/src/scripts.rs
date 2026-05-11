@@ -33,9 +33,20 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
         .map(|d| d.as_millis())
         .unwrap_or(0);
     let script_path = std::env::temp_dir().join(format!("stashzero_script_{}.ps1", ts));
+    let log_path = std::env::temp_dir().join(format!("stashzero_script_log_{}.txt", ts));
+    let log_path_str = log_path.to_string_lossy().to_string().replace('\'', "''");
     // UTF-8 BOM so PowerShell 5.1 reads non-ASCII characters correctly
     let mut bytes = vec![0xEF, 0xBB, 0xBF];
     bytes.extend_from_slice(b"$ErrorActionPreference = 'Stop'\r\n");
+    // Inject log helper: redirect Write-Host to a file the parent process tails after exit.
+    bytes.extend_from_slice(
+        format!(
+            "$StashLog = '{}'\r\n\
+             function global:Write-Host {{ param([Parameter(Position=0,ValueFromRemainingArguments=$true)][object[]]$Object,[switch]$NoNewline,[object]$ForegroundColor,[object]$BackgroundColor,[object]$Separator) $sep = if($Separator){{$Separator}}else{{' '}}; $msg = ($Object | ForEach-Object {{ \"$_\" }}) -join $sep; Add-Content -LiteralPath $StashLog -Value $msg -Encoding UTF8 -ErrorAction SilentlyContinue }}\r\n",
+            log_path_str
+        )
+        .as_bytes(),
+    );
     bytes.extend_from_slice(script.as_bytes());
     std::fs::write(&script_path, &bytes).map_err(|e| {
         log::error!("Geçici betik yazılamadı: {}", e);
@@ -70,6 +81,22 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
         })?;
 
     let _ = std::fs::remove_file(&script_path);
+
+    // Replay any captured Write-Host output to the UI log
+    if let Ok(content) = std::fs::read_to_string(&log_path) {
+        let stripped = content.trim_start_matches('\u{FEFF}');
+        for line in stripped.lines() {
+            let trimmed = line.trim_start_matches('\u{FEFF}').trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            let _ = window.emit(
+                "backend-log",
+                serde_json::json!({ "msg": trimmed, "log_type": "process" }),
+            );
+        }
+    }
+    let _ = std::fs::remove_file(&log_path);
 
     if status.success() {
         let _ = window.emit(

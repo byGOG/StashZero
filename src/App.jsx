@@ -137,6 +137,7 @@ function App() {
     }
   }, [logs, showLogs]);
 
+
   const sendTerminalCommand = async () => {
     if (!terminalInput.trim()) return;
     try {
@@ -377,7 +378,7 @@ function App() {
       <div 
         className={`floating-install-pill ${(selected.size > 0 || installing) ? 'visible' : ''}`}
         style={{ 
-          bottom: showLogs ? `${logPanelHeight + 30}px` : undefined,
+          bottom: showLogs ? `${logPanelHeight + 60}px` : undefined,
           zIndex: 10005 
         }}
       >

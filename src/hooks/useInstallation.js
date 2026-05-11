@@ -9,7 +9,7 @@ import { compareVersions } from "../utils/updateChecker";
 export const useInstallation = () => {
   const installers = useMemo(
     () => LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })),
-    [LEGENDARY_APPS]
+    []
   );
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
@@ -42,7 +42,9 @@ export const useInstallation = () => {
 
       for (const app of installers) {
         const currentVersion = newInstalledApps[app.id];
-        if (currentVersion && !app.script_cmd && !app.is_resource) {
+        const isRealInstall = currentVersion && !app.is_resource &&
+          (!app.script_cmd || !!app.uninstall_script || !!app.uninstall_path);
+        if (isRealInstall) {
           installedByPath.set(app.path, app.id);
           if (compareVersions(app.version, currentVersion) > 0) {
             updates[app.id] = { current: currentVersion, latest: app.version };
@@ -107,7 +109,9 @@ export const useInstallation = () => {
     if (installing) return;
     
     const app = installers.find(i => i.path === path);
-    if (app && installedApps[app.id] && !app.script_cmd && !app.is_resource) {
+    const isRealInstall = app && installedApps[app.id] && !app.is_resource &&
+      (!app.script_cmd || !!app.uninstall_script || !!app.uninstall_path);
+    if (isRealInstall) {
       addLog(`"${app.name}" zaten kurulu. Tekrar kurmak için önce kaldırmalısınız.`, "info");
       sounds.playError();
       return;
@@ -136,18 +140,35 @@ export const useInstallation = () => {
 
       if (app.uninstall_script) {
         await invoke("run_ps_script", { script: app.uninstall_script });
-        addLog(`Başarılı: ${app.name} (Store/Script) kaldırıldı.`, "success");
+        addLog(`✓ ${app.name} kaldırıldı (özel kaldırma betiği çalıştırıldı).`, "success");
       } else if (app.portable || app.uninstall_paths) {
         await invoke("uninstall_portable", {
           url: app.download_url,
           appName: app.name,
           uninstallPaths: app.uninstall_paths || null
         });
-        addLog(`Başarılı: ${app.name} dosyaları temizlendi.`, "success");
+        const where = app.uninstall_paths
+          ? `${app.uninstall_paths.length} özel yol`
+          : `C:\\StashZero\\${app.name}`;
+        addLog(`✓ ${app.name} kaldırıldı (silinen: ${where}).`, "success");
       } else if (app.uninstall_path) {
         await invoke("uninstall_software", { path: app.uninstall_path });
-        addLog(`Başarılı: ${app.name} sistemden kaldırıldı.`, "success");
+        addLog(`✓ ${app.name} kaldırıldı (kaldırıcı çalıştırıldı: ${app.uninstall_path}).`, "success");
       } else throw new Error("Kaldırma yolu tanımlanmamış.");
+
+      const shortcutNames = new Set();
+      if (app.create_desktop_shortcut || app.create_start_menu_shortcut) {
+        shortcutNames.add(app.name);
+      }
+      if (Array.isArray(app.uninstall_shortcut_names)) {
+        app.uninstall_shortcut_names.forEach(n => shortcutNames.add(n));
+      }
+      if (shortcutNames.size > 0) {
+        for (const name of shortcutNames) {
+          try { await invoke("delete_shortcuts", { appName: name }); } catch {}
+        }
+        addLog(`Kısayollar temizlendi: ${[...shortcutNames].join(", ")} (masaüstü + Başlat menüsü).`, "info");
+      }
 
       setInstalledApps(prev => {
         const next = { ...prev };
@@ -201,7 +222,7 @@ export const useInstallation = () => {
             await invoke("run_ps_script", { script: app.script_cmd });
           }
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
-          addLog(`Başlatıldı: ${app.name}`, "success");
+          addLog(`✓ Betik tamamlandı: ${app.name} (PowerShell başarıyla çalıştı).`, "success");
           if (!app.is_resource) {
             setInstalledApps(prev => ({ ...prev, [app.id]: app.version || "Kurulu" }));
           }
@@ -218,10 +239,14 @@ export const useInstallation = () => {
             downloadFormPost: app.download_form_post || null,
             installPath: app.install_path || null,
             createDesktopShortcut: !!app.create_desktop_shortcut,
-            launchFile: app.launch_file || null
+            launchFile: app.launch_file || null,
+            launchPath: app.launch_path || null,
+            createStartMenuShortcut: !!app.create_start_menu_shortcut,
+            archivePassword: app.archive_password || null
           });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
-          addLog(`Başarılı: ${app.name}`, "success");
+          const versionTag = app.version && app.version !== "Güncel" ? ` v${app.version}` : "";
+          addLog(`✓ ${app.name}${versionTag} kuruldu ve "Kurulu" olarak işaretlendi.`, "success");
           if (!app.is_resource) {
             setInstalledApps(prev => ({ ...prev, [app.id]: app.version || "Kurulu" }));
           }
@@ -243,7 +268,11 @@ export const useInstallation = () => {
   const selectAll = useCallback(() => { 
     if (installing) return;
     const toSelect = installers
-      .filter(a => !(installedApps[a.id] && !a.script_cmd && !a.is_resource))
+      .filter(a => {
+        const isRealInstall = installedApps[a.id] && !a.is_resource &&
+          (!a.script_cmd || !!a.uninstall_script || !!a.uninstall_path);
+        return !isRealInstall;
+      })
       .map(a => a.path);
     setSelected(new Set(toSelect)); 
   }, [installing, installers, installedApps]);

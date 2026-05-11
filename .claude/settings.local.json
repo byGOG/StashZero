@@ -18,7 +18,12 @@
       "PowerShell(Write-Output $test)",
       "PowerShell($test = \"powershell -Command `\"`$ErrorActionPreference = 'SilentlyContinue'; `$paths = @\\('a','b'\\); foreach \\(`$p in `$paths\\) { Write-Output `\"got: `$p`\" }`\"\")",
       "Bash(cat)",
-      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File /tmp/test_wrap.ps1)"
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File /tmp/test_wrap.ps1)",
+      "Bash(grep -E \"\\\\.md$\")",
+      "Bash(git diff *)",
+      "Read(//tmp/**)",
+      "Bash(curl -sIL -A \"Mozilla/5.0\" -b /tmp/tpu.txt -e \"https://www.techpowerup.com/download/techpowerup-gpu-z/\" -X POST -d \"id=3073&server_id=25\" \"https://www.techpowerup.com/download/techpowerup-gpu-z/\")",
+      "Bash(curl -L -A \"Mozilla/5.0\" -b /tmp/tpu.txt -e \"https://www.techpowerup.com/download/techpowerup-gpu-z/\" -X POST -d \"id=3073&server_id=25\" \"https://www.techpowerup.com/download/techpowerup-gpu-z/\" -o /tmp/gpuz_final.bin -w \"code=%{http_code} type=%{content_type} size=%{size_download} url=%{url_effective}\\\\n\")"
     ]
   }
 }

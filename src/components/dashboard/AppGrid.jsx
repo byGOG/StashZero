@@ -94,7 +94,7 @@ const AppCard = memo(function AppCard({
           {app.portable && <span className="app-badge badge-portable">Taşınabilir</span>}
           {(!app.is_resource && installedVersion) && <span className="app-badge badge-installed">Kurulu</span>}
           <span className="app-badge badge-version">{versionLabel}</span>
-          {!app.is_resource && !app.script_cmd && app.size_bytes && (
+          {!app.is_resource && app.size_bytes && (
             <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
           )}
         </div>
@@ -129,7 +129,16 @@ const AppCard = memo(function AppCard({
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           )}
-          {((isInstalled && app.portable) || (app.script_cmd && !app.uninstall_script && !app.uninstall_path)) && !app.hide_launch && (
+          {isInstalled && app.edit_path && (
+            <button
+              className="icon-action-btn"
+              onClick={(e) => { e.stopPropagation(); invoke("edit_text_file", { path: app.edit_path }).catch(() => {}); }}
+              title="Düzenle"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </button>
+          )}
+          {((isInstalled && app.portable) || (isInstalled && app.launch_path) || (app.script_cmd && !app.uninstall_script && !app.uninstall_path)) && !app.hide_launch && (
             <button
               className={`primary-launch-btn ${app.script_cmd ? 'script-vibe' : ''}`}
               title={app.script_cmd ? 'Betik' : 'Başlat'}
@@ -190,6 +199,10 @@ const AppGrid = ({
         .then(() => addLog(`${app.name} çalıştırıldı.`, "success"))
         .catch((err) => addLog(`Hata: ${err}`, "error"));
       setShowLogs(true);
+    } else if (app.launch_path) {
+      invoke("launch_path", { path: app.launch_path })
+        .then(() => addLog(`${app.name} başlatıldı.`, "success"))
+        .catch((err) => addLog(`Hata: ${err}`, "error"));
     } else {
       invoke("launch_portable", { url: app.download_url, appName: app.name, launchFile: app.launch_file })
         .then(() => addLog(`${app.name} başlatıldı.`, "success"))

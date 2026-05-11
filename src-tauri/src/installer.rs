@@ -37,6 +37,25 @@ fn create_desktop_shortcut_fn(target_exe: &str, link_name: &str) -> std::io::Res
     Ok(())
 }
 
+fn create_start_menu_shortcut_fn(target_exe: &str, link_name: &str) -> std::io::Result<()> {
+    log::info!(
+        "Başlat menüsü kısayolu oluşturuluyor: {} -> {}",
+        link_name,
+        target_exe
+    );
+    let safe_target = target_exe.replace('\'', "''");
+    let safe_name = link_name.replace('\'', "''");
+    let ps_cmd = format!(
+        "$dir = Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs'; if (-not (Test-Path $dir)) {{ New-Item -ItemType Directory -Path $dir -Force | Out-Null }}; $ws=New-Object -ComObject WScript.Shell; $l=$ws.CreateShortcut((Join-Path $dir '{}.lnk')); $l.TargetPath='{}'; $l.WorkingDirectory=Split-Path '{}' -Parent; $l.Save()",
+        safe_name, safe_target, safe_target
+    );
+    let _ = std::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-NoProfile", "-Command", &ps_cmd])
+        .status();
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn uninstall_software(path: String) -> Result<String, String> {
     log::info!("Kaldırma başlatılıyor: {}", path);
@@ -196,6 +215,63 @@ pub async fn launch_portable(
     } else {
         Err("Uygulama bulunamadı.".to_string())
     }
+}
+
+#[tauri::command]
+pub async fn delete_shortcuts(app_name: String) -> Result<(), String> {
+    let safe_name = app_name.replace('\'', "''");
+    let ps_cmd = format!(
+        "$names = @(\"$HOME\\Desktop\\{}.lnk\", (Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs\\{}.lnk')); foreach ($n in $names) {{ if (Test-Path $n) {{ Remove-Item -LiteralPath $n -Force -ErrorAction SilentlyContinue }} }}",
+        safe_name, safe_name
+    );
+    let _ = std::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-NoProfile", "-Command", &ps_cmd])
+        .status();
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn edit_text_file(path: String) -> Result<(), String> {
+    let expanded = expand_env_vars(&path);
+    if !std::path::Path::new(&expanded).exists() {
+        return Err(format!("Dosya bulunamadı: {}", expanded));
+    }
+    std::process::Command::new("notepad.exe")
+        .creation_flags(CREATE_NO_WINDOW)
+        .arg(&expanded)
+        .spawn()
+        .map_err(|e| format!("Notepad açılamadı: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn launch_path(path: String) -> Result<(), String> {
+    let expanded = expand_env_vars(&path);
+    if !std::path::Path::new(&expanded).exists() {
+        return Err(format!("Dosya bulunamadı: {}", expanded));
+    }
+    let working_dir = std::path::Path::new(&expanded)
+        .parent()
+        .and_then(|p| p.to_str())
+        .unwrap_or("")
+        .to_string();
+    let escaped_path = expanded.replace('\'', "''");
+    let escaped_wd = working_dir.replace('\'', "''");
+    let ps_cmd = if escaped_wd.is_empty() {
+        format!("Start-Process -FilePath '{}'", escaped_path)
+    } else {
+        format!(
+            "Start-Process -FilePath '{}' -WorkingDirectory '{}'",
+            escaped_path, escaped_wd
+        )
+    };
+    std::process::Command::new("powershell")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-NoProfile", "-Command", &ps_cmd])
+        .spawn()
+        .map_err(|e| format!("Başlatılamadı: {}", e))?;
+    Ok(())
 }
 
 fn expand_env_vars(path: &str) -> String {
@@ -365,6 +441,41 @@ pub struct DownloadFormPost {
     pub server_regex: String,
 }
 
+async fn resolve_google_drive_url(url: &str, window: &TauriWindow) -> Option<String> {
+    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    let out = tokio::process::Command::new("curl.exe")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(["-sL", "-A", ua, url])
+        .output()
+        .await
+        .ok()?;
+    let html = String::from_utf8_lossy(&out.stdout);
+    let trimmed = html.trim_start().to_lowercase();
+    if !(trimmed.starts_with("<!doctype html")
+        || trimmed.starts_with("<html")
+        || trimmed.starts_with("<!doctype"))
+    {
+        // Already a binary response (no warning page) — leave URL untouched.
+        return None;
+    }
+    let id_re = regex::Regex::new(r#"name="id"\s+value="([^"]+)""#).ok()?;
+    let uuid_re = regex::Regex::new(r#"name="uuid"\s+value="([^"]+)""#).ok()?;
+    let id = id_re.captures(&html)?.get(1)?.as_str().to_string();
+    let uuid = uuid_re.captures(&html)?.get(1)?.as_str().to_string();
+    let resolved = format!(
+        "https://drive.usercontent.google.com/download?id={}&export=download&confirm=t&uuid={}",
+        id, uuid
+    );
+    let _ = window.emit(
+        "backend-log",
+        serde_json::json!({
+            "msg": "Google Drive virüs uyarısı atlatıldı (UUID alındı).",
+            "log_type": "info"
+        }),
+    );
+    Some(resolved)
+}
+
 async fn resolve_form_post_url(
     base_url: &str,
     form_post: &DownloadFormPost,
@@ -482,8 +593,10 @@ async fn batch_get_versions(
     for (id, path) in items {
         let esc_path = path.replace('\'', "''");
         let esc_id = id.replace('\'', "''");
+        // Prefer ProductVersion, fall back to FileVersion (some tools — e.g. DNS
+        // Jumper — leave ProductVersion blank). Empty result yields "Kurulu" downstream.
         script.push_str(&format!(
-            "try {{ $v=(Get-Item -LiteralPath '{}' -ErrorAction Stop).VersionInfo.ProductVersion; Write-Output ('{}|' + $v) }} catch {{ Write-Output '{}|' }};",
+            "try {{ $vi=(Get-Item -LiteralPath '{}' -ErrorAction Stop).VersionInfo; $v=$vi.ProductVersion; if ([string]::IsNullOrWhiteSpace($v)) {{ $v=$vi.FileVersion }}; Write-Output ('{}|' + $v) }} catch {{ Write-Output '{}|' }};",
             esc_path, esc_id, esc_id
         ));
     }
@@ -623,6 +736,9 @@ pub async fn install_exe_from_url(
     install_path: Option<String>,
     create_desktop_shortcut: Option<bool>,
     launch_file: Option<String>,
+    launch_path: Option<String>,
+    create_start_menu_shortcut: Option<bool>,
+    archive_password: Option<String>,
 ) -> Result<String, String> {
     log::info!("Kurulum başlatılıyor: {} ({})", app_name, package_id);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Kurulum başlatılıyor: {} ({})", app_name, package_id), "log_type": "info" }));
@@ -659,7 +775,44 @@ pub async fn install_exe_from_url(
                         .and_then(|n| n.as_str())
                         .unwrap_or("")
                         .to_lowercase();
-                    name.ends_with(".exe") && !name.contains("portable")
+                    name.ends_with(".exe")
+                        && name.contains("lt20")
+                        && !name.contains("portable")
+                        && !name.contains("arm")
+                })
+                .or_else(|| {
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".exe")
+                            && !name.contains("portable")
+                            && !name.contains("arm")
+                    })
+                })
+                .or_else(|| {
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".msi")
+                            && (name.contains("x64") || name.contains("win-x64"))
+                            && !name.contains("arm")
+                    })
+                })
+                .or_else(|| {
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".msi") && !name.contains("arm")
+                    })
                 })
                 .or_else(|| {
                     assets.iter().find(|a| {
@@ -711,6 +864,18 @@ pub async fn install_exe_from_url(
     if let Some(form_post) = &download_form_post {
         final_url =
             resolve_form_post_url(&final_url, form_post, &package_id, &app_name, &window).await?;
+    }
+
+    // Google Drive virus-warning bypass: when the URL points at drive.google.com /
+    // drive.usercontent.google.com, the server returns an HTML "can't scan for
+    // viruses" page with a form whose `uuid` token is required to actually fetch the
+    // file. Resolve it transparently here so library entries can keep using plain
+    // Drive URLs (e.g. Sordum tools that redirect through Drive).
+    if final_url.contains("drive.google.com") || final_url.contains("drive.usercontent.google.com")
+    {
+        if let Some(resolved) = resolve_google_drive_url(&final_url, &window).await {
+            final_url = resolved;
+        }
     }
 
     log::debug!(
@@ -877,9 +1042,19 @@ pub async fn install_exe_from_url(
         format!("İndirilen dosya bulunamadı: {}", e)
     })?;
 
-    let size_kb = metadata.len() / 1024;
-    log::info!("İndirme tamamlandı: {} (Boyut: {} KB)", app_name, size_kb);
-    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme bitti, dosya boyutu: {} KB", size_kb), "log_type": "info" }));
+    let size_mb = metadata.len() as f64 / (1024.0 * 1024.0);
+    log::info!(
+        "İndirme tamamlandı: {} (Boyut: {:.1} MB)",
+        app_name,
+        size_mb
+    );
+    let _ = window.emit(
+        "backend-log",
+        serde_json::json!({
+            "msg": format!("İndirme bitti, dosya boyutu: {:.1} MB", size_mb),
+            "log_type": "info"
+        }),
+    );
 
     if metadata.len() < 1024 {
         let _ = std::fs::remove_file(&target_path); // Clean up bad file
@@ -887,6 +1062,169 @@ pub async fn install_exe_from_url(
             "İndirilen dosya çok küçük (1KB altı), muhtemelen hatalı veya sunucu hatası oluştu."
                 .to_string(),
         );
+    }
+
+    // HTML detection: when a CDN (Google Drive virus warning, login redirect, captcha)
+    // returns an HTML page instead of the binary, curl saves it with the .exe name and
+    // we'd silently treat it as a successful install. Sniff the first bytes for HTML.
+    if let Ok(mut f) = std::fs::File::open(&target_path) {
+        use std::io::Read;
+        let mut head = [0u8; 256];
+        let n = f.read(&mut head).unwrap_or(0);
+        let head_str = String::from_utf8_lossy(&head[..n]).to_lowercase();
+        let head_trim = head_str.trim_start();
+        let looks_html = head_trim.starts_with("<!doctype html")
+            || head_trim.starts_with("<html")
+            || head_trim.starts_with("<!doctype")
+            || head_trim.starts_with("<head");
+        if looks_html {
+            let _ = std::fs::remove_file(&target_path);
+            return Err(
+                "İndirilen dosya HTML içeriği (büyük olasılıkla virüs uyarısı veya yönlendirme sayfası). Lütfen alternatif bir indirme bağlantısı kullanın.".to_string()
+            );
+        }
+        // ZIP archive detection: some Sordum tools (e.g. Windows Update Blocker)
+        // arrive as a plain ZIP via Drive even though the saved filename is .exe.
+        // Extract with PowerShell's Expand-Archive (no password needed).
+        // Skip when the URL/filename already advertises .zip — the explicit is_zip
+        // path further below handles those (with launch_file resolution etc.).
+        let already_zip_by_name = final_url.to_lowercase().ends_with(".zip")
+            || file_name.to_lowercase().ends_with(".zip");
+        if n >= 4
+            && &head[..4] == b"PK\x03\x04"
+            && archive_password.is_none()
+            && !already_zip_by_name
+        {
+            let extract_dir = target_path.parent().ok_or_else(|| {
+                "Çıkarma için hedef klasör bulunamadı.".to_string()
+            })?;
+            let zip_path = target_path.with_extension("zip");
+            std::fs::rename(&target_path, &zip_path)
+                .map_err(|e| format!("ZIP yeniden adlandırılamadı: {}", e))?;
+            let _ = window.emit("backend-log", serde_json::json!({
+                "msg": format!("ZIP arşivi tespit edildi, çıkarılıyor: {}", zip_path.display()),
+                "log_type": "info"
+            }));
+            // Smart flatten: extract to a temp dir; if the archive has exactly one
+            // top-level wrapper folder (typical), promote its CONTENTS (preserving
+            // nested subdirs like x86/x86_64) into the install dir. Otherwise move
+            // everything as-is. Keeps legitimate subfolders intact.
+            let ps_cmd = format!(
+                "$dest = '{}'; $zip = '{}'; $tmp = Join-Path $dest '__sz_unzip'; if (Test-Path $tmp) {{ Remove-Item -LiteralPath $tmp -Recurse -Force }}; New-Item -ItemType Directory -Path $tmp -Force | Out-Null; Expand-Archive -Path $zip -DestinationPath $tmp -Force; $entries = @(Get-ChildItem -LiteralPath $tmp -Force); if ($entries.Count -eq 1 -and $entries[0].PSIsContainer) {{ Get-ChildItem -LiteralPath $entries[0].FullName -Force | ForEach-Object {{ Move-Item -LiteralPath $_.FullName -Destination $dest -Force }} }} else {{ $entries | ForEach-Object {{ Move-Item -LiteralPath $_.FullName -Destination $dest -Force }} }}; Remove-Item -LiteralPath $tmp -Recurse -Force",
+                extract_dir.to_str().unwrap().replace('\'', "''"),
+                zip_path.to_str().unwrap().replace('\'', "''")
+            );
+            let output = tokio::process::Command::new("powershell")
+                .creation_flags(CREATE_NO_WINDOW)
+                .args(["-NoProfile", "-Command", &ps_cmd])
+                .output()
+                .await
+                .map_err(|e| {
+                    let _ = std::fs::remove_file(&zip_path);
+                    format!("ZIP çıkarıcı çalıştırılamadı: {}", e)
+                })?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+                let _ = std::fs::remove_file(&zip_path);
+                return Err(format!("ZIP çıkarma başarısız: {}", stderr));
+            }
+            let _ = std::fs::remove_file(&zip_path);
+            let _ = window.emit("backend-log", serde_json::json!({
+                "msg": format!("ZIP çıkarma tamamlandı: {}", extract_dir.display()),
+                "log_type": "success"
+            }));
+        }
+
+        // Encrypted archive detection: Sordum tools (Defender Control etc.) ship as
+        // password-protected RAR via Google Drive to avoid AV false-positives. Auto-
+        // extract when the library entry provides `archive_password`; otherwise fail
+        // loudly so we never store a "corrupt .exe".
+        if n >= 4 && &head[..4] == b"Rar!" {
+            let password = archive_password.as_deref().ok_or_else(||
+                "İndirilen dosya parola korumalı bir RAR arşivi. Otomatik kurulum yapılamaz — lütfen sağlayıcının resmi sayfasından manuel indirin (Sordum araçlarında parola: sordum).".to_string()
+            )?;
+            let unrar_paths = [
+                "C:\\Program Files\\WinRAR\\unrar.exe",
+                "C:\\Program Files (x86)\\WinRAR\\unrar.exe",
+            ];
+            let sevenz_paths = [
+                "C:\\Program Files\\7-Zip\\7z.exe",
+                "C:\\Program Files (x86)\\7-Zip\\7z.exe",
+            ];
+            let unrar_found = unrar_paths
+                .iter()
+                .find(|p| std::path::Path::new(p).exists());
+            let sevenz_found = sevenz_paths
+                .iter()
+                .find(|p| std::path::Path::new(p).exists());
+            let extract_dir = target_path.parent().ok_or_else(|| {
+                "Çıkarma için hedef klasör bulunamadı.".to_string()
+            })?;
+            let rar_path = target_path.with_extension("rar");
+            std::fs::rename(&target_path, &rar_path)
+                .map_err(|e| format!("RAR yeniden adlandırılamadı: {}", e))?;
+            let _ = window.emit("backend-log", serde_json::json!({
+                "msg": format!("Şifreli RAR tespit edildi, çıkarılıyor: {}", rar_path.display()),
+                "log_type": "info"
+            }));
+            let extract_status = if let Some(unrar) = unrar_found {
+                tokio::process::Command::new(unrar)
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .args([
+                        "e",
+                        &format!("-p{}", password),
+                        "-y",
+                        "-o+",
+                        rar_path.to_str().unwrap(),
+                        &format!("{}\\", extract_dir.to_str().unwrap()),
+                    ])
+                    .output()
+                    .await
+            } else if let Some(sevenz) = sevenz_found {
+                tokio::process::Command::new(sevenz)
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .args([
+                        "e",
+                        rar_path.to_str().unwrap(),
+                        &format!("-o{}", extract_dir.to_str().unwrap()),
+                        &format!("-p{}", password),
+                        "-y",
+                    ])
+                    .output()
+                    .await
+            } else {
+                let _ = std::fs::remove_file(&rar_path);
+                return Err(
+                    "RAR çıkarmak için 7-Zip veya WinRAR gerekli. Lütfen birini yükleyin.".to_string()
+                );
+            };
+            let output = extract_status.map_err(|e| {
+                let _ = std::fs::remove_file(&rar_path);
+                format!("Çıkarıcı çalıştırılamadı: {}", e)
+            })?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+                let _ = std::fs::remove_file(&rar_path);
+                return Err(format!(
+                    "RAR çıkarma başarısız (parola hatalı olabilir): {}",
+                    if stderr.is_empty() {
+                        format!("exit {}", output.status.code().unwrap_or(-1))
+                    } else {
+                        stderr
+                    }
+                ));
+            }
+            let _ = std::fs::remove_file(&rar_path);
+            log::info!(
+                "RAR çıkarıldı: {} -> {}",
+                rar_path.display(),
+                extract_dir.display()
+            );
+            let _ = window.emit("backend-log", serde_json::json!({
+                "msg": format!("RAR çıkarma tamamlandı: {}", extract_dir.display()),
+                "log_type": "success"
+            }));
+        }
     }
 
     log::info!("İndirme tamamlandı: {}", app_name);
@@ -918,17 +1256,18 @@ pub async fn install_exe_from_url(
         }
 
         log::info!("Ayıklama başlatılıyor: {}", target_path.display());
+        // Smart flatten + cleanup: extract to a temp dir; if the archive has a
+        // single top-level wrapper folder, promote its contents (preserving any
+        // nested subdirs) into the install dir. Otherwise move all top-level
+        // entries as-is. Then remove the temp dir and original .zip.
+        let unzip_ps = format!(
+            "$dest = '{}'; $zip = '{}'; $tmp = Join-Path $dest '__sz_unzip'; if (Test-Path $tmp) {{ Remove-Item -LiteralPath $tmp -Recurse -Force }}; New-Item -ItemType Directory -Path $tmp -Force | Out-Null; Expand-Archive -Path $zip -DestinationPath $tmp -Force; $entries = @(Get-ChildItem -LiteralPath $tmp -Force); if ($entries.Count -eq 1 -and $entries[0].PSIsContainer) {{ Get-ChildItem -LiteralPath $entries[0].FullName -Force | ForEach-Object {{ Move-Item -LiteralPath $_.FullName -Destination $dest -Force }} }} else {{ $entries | ForEach-Object {{ Move-Item -LiteralPath $_.FullName -Destination $dest -Force }} }}; Remove-Item -LiteralPath $tmp -Recurse -Force; if (Test-Path $zip) {{ Remove-Item -LiteralPath $zip -Force }}",
+            extract_path.to_str().unwrap().replace('\'', "''"),
+            target_path.to_str().unwrap().replace('\'', "''")
+        );
         let unzip_cmd = tokio::process::Command::new("powershell")
             .creation_flags(CREATE_NO_WINDOW)
-            .args([
-                "-NoProfile",
-                "-Command",
-                &format!(
-                    "Expand-Archive -Path '{}' -DestinationPath '{}' -Force",
-                    target_path.to_str().unwrap(),
-                    extract_path.to_str().unwrap()
-                ),
-            ])
+            .args(["-NoProfile", "-Command", &unzip_ps])
             .stderr(std::process::Stdio::piped())
             .spawn()
             .map_err(|e| {
@@ -945,7 +1284,9 @@ pub async fn install_exe_from_url(
             if let Some(path) = shortcut_path {
                 let _ = copy_shortcut_to_desktop(&path);
             }
-            if create_desktop_shortcut.unwrap_or(false) {
+            let need_desktop = create_desktop_shortcut.unwrap_or(false);
+            let need_start_menu = create_start_menu_shortcut.unwrap_or(false);
+            if need_desktop || need_start_menu {
                 let lf = launch_file.as_deref();
                 let exe_in_extract: Option<std::path::PathBuf> = if let Some(name) = lf {
                     let candidate = extract_path.join(name);
@@ -973,7 +1314,12 @@ pub async fn install_exe_from_url(
                 };
                 if let Some(exe_path) = exe_in_extract {
                     if let Some(target_str) = exe_path.to_str() {
-                        let _ = create_desktop_shortcut_fn(target_str, &app_name);
+                        if need_desktop {
+                            let _ = create_desktop_shortcut_fn(target_str, &app_name);
+                        }
+                        if need_start_menu {
+                            let _ = create_start_menu_shortcut_fn(target_str, &app_name);
+                        }
                     }
                 }
             }
@@ -1047,9 +1393,19 @@ pub async fn install_exe_from_url(
         if let Some(path) = shortcut_path {
             let _ = copy_shortcut_to_desktop(&path);
         }
-        if create_desktop_shortcut.unwrap_or(false) {
-            if let Some(target_str) = target_path.to_str() {
-                let _ = create_desktop_shortcut_fn(target_str, &app_name);
+        // Prefer launch_path when set (it survives archive extraction; target_path
+        // may be gone after a RAR extract). Fall back to target_path otherwise.
+        let shortcut_target = launch_path
+            .as_deref()
+            .map(|lp| expand_env_vars(lp))
+            .filter(|p| std::path::Path::new(p).exists())
+            .or_else(|| target_path.to_str().map(|s| s.to_string()));
+        if let Some(target_str) = shortcut_target {
+            if create_desktop_shortcut.unwrap_or(false) {
+                let _ = create_desktop_shortcut_fn(&target_str, &app_name);
+            }
+            if create_start_menu_shortcut.unwrap_or(false) {
+                let _ = create_start_menu_shortcut_fn(&target_str, &app_name);
             }
         }
         let _ = window.emit(
@@ -1073,7 +1429,15 @@ pub async fn install_exe_from_url(
     );
 
     let target_str = target_path.to_str().unwrap();
-    let final_args = install_args.unwrap_or_else(|| "/S".to_string());
+    // Default silent flag depends on installer type: MSI uses /qn /norestart,
+    // NSIS-style EXE uses /S. Library entries can override via install_args.
+    let final_args = install_args.unwrap_or_else(|| {
+        if target_str.to_lowercase().ends_with(".msi") {
+            "/qn /norestart".to_string()
+        } else {
+            "/S".to_string()
+        }
+    });
 
     // Split arguments by space and wrap each in single quotes for PowerShell array
     let args_list: Vec<String> = final_args
@@ -1094,6 +1458,22 @@ pub async fn install_exe_from_url(
     );
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Yükleyici çalıştırılıyor: {} {}", target_str, final_args), "log_type": "process" }));
 
+    let is_msi = target_str.to_lowercase().ends_with(".msi");
+    // For MSI files, Start-Process -FilePath foo.msi routes via shell association
+    // and silently drops msiexec args (/qn, ALLUSERS=1 etc.). Invoke msiexec directly instead.
+    let (filepath_for_start, args_part_for_start) = if is_msi {
+        let mut msi_args = vec!["'/i'".to_string(), format!("'{}'", target_str.replace('\'', "''"))];
+        for tok in final_args.split_whitespace() {
+            msi_args.push(format!("'{}'", tok.replace('\'', "''")));
+        }
+        (
+            "msiexec".to_string(),
+            format!("-ArgumentList @({})", msi_args.join(", ")),
+        )
+    } else {
+        (format!("'{}'", target_str), args_part.clone())
+    };
+
     let install_command_str = match install_kill_targets.as_ref().filter(|v| !v.is_empty()) {
         Some(targets) => {
             let names_csv = targets
@@ -1101,19 +1481,33 @@ pub async fn install_exe_from_url(
                 .map(|n| format!("'{}'", n.replace('\'', "''")))
                 .collect::<Vec<_>>()
                 .join(",");
+            // Detached post-install watcher — keeps killing the targets for 30s after
+            // the installer exits, in the same elevated context (inherits admin from
+            // the parent elevated PS, no extra UAC). Catches GUIs that launch right
+            // as the extractor finishes (e.g. Emsisoft's first-run EULA).
+            let watcher_cmd = format!(
+                "$d=(Get-Date).AddSeconds(30); while ((Get-Date) -lt $d) {{ Get-Process -Name {} -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 250 }}",
+                names_csv
+            );
+            use base64::{engine::general_purpose::STANDARD, Engine as _};
+            let watcher_utf16: Vec<u8> = watcher_cmd
+                .encode_utf16()
+                .flat_map(|c| c.to_le_bytes())
+                .collect();
+            let watcher_b64 = STANDARD.encode(&watcher_utf16);
             let inner = format!(
-                "$p = Start-Process -FilePath '{}' {} -PassThru; while (!$p.HasExited) {{ Get-Process -Name {} -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }}; exit $p.ExitCode",
-                target_str, args_part, names_csv
+                "$p = Start-Process -FilePath {} {} -PassThru; while (!$p.HasExited) {{ Get-Process -Name {} -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }}; Start-Process powershell -WindowStyle Hidden -ArgumentList @('-NoProfile','-EncodedCommand','{}'); exit $p.ExitCode",
+                filepath_for_start, args_part_for_start, names_csv, watcher_b64
             );
             let inner_escaped = inner.replace('\'', "''");
             format!(
-                "$ErrorActionPreference = 'Stop'; $cmd = '{}'; $b = [System.Text.Encoding]::Unicode.GetBytes($cmd); $e = [Convert]::ToBase64String($b); $pp = Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList @('-NoProfile','-EncodedCommand',$e) -PassThru; exit $pp.ExitCode",
+                "$ErrorActionPreference = 'Stop'; $cmd = '{}'; $b = [System.Text.Encoding]::Unicode.GetBytes($cmd); $e = [Convert]::ToBase64String($b); $pp = Start-Process powershell -Verb RunAs -WindowStyle Hidden -ArgumentList @('-NoProfile','-EncodedCommand',$e) -PassThru; $deadline = (Get-Date).AddMinutes(10); while (-not $pp.HasExited -and (Get-Date) -lt $deadline) {{ Start-Sleep -Milliseconds 500 }}; if (-not $pp.HasExited) {{ Stop-Process -Id $pp.Id -Force -ErrorAction SilentlyContinue }}; $code = if ($pp.HasExited) {{ $pp.ExitCode }} else {{ -1 }}; exit $code",
                 inner_escaped
             )
         }
         None => format!(
-            "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath '{}' {} -Wait -Verb RunAs -PassThru; exit $p.ExitCode",
-            target_str, args_part
+            "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath {} {} -Verb RunAs -PassThru; $deadline = (Get-Date).AddMinutes(15); while (-not $p.HasExited -and (Get-Date) -lt $deadline) {{ Start-Sleep -Milliseconds 500 }}; if (-not $p.HasExited) {{ Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }}; $code = if ($p.HasExited) {{ $p.ExitCode }} else {{ -1 }}; exit $code",
+            filepath_for_start, args_part_for_start
         ),
     };
 
@@ -1137,7 +1531,20 @@ pub async fn install_exe_from_url(
         format!("Kurulum süreç hatası: {}", e)
     })?;
 
-    if install_status.success() {
+    // When install_kill_targets is active, the killed [Run] task can cause non-zero
+    // exit codes (e.g. install4j returns 22) even though the install completed.
+    // Treat any termination as success in that case — caller validates via check_path.
+    let install_succeeded = install_status.success() || install_kill_targets.is_some();
+
+    if install_succeeded {
+        if !install_status.success() {
+            let code = install_status.code().unwrap_or(-1);
+            log::info!(
+                "Kurulum tamamlandı (kill nedeniyle exit {}): {}",
+                code,
+                app_name
+            );
+        }
         if let Some(cmd) = post_install_cmd {
             log::info!("Kurulum sonrası komut çalıştırılıyor: {}", cmd);
             let _ = window.emit(
@@ -1189,6 +1596,17 @@ pub async fn install_exe_from_url(
 
         if let Some(path) = shortcut_path {
             let _ = copy_shortcut_to_desktop(&path);
+        }
+        if let Some(lp) = launch_path.as_deref() {
+            let expanded = expand_env_vars(lp);
+            if std::path::Path::new(&expanded).exists() {
+                if create_desktop_shortcut.unwrap_or(false) {
+                    let _ = create_desktop_shortcut_fn(&expanded, &app_name);
+                }
+                if create_start_menu_shortcut.unwrap_or(false) {
+                    let _ = create_start_menu_shortcut_fn(&expanded, &app_name);
+                }
+            }
         }
         let _ = window.emit(
             "install-progress",

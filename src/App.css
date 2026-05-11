@@ -2172,16 +2172,51 @@ body {
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Log Panel Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .log-panel {
-  width: 100%;
-  height: 220px;
-  flex-shrink: 0;
-  background: #0a0c10;
-  border-top: 1px solid var(--border-color);
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translate(-50%, 0) scale(1);
+  transform-origin: 50% 100%;
+  width: min(1100px, calc(100vw - 320px));
+  height: min(680px, calc(100vh - 220px));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 60%),
+    var(--bg-sidebar);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 64px -16px rgba(0, 0, 0, 0.55),
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 0 0 1px var(--accent-glow);
   display: flex;
   flex-direction: column;
   z-index: 9000;
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  animation: logPanelEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden;
+}
+
+@keyframes logPanelEnter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 64px) scale(0.88);
+    filter: blur(12px);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    filter: blur(0);
+    box-shadow:
+      0 24px 64px -16px rgba(0, 0, 0, 0.55),
+      0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+      0 0 0 1px var(--accent-glow);
+  }
 }
 
 .log-resize-handle {
@@ -6030,16 +6065,51 @@ body {
 
 /* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Log Panel Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .log-panel {
-  width: 100%;
-  height: 220px;
-  flex-shrink: 0;
-  background: #0a0c10;
-  border-top: 1px solid var(--border-color);
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translate(-50%, 0) scale(1);
+  transform-origin: 50% 100%;
+  width: min(1100px, calc(100vw - 320px));
+  height: min(680px, calc(100vh - 220px));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 60%),
+    var(--bg-sidebar);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 64px -16px rgba(0, 0, 0, 0.55),
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 0 0 1px var(--accent-glow);
   display: flex;
   flex-direction: column;
   z-index: 9000;
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  animation: logPanelEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden;
+}
+
+@keyframes logPanelEnter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 64px) scale(0.88);
+    filter: blur(12px);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    filter: blur(0);
+    box-shadow:
+      0 24px 64px -16px rgba(0, 0, 0, 0.55),
+      0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+      0 0 0 1px var(--accent-glow);
+  }
 }
 
 .log-resize-handle {
@@ -7931,11 +8001,11 @@ button {
 
 .log-header-title h3 {
   margin: 0;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1.2;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #ffffff;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
@@ -8000,9 +8070,9 @@ button {
 
 .filter-tab[class*="all"]::before,
 .filter-tab:nth-child(1)::before { background: rgba(255, 255, 255, 0.6); }
-.filter-tab:nth-child(2)::before { background: #ff5d6c; }
-.filter-tab:nth-child(3)::before { background: var(--accent-primary, #00ff9f); }
-.filter-tab:nth-child(4)::before { background: #ffc857; }
+.filter-tab:nth-child(2)::before { background: #ff5555; }
+.filter-tab:nth-child(3)::before { background: #50fa7b; }
+.filter-tab:nth-child(4)::before { background: #f1fa8c; }
 
 .filter-tab:hover {
   color: rgba(255, 255, 255, 0.85);
@@ -8162,10 +8232,10 @@ button {
 
 .terminal-log-entry {
   display: flex;
-  gap: 8px;
-  margin-bottom: 3px;
-  font-size: 10px;
-  line-height: 1.2;
+  gap: 10px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1.4;
   animation: fadeInTerminal 0.3s ease-out forwards;
 }
 
@@ -8175,9 +8245,9 @@ button {
 }
 
 .log-timestamp {
-  color: rgba(255, 255, 255, 0.15);
-  font-size: 8px;
-  min-width: 60px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 11px;
+  min-width: 72px;
 }
 
 .log-content-text {
