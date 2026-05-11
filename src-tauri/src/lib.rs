@@ -96,8 +96,8 @@ pub fn run() {
 
             Ok(())
         })
-        .on_window_event(|window, event| match event {
-            tauri::WindowEvent::CloseRequested { api, .. } => {
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == "main" && !QUIT_REQUESTED.load(Ordering::SeqCst) {
                     log::info!("Ana pencere gizleniyor...");
                     let _ = window.set_skip_taskbar(true);
@@ -105,7 +105,6 @@ pub fn run() {
                     api.prevent_close();
                 }
             }
-            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             sysinfo::get_system_info,
@@ -142,12 +141,11 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, event| match event {
-            tauri::RunEvent::ExitRequested { api, .. } => {
+        .run(|_app_handle, event| {
+            if let tauri::RunEvent::ExitRequested { api, .. } = event {
                 if !QUIT_REQUESTED.load(Ordering::SeqCst) {
                     api.prevent_exit();
                 }
             }
-            _ => {}
         });
 }

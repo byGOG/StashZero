@@ -1,7 +1,6 @@
 use std::os::windows::process::CommandExt;
 use tauri::Emitter;
-use tauri::{Manager, Window as TauriWindow};
-use tauri_plugin_notification::NotificationExt;
+use tauri::Window as TauriWindow;
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
@@ -120,7 +119,7 @@ pub async fn uninstall_portable(
         return Ok("Uygulama kalıntıları başarıyla temizlendi.".to_string());
     }
 
-    let file_name = url.split('/').last().unwrap_or("app.exe");
+    let file_name = url.split('/').next_back().unwrap_or("app.exe");
     let path = std::path::PathBuf::from("C:\\StashZero").join(file_name);
     let folder_path = std::path::PathBuf::from("C:\\StashZero").join(&app_name);
 
@@ -141,7 +140,7 @@ pub async fn launch_portable(
     app_name: Option<String>,
     launch_file: Option<String>,
 ) -> Result<(), String> {
-    let file_name = url.split('/').last().unwrap_or("app.exe");
+    let file_name = url.split('/').next_back().unwrap_or("app.exe");
     let base = std::path::PathBuf::from("C:\\StashZero");
 
     // 1. Precise launch_file check (highest priority)
@@ -402,9 +401,9 @@ pub async fn get_all_installed_software() -> Result<Vec<serde_json::Value>, Stri
 }
 
 fn clean_version(raw: &str) -> String {
-    let trimmed = raw.trim().trim_start_matches(|c| c == 'v' || c == 'V');
+    let trimmed = raw.trim().trim_start_matches(['v', 'V']);
     let pre_cut: &str = trimmed
-        .split(|c| c == '-' || c == '+')
+        .split(['-', '+'])
         .next()
         .unwrap_or(trimmed);
     // Handle "2, 19, 0, 0" comma-separated PE format → "2.19" (strip trailing .0)
@@ -722,6 +721,7 @@ pub async fn get_file_version(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub async fn install_exe_from_url(
     window: TauriWindow,
     url: String,
@@ -848,7 +848,7 @@ pub async fn install_exe_from_url(
                 if let Some(download_url) = a.get("browser_download_url").and_then(|u| u.as_str()) {
                     final_url = download_url.to_string();
                     found_asset = true;
-                    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("En güncel sürüm bulundu: {}", final_url.split('/').last().unwrap_or("setup.exe")), "log_type": "success" }));
+                    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("En güncel sürüm bulundu: {}", final_url.split('/').next_back().unwrap_or("setup.exe")), "log_type": "success" }));
                 }
             }
         }
@@ -901,7 +901,7 @@ pub async fn install_exe_from_url(
         .next()
         .unwrap_or(&final_url)
         .split('/')
-        .last()
+        .next_back()
         .unwrap_or("");
     let known_exts = [".exe", ".zip", ".msi", ".7z"];
     let file_name = if known_exts
@@ -980,7 +980,7 @@ pub async fn install_exe_from_url(
                 let line = String::from_utf8_lossy(&buffer).to_string();
                 buffer.clear();
 
-                let clean_line = line.replace('\r', "").replace('\n', "");
+                let clean_line = line.replace(['\r', '\n'], "");
                 let parts: Vec<&str> = clean_line.split_whitespace().collect();
 
                 if parts.len() >= 7 {
@@ -1095,16 +1095,19 @@ pub async fn install_exe_from_url(
             && archive_password.is_none()
             && !already_zip_by_name
         {
-            let extract_dir = target_path.parent().ok_or_else(|| {
-                "Çıkarma için hedef klasör bulunamadı.".to_string()
-            })?;
+            let extract_dir = target_path
+                .parent()
+                .ok_or_else(|| "Çıkarma için hedef klasör bulunamadı.".to_string())?;
             let zip_path = target_path.with_extension("zip");
             std::fs::rename(&target_path, &zip_path)
                 .map_err(|e| format!("ZIP yeniden adlandırılamadı: {}", e))?;
-            let _ = window.emit("backend-log", serde_json::json!({
-                "msg": format!("ZIP arşivi tespit edildi, çıkarılıyor: {}", zip_path.display()),
-                "log_type": "info"
-            }));
+            let _ = window.emit(
+                "backend-log",
+                serde_json::json!({
+                    "msg": format!("ZIP arşivi tespit edildi, çıkarılıyor: {}", zip_path.display()),
+                    "log_type": "info"
+                }),
+            );
             // Smart flatten: extract to a temp dir; if the archive has exactly one
             // top-level wrapper folder (typical), promote its CONTENTS (preserving
             // nested subdirs like x86/x86_64) into the install dir. Otherwise move
@@ -1129,10 +1132,13 @@ pub async fn install_exe_from_url(
                 return Err(format!("ZIP çıkarma başarısız: {}", stderr));
             }
             let _ = std::fs::remove_file(&zip_path);
-            let _ = window.emit("backend-log", serde_json::json!({
-                "msg": format!("ZIP çıkarma tamamlandı: {}", extract_dir.display()),
-                "log_type": "success"
-            }));
+            let _ = window.emit(
+                "backend-log",
+                serde_json::json!({
+                    "msg": format!("ZIP çıkarma tamamlandı: {}", extract_dir.display()),
+                    "log_type": "success"
+                }),
+            );
         }
 
         // Encrypted archive detection: Sordum tools (Defender Control etc.) ship as
@@ -1157,9 +1163,9 @@ pub async fn install_exe_from_url(
             let sevenz_found = sevenz_paths
                 .iter()
                 .find(|p| std::path::Path::new(p).exists());
-            let extract_dir = target_path.parent().ok_or_else(|| {
-                "Çıkarma için hedef klasör bulunamadı.".to_string()
-            })?;
+            let extract_dir = target_path
+                .parent()
+                .ok_or_else(|| "Çıkarma için hedef klasör bulunamadı.".to_string())?;
             let rar_path = target_path.with_extension("rar");
             std::fs::rename(&target_path, &rar_path)
                 .map_err(|e| format!("RAR yeniden adlandırılamadı: {}", e))?;
@@ -1195,7 +1201,8 @@ pub async fn install_exe_from_url(
             } else {
                 let _ = std::fs::remove_file(&rar_path);
                 return Err(
-                    "RAR çıkarmak için 7-Zip veya WinRAR gerekli. Lütfen birini yükleyin.".to_string()
+                    "RAR çıkarmak için 7-Zip veya WinRAR gerekli. Lütfen birini yükleyin."
+                        .to_string(),
                 );
             };
             let output = extract_status.map_err(|e| {
@@ -1220,10 +1227,13 @@ pub async fn install_exe_from_url(
                 rar_path.display(),
                 extract_dir.display()
             );
-            let _ = window.emit("backend-log", serde_json::json!({
-                "msg": format!("RAR çıkarma tamamlandı: {}", extract_dir.display()),
-                "log_type": "success"
-            }));
+            let _ = window.emit(
+                "backend-log",
+                serde_json::json!({
+                    "msg": format!("RAR çıkarma tamamlandı: {}", extract_dir.display()),
+                    "log_type": "success"
+                }),
+            );
         }
     }
 
@@ -1397,7 +1407,7 @@ pub async fn install_exe_from_url(
         // may be gone after a RAR extract). Fall back to target_path otherwise.
         let shortcut_target = launch_path
             .as_deref()
-            .map(|lp| expand_env_vars(lp))
+            .map(expand_env_vars)
             .filter(|p| std::path::Path::new(p).exists())
             .or_else(|| target_path.to_str().map(|s| s.to_string()));
         if let Some(target_str) = shortcut_target {
@@ -1462,7 +1472,10 @@ pub async fn install_exe_from_url(
     // For MSI files, Start-Process -FilePath foo.msi routes via shell association
     // and silently drops msiexec args (/qn, ALLUSERS=1 etc.). Invoke msiexec directly instead.
     let (filepath_for_start, args_part_for_start) = if is_msi {
-        let mut msi_args = vec!["'/i'".to_string(), format!("'{}'", target_str.replace('\'', "''"))];
+        let mut msi_args = vec![
+            "'/i'".to_string(),
+            format!("'{}'", target_str.replace('\'', "''")),
+        ];
         for tok in final_args.split_whitespace() {
             msi_args.push(format!("'{}'", tok.replace('\'', "''")));
         }

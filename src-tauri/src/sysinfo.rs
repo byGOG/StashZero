@@ -183,12 +183,10 @@ fn collect_disks(sys: &System, static_info_ref: Option<&StaticSystemInfo>) -> (V
                 model = "Google Drive".to_string();
                 bus = "Sanal".to_string();
                 media = "Bulut Depolama".to_string();
-            } else if model == "Bilinmeyen Sürücü" {
-                if mount_point.starts_with("\\") {
-                    model = "Ağ Sürücüsü".to_string();
-                    bus = "Ağ".to_string();
-                    media = "Ağ Paylaşımı".to_string();
-                }
+            } else if model == "Bilinmeyen Sürücü" && mount_point.starts_with("\\") {
+                model = "Ağ Sürücüsü".to_string();
+                bus = "Ağ".to_string();
+                media = "Ağ Paylaşımı".to_string();
             }
         }
 
@@ -641,7 +639,7 @@ pub fn prefetch_static_info() {
                 os_full = val.to_string();
             } else if let Some(val) = line.strip_prefix("FEAT:") {
                 let f_parts: Vec<&str> = val.split('|').collect();
-                uefi = f_parts.get(0).unwrap_or(&"false").trim().to_lowercase() == "true";
+                uefi = f_parts.first().unwrap_or(&"false").trim().to_lowercase() == "true";
                 sb = f_parts.get(1).unwrap_or(&"false").trim().to_lowercase() == "true";
                 tpm = f_parts.get(2).unwrap_or(&"false").trim().to_lowercase() == "true";
                 hvci = f_parts.get(3).unwrap_or(&"false").trim().to_lowercase() == "true";
