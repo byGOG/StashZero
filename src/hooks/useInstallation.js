@@ -165,7 +165,9 @@ export const useInstallation = () => {
       }
       if (shortcutNames.size > 0) {
         for (const name of shortcutNames) {
-          try { await invoke("delete_shortcuts", { appName: name }); } catch {}
+          try { await invoke("delete_shortcuts", { appName: name }); } catch {
+            /* ignore deletion errors */
+          }
         }
         addLog(`Kısayollar temizlendi: ${[...shortcutNames].join(", ")} (masaüstü + Başlat menüsü).`, "info");
       }
