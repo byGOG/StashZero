@@ -25,9 +25,21 @@ pub async fn run_ps_script(
     let show_window = visible.unwrap_or(false);
     let run_as_admin = as_admin.unwrap_or(true);
     let keep_window_open = keep_open.unwrap_or(false);
-    let window_mode = if show_window { "Görünür Pencere" } else { "Gizli Pencere" };
-    let admin_mode = if run_as_admin { "Yönetici" } else { "Standart" };
-    let lifetime_mode = if keep_window_open { "Açık Kalır" } else { "Bekle" };
+    let window_mode = if show_window {
+        "Görünür Pencere"
+    } else {
+        "Gizli Pencere"
+    };
+    let admin_mode = if run_as_admin {
+        "Yönetici"
+    } else {
+        "Standart"
+    };
+    let lifetime_mode = if keep_window_open {
+        "Açık Kalır"
+    } else {
+        "Bekle"
+    };
     log::info!(
         "PowerShell betiği çalıştırılıyor ({} / {} / {})",
         window_mode,
