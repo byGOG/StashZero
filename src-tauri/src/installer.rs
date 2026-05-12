@@ -1017,7 +1017,9 @@ pub async fn install_exe_from_url(
         .next_back()
         .unwrap_or("");
     let known_exts = [".exe", ".zip", ".msi", ".7z"];
-    let file_name = if known_exts
+    let file_name = if package_id.eq_ignore_ascii_case("dropbox") {
+        "dropboxinstall.exe".to_string()
+    } else if known_exts
         .iter()
         .any(|ext| url_filename.to_lowercase().ends_with(ext))
     {
@@ -1554,13 +1556,17 @@ pub async fn install_exe_from_url(
     let target_str = target_path.to_str().unwrap();
     // Default silent flag depends on installer type: MSI uses /qn /norestart,
     // NSIS-style EXE uses /S. Library entries can override via install_args.
-    let final_args = install_args.unwrap_or_else(|| {
-        if target_str.to_lowercase().ends_with(".msi") {
-            "/qn /norestart".to_string()
-        } else {
-            "/S".to_string()
-        }
-    });
+    let final_args = if package_id.eq_ignore_ascii_case("dropbox") {
+        String::new()
+    } else {
+        install_args.unwrap_or_else(|| {
+            if target_str.to_lowercase().ends_with(".msi") {
+                "/qn /norestart".to_string()
+            } else {
+                "/S".to_string()
+            }
+        })
+    };
 
     // Split arguments by space and wrap each in single quotes for PowerShell array
     let parsed_args = split_windows_args(&final_args);

@@ -9,7 +9,9 @@ import { compareVersions } from "../utils/updateChecker";
 export const useInstallation = () => {
   const installers = useMemo(
     () => LEGENDARY_APPS.map(a => ({ ...a, path: a.id, dependencies: [] })),
-    []
+    // Keep Vite HMR from pinning stale installer metadata during development.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [LEGENDARY_APPS]
   );
   const [selected, setSelected] = useState(new Set());
   const [installing, setInstalling] = useState(false);
