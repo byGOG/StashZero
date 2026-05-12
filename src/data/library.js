@@ -26,7 +26,7 @@ export const APP_ICON_MAP = {
   notion: "notion", evernote: "evernote", obsidian: "obsidian", adobe: "adobeacrobatreader",
   malwarebytes: "malwarebytes", bitwarden: "bitwarden", keepass: "keepassxc", qbittorrent: "qbittorrent",
   github: "github", gh: "github", mullvad: "mullvadbrowser", sdi: "snappydriverinstaller", etcher: "balenaetcher", ventoy: "ventoy",
-  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge", avira: "avira", bitdefender: "bitdefender", emsisoft: "emsisoft", eset: "eset", sandboxie: "sandboxieplus", dcontrol: "microsoft", defendnot: "shield", ooshutup: "microsoftexchange", privacysexy: "privacy-sexy", defenderremover: "microsoft", wub: "microsoft", zenprivacy: "shield", goodbyedpi: "cloud-off", "goodbyedpi-ui": "cloud-off", openvpn: "openvpn", protonvpn: "protonvpn", firefoxrelay: "firefoxrelay", dnsjumper: "microsoft", nextdns: "nextdns", packagepicker: "windowsterminal", portableapps: "portableappsdotcom", portableappz: "blogger", sordum: "microsoft", alternativeto: "alternativeto", softpedia: "browser", techspot: "browser", buster: "github", darkreader: "darkreader", greasyfork: "greasyfork", sponsorblock: "sponsorblock", twp: "windowsterminal", ublock: "ublockorigin", ytautohd: "youtube", bufferbloat: "globe", cloudflarespeed: "cloudflare", dnsspeedtest: "globe", fastcom: "globe", ooklaspeedtest: "speedtest", cracksurl: "globe", cybermania: "globe", fullprogramlarindir: "globe", silentall: "globe", solidshare: "globe", warezturkey: "globe", "1337x": "globe", extto: "globe", eztv: "globe", showrss: "globe", piratebay: "globe", therarbg: "globe", spotifydownloader: "spotify", aimp: "aimp", klite: "globe", foobar2000: "foobar2000", beatport: "beatport", beatstats: "globe", spotx: "spotify", daddylive: "globe", dojostreams: "globe", iptvnator: "globe", monochrome: "globe", streamedpk: "globe", famelack: "globe", idm: "globe", jdownloader: "jdownloader", opensubtitles: "globe", subloader: "globe", subtitleedit: "globe", seriesgraph: "globe", stremio: "stremio", dropbox: "dropbox", googledrive: "googledrive", lucida: "globe", bibatacursor: "script", cursor: "cursor", antigravity: "ai", reshacker: "globe", virtualbox: "virtualbox", vboxextpack: "virtualbox", adbtools: "android", java: "openjdk", antigravitymanager: "ai", arenaai: "globe", claude: "anthropic", anydesk: "anydesk", teamviewer: "teamviewer", copyq: "copyq", imageglass: "imageglass", localsend: "localsend", sharex: "sharex", inattv: "globe", netvgold: "globe", premiertv: "globe", vanced: "youtube", xmanager: "spotify", sideloadly: "globe", neofreebird: "globe", regram: "globe", itunes: "itunes", turkanimu: "video", deepl: "deepl", vmware: "virtualbox", flowlauncher: "zap"
+  win10mct: "microsoft", win11mct: "microsoft", winmerge: "winmerge", avira: "avira", bitdefender: "bitdefender", emsisoft: "emsisoft", eset: "eset", sandboxie: "sandboxieplus", dcontrol: "microsoft", ooshutup: "microsoftexchange", privacysexy: "privacy-sexy", defenderremover: "microsoft", wub: "microsoft", zenprivacy: "shield", goodbyedpi: "cloud-off", "goodbyedpi-ui": "cloud-off", openvpn: "openvpn", protonvpn: "protonvpn", firefoxrelay: "firefoxrelay", dnsjumper: "microsoft", nextdns: "nextdns", packagepicker: "windowsterminal", portableapps: "portableappsdotcom", portableappz: "blogger", sordum: "microsoft", alternativeto: "alternativeto", softpedia: "browser", techspot: "browser", buster: "github", darkreader: "darkreader", greasyfork: "greasyfork", sponsorblock: "sponsorblock", twp: "windowsterminal", ublock: "ublockorigin", ytautohd: "youtube", bufferbloat: "globe", cloudflarespeed: "cloudflare", dnsspeedtest: "globe", fastcom: "globe", ooklaspeedtest: "speedtest", cracksurl: "globe", cybermania: "globe", fullprogramlarindir: "globe", silentall: "globe", solidshare: "globe", warezturkey: "globe", "1337x": "globe", extto: "globe", eztv: "globe", showrss: "globe", piratebay: "globe", therarbg: "globe", spotifydownloader: "spotify", aimp: "aimp", klite: "globe", foobar2000: "foobar2000", beatport: "beatport", beatstats: "globe", spotx: "spotify", dlhd: "globe", dojostreams: "globe", iptvnator: "globe", monochrome: "globe", streamed: "globe", famelack: "globe", idm: "globe", jdownloader: "jdownloader", opensubtitles: "globe", subloader: "globe", subtitleedit: "globe", seriesgraph: "globe", stremio: "stremio", dropbox: "dropbox", googledrive: "googledrive", lucida: "globe", bibatacursor: "script", cursor: "cursor", antigravity: "ai", reshacker: "globe", virtualbox: "virtualbox", vboxextpack: "virtualbox", adbtools: "android", java: "openjdk", antigravitymanager: "ai", arenaai: "globe", claude: "anthropic", anydesk: "anydesk", teamviewer: "teamviewer", copyq: "copyq", imageglass: "imageglass", localsend: "localsend", sharex: "sharex", netvgold: "globe", inattv: "x", premiertv: "globe", vanced: "youtube", xmanager: "spotify", sideloadly: "globe", neofreebird: "globe", regram: "globe", itunes: "itunes", turkanimu: "video", deepl: "deepl", vmware: "virtualbox", flowlauncher: "zap"
 };
 
 export const SPECIAL_LOGOS = {
@@ -86,7 +86,6 @@ export const SPECIAL_LOGOS = {
   bcuninstaller: "https://raw.githubusercontent.com/Klocman/Bulk-Crap-Uninstaller/master/installer/assets/logo.ico",
   bleachbit: "https://raw.githubusercontent.com/bleachbit/bleachbit-misc/refs/heads/master/logo.svg",
   ooappbuster: "/ooappbuster_icon.png",
-  sophia: "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/refs/heads/main/img/Sophia.png",
   unigetui: "https://cdn.jsdelivr.net/gh/Devolutions/UniGetUI@main/media/icon.svg",
   wiztree: "https://diskanalyzer.com/favicon.ico",
   teracopy: "https://upload.wikimedia.org/wikipedia/en/5/58/TeraCopy_icon.png",
@@ -100,7 +99,6 @@ export const SPECIAL_LOGOS = {
   sandboxie: "/sandboxie_icon.png",
   browserleaks: "https://browserleaks.com/favicon.ico",
   dcontrol: "/dcontrol_icon.png",
-  defendnot: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/powershell.svg",
   ooshutup: "/ooshutup_icon.png",
   privacysexy: "https://privacy.sexy/favicon.ico",
   defenderremover: "https://raw.githubusercontent.com/ionuttbara/windows-defender-remover/main/app_icon.ico",
@@ -152,11 +150,11 @@ export const SPECIAL_LOGOS = {
   beatport: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/beatport.svg",
   beatstats: "https://www.beatstats.com/favicon.ico",
   spotx: "/SpotX.png",
-  daddylive: "https://dlstreams.top/assets/logos/favicon-32x32.png",
+  dlhd: "/daddylive_favicon.png",
   dojostreams: "https://www.dojostreams.com/wp-content/uploads/2023/10/logo.webp",
   iptvnator: "https://raw.githubusercontent.com/4gray/iptvnator/master/apps/website/src/assets/logo.png",
   monochrome: "https://monochrome.tf/assets/appicon.png",
-  streamedpk: "https://streamed.pk/favicon.png",
+  streamed: "https://strmd.link/favicon.png",
   famelack: "https://famelack.com/assets/icons/mask-icon.svg",
   idm: "/idm_icon.png",
   jdownloader: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jdownloader.svg",
@@ -167,7 +165,7 @@ export const SPECIAL_LOGOS = {
   stremio: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stremio.svg",
   dropbox: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/dropbox.svg",
   googledrive: "https://cloud.gmelius.com/public/logos/google/Google_Drive_Logo.svg",
-  lucida: "https://lucida.to/logo.svg",
+  lucida: "/lucida_favicon.ico",
   bibatacursor: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/powershell.svg",
   cursor: "https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/cursor.png",
   antigravity: "https://antigravity.google/assets/image/brand/antigravity-icon__full-color.png",
@@ -190,8 +188,8 @@ export const SPECIAL_LOGOS = {
   imageglass: "https://raw.githubusercontent.com/d2phap/ImageGlass/develop/Assets/Logo/2019/logo.svg",
   localsend: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/localsend.svg",
   sharex: "https://raw.githubusercontent.com/ShareX/ShareX/develop/ShareX.HelpersLib/Resources/ShareX_Logo.png",
-  inattv: "https://telegram.org/favicon.ico",
-  netvgold: "https://telegram.org/favicon.ico",
+  netvgold: "/netvgold_favicon.jfif",
+  inattv: "/inattv_x_favicon.ico",
   premiertv: "https://www.google.com/s2/favicons?domain=premiertvapps.blogspot.com&sz=64",
   vanced: "https://vanced.to/assets/img/logo.svg",
   xmanager: "https://static.wixstatic.com/media/01dd63_390e7a690a1b4699b05a6978fa3f69a8~mv2.gif",
@@ -364,7 +362,7 @@ export const LEGENDARY_APPS = [
   { id: "steam", name: "Steam", category: "Oyun & Platformlar", category_order: 100, icon: "play-circle", size_bytes: 1024 * 1024 * 3, version: "Güncel", description: "Deasa oyun dağıtım platformu.", download_url: "https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe", official_url: "https://store.steampowered.com/" },
   { id: "epic", name: "Epic Games Launcher", category: "Oyun & Platformlar", category_order: 100, icon: "grid", size_bytes: 1024 * 1024 * 55, version: "Güncel", description: "Popüler oyun mağazası ve başlatıcısı.", download_url: "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.exe", official_url: "https://www.epicgames.com/" },
   { id: "battlenet", name: "Battle.net", category: "Oyun & Platformlar", category_order: 100, icon: "shield", size_bytes: 1024 * 1024 * 5, version: "Güncel", description: "Blizzard'ın oyun platformu.", download_url: "https://downloader.battle.net//download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live", official_url: "https://battle.net/" },
-  { id: "gog", name: "GOG Galaxy", category: "Oyun & Platformlar", category_order: 100, icon: "monitor", size_bytes: 1024 * 1024 * 220, version: "Güncel", description: "Oyunları birleştiren platform.", download_url: "https://www.gog.com/galaxy", official_url: "https://www.gog.com/galaxy" },
+  { id: "gog", name: "GOG Galaxy", category: "Oyun & Platformlar", category_order: 100, icon: "monitor", size_bytes: 290134800, version: "Güncel", description: "Oyunları birleştiren platform.", download_url: "https://content-system.gog.com/open_link/download?path=/open/galaxy/client/setup_galaxy_2.0.98.44.exe", official_url: "https://www.gog.com/galaxy", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", install_kill_targets: ["GalaxyClient", "GalaxyClient Helper", "GalaxyCommunication", "GalaxyUpdater", "GalaxySetup", "GalaxyInstaller", "GalaxyClientService", "GalaxyService", "GOGGalaxyNotificationsRenderer"], check_path: "C:\\Program Files (x86)\\GOG Galaxy\\GalaxyClient.exe", post_install_cmd: "Stop-Process -Name 'GalaxyClient','GalaxyClient Helper','GalaxyCommunication','GalaxyUpdater','GalaxySetup','GalaxyInstaller' -Force -ErrorAction SilentlyContinue", uninstall_path: "C:\\Program Files (x86)\\GOG Galaxy\\unins000.exe", uninstall_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", uninstall_kill_targets: ["GalaxyClient", "GalaxyClient Helper", "GalaxyCommunication", "GalaxyUpdater", "GalaxySetup", "GalaxyInstaller", "GalaxyClientService", "GalaxyService", "GOGGalaxyNotificationsRenderer"], uninstall_shortcut_names: ["GOG GALAXY", "GOG Galaxy"] },
 
   // Oyun Kaynakları (105)
   { id: "fitgirl", name: "FitGirl Repacks", category: "Oyun Arşivi", category_order: 105, icon: "globe", size_bytes: 0, version: "Web", description: "En yüksek sıkıştırma oranlı oyun paketleyicisi.", official_url: "https://fitgirl-repacks.site/", is_resource: true },
@@ -377,7 +375,9 @@ export const LEGENDARY_APPS = [
   // Film, Dizi & Anime (110)
   { id: "seriesgraph", name: "SeriesGraph", category: "Film & Medya", category_order: 110, icon: "bar-chart-2", size_bytes: 0, version: "Web", description: "Dizi grafik ve istatistikleri.", official_url: "https://seriesgraph.com/", is_resource: true },
   { id: "opensubtitles", name: "OpenSubtitles", category: "Film & Medya", category_order: 110, icon: "type", size_bytes: 0, version: "Web", description: "En geniş altyazı veritabanı.", official_url: "https://www.opensubtitles.com/", is_resource: true },
-  { id: "iptvnator", name: "IPTnator", category: "Film & Medya", category_order: 110, icon: "play", size_bytes: 0, version: "Web", description: "Gelişmiş IPTV oynatıcı.", official_url: "https://github.com/4gray/iptvnator", is_resource: true },
+  { id: "iptvnator", name: "IPTVnator", category: "Film & Medya", category_order: 110, icon: "play", size_bytes: 121322721, version: "Güncel", description: "Gelişmiş IPTV oynatıcı.", download_url: "https://github.com/4gray/iptvnator/releases/latest", official_url: "https://github.com/4gray/iptvnator", install_args: "/S", install_as_admin: false, install_kill_targets: ["IPTVnator", "iptvnator"], check_path: "$env:LocalAppData\\Programs\\iptvnator\\IPTVnator.exe", post_install_cmd: "Stop-Process -Name IPTVnator,iptvnator -Force -ErrorAction SilentlyContinue", uninstall_path: "$env:LocalAppData\\Programs\\iptvnator\\Uninstall IPTVnator.exe", uninstall_args: "/S", uninstall_as_admin: false, uninstall_kill_targets: ["IPTVnator", "iptvnator"], uninstall_shortcut_names: ["IPTVnator"] },
+  { id: "streamed", name: "Streamed", category: "Film & Medya", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Canlı spor yayınları için resmi mirror listesi.", official_url: "https://strmd.link/", is_resource: true },
+  { id: "dlhd", name: "DaddyLive", category: "Film & Medya", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Canlı spor ve TV yayınları.", official_url: "https://daddylive.pk/", is_resource: true },
 
   // Yazılım Arşivleri (120)
   { id: "ninite", name: "Ninite", category: "Uygulama Arşivleri", category_order: 120, icon: "globe", size_bytes: 0, version: "Web", description: "Toplu uygulama yükleme servisi.", official_url: "https://ninite.com/", is_resource: true },
@@ -399,7 +399,6 @@ export const LEGENDARY_APPS = [
   { id: "showrss", name: "showRSS", category: "Torrent & Dizinler", category_order: 125, icon: "globe", size_bytes: 0, version: "Web", description: "Dizi için otomatik torrent akışı.", official_url: "https://showrss.info/", is_resource: true },
   { id: "piratebay", name: "The Pirate Bay", category: "Torrent & Dizinler", category_order: 125, icon: "globe", size_bytes: 0, version: "Web", description: "Efsanevi torrent platformu.", official_url: "https://thepiratebay.org/", is_resource: true },
   { id: "therarbg", name: "TheRARBG", category: "Torrent & Dizinler", category_order: 125, icon: "globe", size_bytes: 0, version: "Web", description: "Modern torrent topluluğu.", official_url: "https://therarbg.com/", is_resource: true },
-  { id: "daddylive", name: "DaddyLive", category: "Film & Medya", category_order: 110, icon: "globe", size_bytes: 0, version: "Web", description: "Canlı spor ve TV yayınları.", official_url: "https://daddyny.com/", is_resource: true },
   { id: "famelack", name: "FameLack", category: "Torrent & Dizinler", category_order: 125, icon: "globe", size_bytes: 0, version: "Web", description: "Medya sızıntıları ve kaynaklar.", official_url: "https://famelack.com/", is_resource: true },
   { id: "lucida", name: "Lucida", category: "Torrent & Dizinler", category_order: 125, icon: "globe", size_bytes: 0, version: "Web", description: "Hi-Fi müzik indirme platformu.", official_url: "https://lucida.to/", is_resource: true },
   { id: "revios", name: "ReviOS", category: "Uygulama Arşivleri", category_order: 120, icon: "globe", size_bytes: 0, version: "Web", description: "Performans odaklı Windows mod.", official_url: "https://www.revi.cc/", is_resource: true },
@@ -413,9 +412,8 @@ export const LEGENDARY_APPS = [
   { id: "dnsspeedtest", name: "DNS Speed Test Online", category: "Test & Web Analiz", category_order: 130, icon: "globe", size_bytes: 0, version: "Web", description: "DNS yanıt hızı karşılaştırma.", official_url: "https://dnsspeedtest.online/", is_resource: true },
   { id: "dojostreams", name: "Dojo Streams", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Web", description: "Canlı spor yayınları platformu.", official_url: "https://www.dojostreams.com/", is_resource: true },
   { id: "monochrome", name: "Monochrome", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Web", description: "Kaliteli medya ve yayın içerikleri.", official_url: "https://monochrome.tf/", is_resource: true },
-  { id: "streamedpk", name: "Streamed.pk", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Web", description: "Ücretsiz canlı spor yayınları.", official_url: "https://streamed.pk/", is_resource: true },
-  { id: "inattv", name: "Inat TV Admin", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Telegram", description: "Inat TV resmi kanalı ve APK kaynakları.", official_url: "https://t.me/inattvadmin", is_resource: true },
-  { id: "netvgold", name: "Ne TV Gold Destek", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Telegram", description: "Ne TV Gold destek botu.", official_url: "https://t.me/netvgoldbilgi_bot", is_resource: true },
+  { id: "netvgold", name: "NetVGold", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Web", description: "NetVGold mobil uygulama kaynağı.", official_url: "https://netvgoldv10.github.io/", is_resource: true },
+  { id: "inattv", name: "Inat TV APK", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "X", description: "Inat TV APK duyuru hesabı.", official_url: "https://x.com/inattvapk", is_resource: true },
   { id: "premiertv", name: "Premier TV Apps", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Web", description: "Android TV uygulama arşivi.", official_url: "https://premiertvapps.blogspot.com/", is_resource: true },
   { id: "vanced", name: "YouTube Vanced", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Mobil", description: "Reklamsız YouTube deneyimi.", official_url: "https://vanced.to/", is_resource: true },
   { id: "xmanager", name: "xManager", category: "Mobil & Modlu Sürümler", category_order: 135, icon: "globe", size_bytes: 0, version: "Android", description: "Spotify mod yönetimi.", official_url: "https://www.xmanagerapp.com/", is_resource: true },
@@ -426,9 +424,8 @@ export const LEGENDARY_APPS = [
   { id: "mas", name: "Microsoft Activation Script", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Windows ve Office aktivasyon betiği.", script_cmd: "irm https://get.activated.win | iex", official_url: "https://massgrave.dev/" },
   { id: "officetoolplus", name: "Office Tool Plus", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Office indirme ve yönetim aracı.", script_cmd: "irm https://officetool.plus | iex", official_url: "https://officetool.plus/" },
   { id: "cttwin", name: "Chris Titus Tech's Windows Utility", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Windows optimizasyon ve debloat aracı.", script_cmd: 'irm "https://christitus.com/win" | iex', official_url: "https://winutil.christitus.com/" },
-  { id: "sophia", name: "Sophia Script for Windows", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Kapsamlı Windows ince ayar betiği.", script_cmd: "iwr script.sophia.team -useb | iex", official_url: "https://github.com/farag2/Sophia-Script-for-Windows" },
   { id: "raphidebloat", name: "Raphi's Windows Debloater", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Modern Windows debloat betiği.", script_cmd: '& ([scriptblock]::Create((irm "https://debloat.raphi.re/")))', official_url: "https://github.com/raphire/win11debloat" },
-  { id: "defendnot", name: "defendnot", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Windows Defender'ı devre dışı bırakın.", script_cmd: "irm https://dnot.sh/ | iex", official_url: "https://github.com/es3n1n/defendnot" },
   { id: "spotx", name: "SpotX Spotify Patcher", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Spotify reklamlarını engelleme ve yama betiği.", script_cmd: "iex \"& { $(iwr -useb 'https://raw.githubusercontent.com/SpotX-Official/SpotX/refs/heads/main/run.ps1') } -new_theme\"", official_url: "https://github.com/SpotX-Official/SpotX" },
   { id: "bibatacursor", name: "Bibata Cursor Installer", category: "Betikler & Otomasyon", category_order: 140, icon: "terminal", size_bytes: 0, version: "Güncel", description: "Bibata mouse imleç paketi yükleyicisi.", script_cmd: "irm https://bygog.github.io/Bibata-Cursor-Installer/install.ps1 | iex", official_url: "https://github.com/bygog/Bibata-Cursor-Installer" },
 ];
+

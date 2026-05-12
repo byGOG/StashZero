@@ -17,8 +17,6 @@ const AppCard = memo(function AppCard({
   onOpenUrl,
   onMouseMove,
   updateInfo = null,
-  isFavorite = false,
-  onToggleFavorite = () => {}
 }) {
   const isInstalled = !!installedVersion && (!app.script_cmd || !!app.uninstall_script || !!app.uninstall_path);
   const hasUpdate = !!updateInfo;
@@ -38,7 +36,10 @@ const AppCard = memo(function AppCard({
   const versionLabel =
     installedVersion && installedVersion !== "Portable" && installedVersion !== "Kurulu"
       ? installedVersion
-      : app.version;
+      : app.script_cmd
+        ? "Betik"
+        : app.version;
+  const hasDownloadSize = !app.is_resource && Number(app.size_bytes) > 0;
 
   return (
     <div
@@ -83,18 +84,15 @@ const AppCard = memo(function AppCard({
       </div>
 
       <div className="app-info">
-        <div className="app-name-row" onClick={(e) => { e.stopPropagation(); onToggleFavorite(app.id); }}>
+        <div className="app-name-row">
           <span className="app-name" title={app.name}>{app.name}</span>
-          <div className={`favorite-star ${isFavorite ? "active" : ""}`}>
-             <svg width="12" height="12" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          </div>
         </div>
 
         <div className="badges-row">
           {app.portable && <span className="app-badge badge-portable">Taşınabilir</span>}
           {(!app.is_resource && installedVersion) && <span className="app-badge badge-installed">Kurulu</span>}
-          <span className="app-badge badge-version">{versionLabel}</span>
-          {!app.is_resource && app.size_bytes && (
+          <span className={`app-badge ${app.script_cmd ? "badge-script" : "badge-version"}`}>{versionLabel}</span>
+          {hasDownloadSize && (
             <span className="app-badge badge-size">{(app.size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
           )}
         </div>
@@ -174,8 +172,6 @@ const AppGrid = ({
   setShowLogs,
   lowFx = false,
   updatesAvailable = {},
-  favorites = new Set(),
-  onToggleFavorite = () => {}
 }) => {
   const [shakeAppId, setShakeAppId] = useState(null);
 
@@ -237,8 +233,6 @@ const AppGrid = ({
             onOpenUrl={openUrl}
             onMouseMove={handleMouseMove}
             updateInfo={updatesAvailable[app.id]}
-            isFavorite={favorites.has(app.id)}
-            onToggleFavorite={onToggleFavorite}
           />
         ))}
       </div>

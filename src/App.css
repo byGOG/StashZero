@@ -1405,6 +1405,12 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.badge-script {
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.22);
+}
+
 .badge-installed {
   background: rgba(0, 255, 159, 0.1);
   color: var(--accent-primary);
@@ -5333,6 +5339,12 @@ body {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.badge-script {
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.22);
 }
 
 .badge-installed {
@@ -9322,45 +9334,10 @@ button {
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
-/* Favorite Star Styles */
 .app-name-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
     margin-bottom: 8px;
-    width: fit-content;
-}
-
-.favorite-star {
-    opacity: 0.3;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border-radius: 6px;
-}
-
-.app-card:hover .favorite-star {
-    opacity: 0.7;
-}
-
-.favorite-star:hover {
-    opacity: 1 !important;
-    transform: scale(1.2) rotate(15deg);
-    color: #ffcc00 !important;
-}
-
-.favorite-star.active {
-    opacity: 1 !important;
-    color: #ffcc00 !important;
-    filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5));
-}
-
-.favorite-star.active svg {
-    fill: #ffcc00;
 }
 
 /* Profiles Modal */

@@ -4,6 +4,30 @@ use tauri::Window as TauriWindow;
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
+fn split_windows_args(args: &str) -> Vec<String> {
+    let mut parsed = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes = false;
+
+    for ch in args.chars() {
+        match ch {
+            '"' => in_quotes = !in_quotes,
+            c if c.is_whitespace() && !in_quotes => {
+                if !current.is_empty() {
+                    parsed.push(std::mem::take(&mut current));
+                }
+            }
+            c => current.push(c),
+        }
+    }
+
+    if !current.is_empty() {
+        parsed.push(current);
+    }
+
+    parsed
+}
+
 fn copy_shortcut_to_desktop(source: &str) -> std::io::Result<()> {
     log::info!("Kısayol masaüstüne kopyalanıyor: {}", source);
     let _ = std::process::Command::new("powershell")
@@ -56,39 +80,111 @@ fn create_start_menu_shortcut_fn(target_exe: &str, link_name: &str) -> std::io::
 }
 
 #[tauri::command]
-pub async fn uninstall_software(path: String) -> Result<String, String> {
-    log::info!("Kaldırma başlatılıyor: {}", path);
-    if !std::path::Path::new(&path).exists() {
-        log::error!("Kaldırma aracı bulunamadı: {}", path);
-        return Err(format!("Kaldırma aracı bulunamadı: {}", path));
+pub async fn uninstall_software(
+    path: String,
+    uninstall_args: Option<String>,
+    uninstall_kill_targets: Option<Vec<String>>,
+    uninstall_as_admin: Option<bool>,
+) -> Result<String, String> {
+    let expanded_path = expand_env_vars(&path);
+    log::info!("Kaldırma başlatılıyor: {}", expanded_path);
+    if !std::path::Path::new(&expanded_path).exists() {
+        log::error!("Kaldırma aracı bulunamadı: {}", expanded_path);
+        return Err(format!("Kaldırma aracı bulunamadı: {}", expanded_path));
     }
+
+    let lower_path = expanded_path.to_lowercase();
+    let default_args = if lower_path.ends_with(".msi") {
+        "/qn /norestart"
+    } else if lower_path.contains("\\unins") {
+        "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
+    } else {
+        "/S"
+    };
+    let final_args = uninstall_args.unwrap_or_else(|| default_args.to_string());
+    let parsed_args = split_windows_args(&final_args);
+    let escaped_path = expanded_path.replace('\'', "''");
+    let verb_part = if uninstall_as_admin.unwrap_or(true) {
+        " -Verb RunAs"
+    } else {
+        ""
+    };
+
+    let start_process_command = if lower_path.ends_with(".msi") {
+        let mut msi_args = vec!["'/x'".to_string(), format!("'{}'", escaped_path)];
+        for arg in &parsed_args {
+            msi_args.push(format!("'{}'", arg.replace('\'', "''")));
+        }
+        format!(
+            "$p = Start-Process -FilePath 'msiexec.exe' -ArgumentList @({}) -WindowStyle Hidden{} -PassThru",
+            msi_args.join(", "),
+            verb_part
+        )
+    } else if final_args.trim().is_empty() {
+        format!(
+            "$p = Start-Process -FilePath '{}' -WindowStyle Hidden{} -PassThru",
+            escaped_path, verb_part
+        )
+    } else {
+        let args = parsed_args
+            .iter()
+            .map(|arg| format!("'{}'", arg.replace('\'', "''")))
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!(
+            "$p = Start-Process -FilePath '{}' -ArgumentList @({}) -WindowStyle Hidden{} -PassThru",
+            escaped_path, args, verb_part
+        )
+    };
+
+    let kill_loop = uninstall_kill_targets
+        .as_ref()
+        .filter(|targets| !targets.is_empty())
+        .map(|targets| {
+            let names_csv = targets
+                .iter()
+                .map(|name| format!("'{}'", name.replace('\'', "''")))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                "while (-not $p.HasExited) {{ Get-Process -Name {} -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }}; $d=(Get-Date).AddSeconds(20); while ((Get-Date) -lt $d) {{ Get-Process -Name {} -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 250 }}",
+                names_csv, names_csv
+            )
+        })
+        .unwrap_or_else(|| "Wait-Process -Id $p.Id".to_string());
+
+    let uninstall_command = format!(
+        "$ErrorActionPreference = 'Stop'; {}; {}; exit $p.ExitCode",
+        start_process_command, kill_loop
+    );
 
     let mut uninstall_cmd = tokio::process::Command::new("powershell")
         .creation_flags(CREATE_NO_WINDOW)
         .args([
             "-NoProfile",
             "-WindowStyle",
-            "Normal",
+            "Hidden",
             "-Command",
-            &format!(
-                "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath '{}' -Wait -Verb RunAs -PassThru; exit $p.ExitCode",
-                path
-            ),
+            &uninstall_command,
         ])
         .spawn()
         .map_err(|e| format!("Kaldırma başlatılamadı: {}", e))?;
 
     let status = uninstall_cmd.wait().await.map_err(|e| {
-        log::error!("Kaldırma process hatası ({}): {}", path, e);
+        log::error!("Kaldırma process hatası ({}): {}", expanded_path, e);
         format!("Kaldırma process error: {}", e)
     })?;
 
     if status.success() {
-        log::info!("Başarıyla kaldırıldı: {}", path);
+        log::info!("Başarıyla kaldırıldı: {}", expanded_path);
         Ok("Uygulama başarıyla kaldırıldı.".to_string())
     } else {
         let code = status.code().unwrap_or(-1);
-        log::error!("Kaldırma başarısız ({}): Çıkış kodu {}", path, code);
+        log::error!(
+            "Kaldırma başarısız ({}): Çıkış kodu {}",
+            expanded_path,
+            code
+        );
         Err(format!("Kaldırma hatası: Çıkış kodu {}", code))
     }
 }
@@ -736,6 +832,8 @@ pub async fn install_exe_from_url(
     launch_path: Option<String>,
     create_start_menu_shortcut: Option<bool>,
     archive_password: Option<String>,
+    check_path: Option<String>,
+    install_as_admin: Option<bool>,
 ) -> Result<String, String> {
     log::info!("Kurulum başlatılıyor: {} ({})", app_name, package_id);
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Kurulum başlatılıyor: {} ({})", app_name, package_id), "log_type": "info" }));
@@ -785,7 +883,25 @@ pub async fn install_exe_from_url(
                             .unwrap_or("")
                             .to_lowercase();
                         name.ends_with(".exe")
+                            && (name.contains("windows-x64")
+                                || name.contains("win-x64")
+                                || name.contains("win64")
+                                || name.contains("x64-setup"))
                             && !name.contains("portable")
+                            && !name.contains("ia32")
+                            && !name.contains("arm")
+                    })
+                })
+                .or_else(|| {
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".exe")
+                            && !name.contains("portable")
+                            && !name.contains("ia32")
                             && !name.contains("arm")
                     })
                 })
@@ -1447,15 +1563,12 @@ pub async fn install_exe_from_url(
     });
 
     // Split arguments by space and wrap each in single quotes for PowerShell array
-    let args_list: Vec<String> = final_args
-        .split_whitespace()
-        .map(|s| format!("'{}'", s.replace('\'', "''")))
-        .collect();
+    let parsed_args = split_windows_args(&final_args);
 
-    let args_part = if args_list.is_empty() {
+    let args_part = if final_args.trim().is_empty() {
         "".to_string()
     } else {
-        format!("-ArgumentList @({})", args_list.join(", "))
+        format!("-ArgumentList '{}'", final_args.replace('\'', "''"))
     };
 
     log::info!(
@@ -1466,6 +1579,8 @@ pub async fn install_exe_from_url(
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("Yükleyici çalıştırılıyor: {} {}", target_str, final_args), "log_type": "process" }));
 
     let is_msi = target_str.to_lowercase().ends_with(".msi");
+    let run_as_admin = install_as_admin.unwrap_or(true);
+    let verb_part = if run_as_admin { " -Verb RunAs" } else { "" };
     // For MSI files, Start-Process -FilePath foo.msi routes via shell association
     // and silently drops msiexec args (/qn, ALLUSERS=1 etc.). Invoke msiexec directly instead.
     let (filepath_for_start, args_part_for_start) = if is_msi {
@@ -1473,7 +1588,7 @@ pub async fn install_exe_from_url(
             "'/i'".to_string(),
             format!("'{}'", target_str.replace('\'', "''")),
         ];
-        for tok in final_args.split_whitespace() {
+        for tok in &parsed_args {
             msi_args.push(format!("'{}'", tok.replace('\'', "''")));
         }
         (
@@ -1510,14 +1625,18 @@ pub async fn install_exe_from_url(
                 filepath_for_start, args_part_for_start, names_csv, watcher_b64
             );
             let inner_escaped = inner.replace('\'', "''");
-            format!(
-                "$ErrorActionPreference = 'Stop'; $cmd = '{}'; $b = [System.Text.Encoding]::Unicode.GetBytes($cmd); $e = [Convert]::ToBase64String($b); $pp = Start-Process powershell -Verb RunAs -WindowStyle Hidden -ArgumentList @('-NoProfile','-EncodedCommand',$e) -PassThru; $deadline = (Get-Date).AddMinutes(10); while (-not $pp.HasExited -and (Get-Date) -lt $deadline) {{ Start-Sleep -Milliseconds 500 }}; if (-not $pp.HasExited) {{ Stop-Process -Id $pp.Id -Force -ErrorAction SilentlyContinue }}; $code = if ($pp.HasExited) {{ $pp.ExitCode }} else {{ -1 }}; exit $code",
-                inner_escaped
-            )
+            if run_as_admin {
+                format!(
+                    "$ErrorActionPreference = 'Stop'; $cmd = '{}'; $b = [System.Text.Encoding]::Unicode.GetBytes($cmd); $e = [Convert]::ToBase64String($b); $pp = Start-Process powershell -Verb RunAs -WindowStyle Hidden -ArgumentList @('-NoProfile','-EncodedCommand',$e) -PassThru; $deadline = (Get-Date).AddMinutes(10); while (-not $pp.HasExited -and (Get-Date) -lt $deadline) {{ Start-Sleep -Milliseconds 500 }}; if (-not $pp.HasExited) {{ Stop-Process -Id $pp.Id -Force -ErrorAction SilentlyContinue }}; $code = if ($pp.HasExited) {{ $pp.ExitCode }} else {{ -1 }}; exit $code",
+                    inner_escaped
+                )
+            } else {
+                format!("$ErrorActionPreference = 'Stop'; {}", inner)
+            }
         }
         None => format!(
-            "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath {} {} -Verb RunAs -PassThru; $deadline = (Get-Date).AddMinutes(15); while (-not $p.HasExited -and (Get-Date) -lt $deadline) {{ Start-Sleep -Milliseconds 500 }}; if (-not $p.HasExited) {{ Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }}; $code = if ($p.HasExited) {{ $p.ExitCode }} else {{ -1 }}; exit $code",
-            filepath_for_start, args_part_for_start
+            "$ErrorActionPreference = 'Stop'; $p = Start-Process -FilePath {} {}{} -PassThru; $deadline = (Get-Date).AddMinutes(15); while (-not $p.HasExited -and (Get-Date) -lt $deadline) {{ Start-Sleep -Milliseconds 500 }}; if (-not $p.HasExited) {{ Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }}; $code = if ($p.HasExited) {{ $p.ExitCode }} else {{ -1 }}; exit $code",
+            filepath_for_start, args_part_for_start, verb_part
         ),
     };
 
@@ -1555,6 +1674,25 @@ pub async fn install_exe_from_url(
                 app_name
             );
         }
+        if let Some(path) = check_path.as_deref().filter(|p| !p.trim().is_empty()) {
+            let mut found = false;
+            for _ in 0..10 {
+                if check_path_exists(path.to_string()) {
+                    found = true;
+                    break;
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            }
+            if !found {
+                let msg = format!(
+                    "{} kurulumu doğrulanamadı: beklenen dosya bulunamadı ({})",
+                    app_name, path
+                );
+                log::error!("{}", msg);
+                return Err(msg);
+            }
+        }
+
         if let Some(cmd) = post_install_cmd {
             log::info!("Kurulum sonrası komut çalıştırılıyor: {}", cmd);
             let _ = window.emit(

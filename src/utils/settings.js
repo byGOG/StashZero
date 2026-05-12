@@ -14,7 +14,6 @@ export const SettingKeys = {
   updateCache: `${PREFIX}update-check`,
   updateSkip: `${PREFIX}update-skip`,
   language: `${PREFIX}language`,
-  favorites: `${PREFIX}favorites`,
   profiles: `${PREFIX}profiles`,
 };
 

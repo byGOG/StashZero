@@ -152,7 +152,12 @@ export const useInstallation = () => {
           : `C:\\StashZero\\${app.name}`;
         addLog(`✓ ${app.name} kaldırıldı (silinen: ${where}).`, "success");
       } else if (app.uninstall_path) {
-        await invoke("uninstall_software", { path: app.uninstall_path });
+        await invoke("uninstall_software", {
+          path: app.uninstall_path,
+          uninstallArgs: app.uninstall_args || null,
+          uninstallKillTargets: app.uninstall_kill_targets || null,
+          uninstallAsAdmin: app.uninstall_as_admin ?? null
+        });
         addLog(`✓ ${app.name} kaldırıldı (kaldırıcı çalıştırıldı: ${app.uninstall_path}).`, "success");
       } else throw new Error("Kaldırma yolu tanımlanmamış.");
 
@@ -169,7 +174,6 @@ export const useInstallation = () => {
             /* ignore deletion errors */
           }
         }
-        addLog(`Kısayollar temizlendi: ${[...shortcutNames].join(", ")} (masaüstü + Başlat menüsü).`, "info");
       }
 
       setInstalledApps(prev => {
@@ -221,7 +225,12 @@ export const useInstallation = () => {
           if (isLogged) {
             await invoke("run_shell_script_logged", { script: app.script_cmd, shellType: "powershell" });
           } else {
-            await invoke("run_ps_script", { script: app.script_cmd });
+            await invoke("run_ps_script", {
+              script: app.script_cmd,
+              visible: !!app.script_visible,
+              asAdmin: app.script_as_admin ?? null,
+              keepOpen: !!app.script_keep_open
+            });
           }
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           addLog(`✓ Betik tamamlandı: ${app.name} (PowerShell başarıyla çalıştı).`, "success");
@@ -244,7 +253,9 @@ export const useInstallation = () => {
             launchFile: app.launch_file || null,
             launchPath: app.launch_path || null,
             createStartMenuShortcut: !!app.create_start_menu_shortcut,
-            archivePassword: app.archive_password || null
+            archivePassword: app.archive_password || null,
+            checkPath: app.check_path || null,
+            installAsAdmin: app.install_as_admin ?? null
           });
           setInstallStatus((prev) => ({ ...prev, [app.path]: "done" }));
           const versionTag = app.version && app.version !== "Güncel" ? ` v${app.version}` : "";

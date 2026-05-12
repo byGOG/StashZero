@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } f
 import { MotionConfig } from "framer-motion";
 import { safeInvoke } from "./utils/tauri";
 import { sounds } from "./utils/audio";
-import { SettingKeys, getString, setString, getJSON, setJSON } from "./utils/settings";
+import { SettingKeys, getString, setString, getJSON } from "./utils/settings";
 import "./App.css";
 
 // Components
@@ -96,7 +96,6 @@ function App() {
   const [soundEnabled, setSoundEnabled] = useState(() => getJSON(SettingKeys.sound, true));
   const [dnsOpen, setDnsOpen] = useState(false);
   const [fontSize, setFontSize] = useState(() => getJSON(SettingKeys.fontSize, 100));
-  const [favorites, setFavorites] = useState(() => new Set(getJSON(SettingKeys.favorites, [])));
 
   const searchInputRef = useRef(null);
   const logEndRef = useRef(null);
@@ -176,16 +175,8 @@ function App() {
       }
       map[app.category].count++;
     });
-    const baseCats = Object.values(map).sort((a, b) => a.order - b.order);
-    
-    if (favorites.size > 0) {
-      return [
-        { name: "Favoriler", icon: "star", count: favorites.size, order: -1 },
-        ...baseCats
-      ];
-    }
-    return baseCats;
-  }, [installers, favorites]);
+    return Object.values(map).sort((a, b) => a.order - b.order);
+  }, [installers]);
 
   const effectiveCategory = useMemo(() => {
     if (categories.length === 0) return null;
@@ -204,15 +195,11 @@ function App() {
     if (term) {
       result = installers.filter(app => app.name.toLowerCase().includes(term));
     } else if (effectiveCategory) {
-      if (activeCategory === "Favoriler") {
-        result = installers.filter(a => favorites.has(a.id));
-      } else {
-        result = installers.filter(a => a.category === effectiveCategory);
-      }
+      result = installers.filter(a => a.category === effectiveCategory);
     }
 
     return result;
-  }, [installers, deferredSearchTerm, activeCategory, favorites, effectiveCategory]);
+  }, [installers, deferredSearchTerm, effectiveCategory]);
 
   const startUninstall = async (targetApp) => {
     if (!targetApp) return;
@@ -240,15 +227,6 @@ function App() {
       case "change-theme": setCurrentTheme(data); setString(SettingKeys.theme, data); break;
       case "change-font": setCurrentFont(data); setString(SettingKeys.font, data); break;
       case "check-updates": updateChecker.checkNow(); break;
-      case "toggle-favorite": 
-        setFavorites(prev => {
-          const next = new Set(prev);
-          if (next.has(data)) next.delete(data);
-          else next.add(data);
-          setJSON(SettingKeys.favorites, Array.from(next));
-          return next;
-        });
-        break;
       default: break;
     }
   };
@@ -314,8 +292,6 @@ function App() {
           setShowLogs={setShowLogs}
           lowFx={lowFx}
           updatesAvailable={updatesAvailable}
-          favorites={favorites}
-          onToggleFavorite={(id) => handleMenuAction("toggle-favorite", id)}
         />
 
         <LogPanel 

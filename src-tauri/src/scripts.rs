@@ -15,9 +15,26 @@ pub static SCRIPT_CHILD: Lazy<Arc<TokioMutex<Option<tokio::process::Child>>>> =
     Lazy::new(|| Arc::new(TokioMutex::new(None)));
 
 #[tauri::command]
-pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), String> {
-    log::info!("PowerShell betiği çalıştırılıyor (Gizli Pencere)");
-    let _ = window.emit("backend-log", serde_json::json!({ "msg": "PowerShell betiği çalıştırılıyor (Gizli Pencere)", "log_type": "info" }));
+pub async fn run_ps_script(
+    window: TauriWindow,
+    script: String,
+    visible: Option<bool>,
+    as_admin: Option<bool>,
+    keep_open: Option<bool>,
+) -> Result<(), String> {
+    let show_window = visible.unwrap_or(false);
+    let run_as_admin = as_admin.unwrap_or(true);
+    let keep_window_open = keep_open.unwrap_or(false);
+    let window_mode = if show_window { "Görünür Pencere" } else { "Gizli Pencere" };
+    let admin_mode = if run_as_admin { "Yönetici" } else { "Standart" };
+    let lifetime_mode = if keep_window_open { "Açık Kalır" } else { "Bekle" };
+    log::info!(
+        "PowerShell betiği çalıştırılıyor ({} / {} / {})",
+        window_mode,
+        admin_mode,
+        lifetime_mode
+    );
+    let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("PowerShell betiği çalıştırılıyor ({} / {} / {})", window_mode, admin_mode, lifetime_mode), "log_type": "info" }));
 
     log::debug!("Betik içeriği: {}", script);
     let _ = window.emit(
@@ -56,16 +73,58 @@ pub async fn run_ps_script(window: TauriWindow, script: String) -> Result<(), St
     let script_path_str = script_path.to_string_lossy().to_string();
     let escaped_path = script_path_str.replace("'", "''");
 
-    let status = tokio::process::Command::new("powershell")
-        .creation_flags(CREATE_NO_WINDOW)
-        .args([
+    let mut command = tokio::process::Command::new("powershell");
+    if !show_window || run_as_admin {
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+    if run_as_admin {
+        let window_style_arg = if show_window {
+            ""
+        } else {
+            " -WindowStyle Hidden"
+        };
+        let wait_arg = if keep_window_open { "" } else { " -Wait" };
+        let no_exit_arg = if keep_window_open {
+            "'-NoProfile','-NoExit'"
+        } else {
+            "'-NoProfile'"
+        };
+        let should_exit = if keep_window_open { "$false" } else { "$true" };
+        command.args([
             "-NoProfile",
             "-Command",
             &format!(
-                "$p = Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','{}' -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode",
-                escaped_path
-            )
-        ])
+                "$p = Start-Process powershell -ArgumentList {},'-ExecutionPolicy','Bypass','-File','{}' -Verb RunAs{} -PassThru{}; if ($p -and {}) {{ exit $p.ExitCode }}",
+                no_exit_arg,
+                escaped_path,
+                window_style_arg,
+                wait_arg,
+                should_exit
+            ),
+        ]);
+    } else {
+        command.arg("-NoProfile");
+        if keep_window_open {
+            command.arg("-NoExit");
+        }
+        command.args(["-ExecutionPolicy", "Bypass", "-File", &script_path_str]);
+    }
+
+    if keep_window_open {
+        command.spawn().map_err(|e| {
+            log::error!("Betik başlatılamadı: {}", e);
+            let _ = std::fs::remove_file(&script_path);
+            format!("Betik başlatılamadı: {}", e)
+        })?;
+
+        let _ = window.emit(
+            "backend-log",
+            serde_json::json!({ "msg": "Betik penceresi açık bırakıldı.", "log_type": "success" }),
+        );
+        return Ok(());
+    }
+
+    let status = command
         .spawn()
         .map_err(|e| {
             log::error!("Betik başlatılamadı: {}", e);
