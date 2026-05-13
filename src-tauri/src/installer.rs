@@ -878,19 +878,17 @@ pub async fn install_exe_from_url(
                     })
                 })
                 .or_else(|| {
-                    assets
-                .iter()
-                .find(|a| {
-                    let name = a
-                        .get("name")
-                        .and_then(|n| n.as_str())
-                        .unwrap_or("")
-                        .to_lowercase();
-                    name.ends_with(".exe")
-                        && name.contains("lt20")
-                        && !name.contains("portable")
-                        && !name.contains("arm")
-                })
+                    assets.iter().find(|a| {
+                        let name = a
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_lowercase();
+                        name.ends_with(".exe")
+                            && name.contains("lt20")
+                            && !name.contains("portable")
+                            && !name.contains("arm")
+                    })
                 })
                 .or_else(|| {
                     assets.iter().find(|a| {
