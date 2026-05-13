@@ -860,9 +860,25 @@ pub async fn install_exe_from_url(
         let json: serde_json::Value = serde_json::from_slice(&output.stdout)
             .map_err(|e| format!("JSON ayrıştırma hatası: {}", e))?;
         let mut found_asset = false;
+        let requested_asset = url
+            .split("/download/")
+            .nth(1)
+            .and_then(|name| name.split('?').next())
+            .map(|name| name.to_lowercase());
 
         if let Some(assets) = json.get("assets").and_then(|a| a.as_array()) {
-            let asset = assets
+            let asset = requested_asset
+                .as_deref()
+                .and_then(|requested| {
+                    assets.iter().find(|a| {
+                        a.get("name")
+                            .and_then(|n| n.as_str())
+                            .map(|name| name.eq_ignore_ascii_case(requested))
+                            .unwrap_or(false)
+                    })
+                })
+                .or_else(|| {
+                    assets
                 .iter()
                 .find(|a| {
                     let name = a
@@ -874,6 +890,7 @@ pub async fn install_exe_from_url(
                         && name.contains("lt20")
                         && !name.contains("portable")
                         && !name.contains("arm")
+                })
                 })
                 .or_else(|| {
                     assets.iter().find(|a| {
@@ -1017,7 +1034,9 @@ pub async fn install_exe_from_url(
         .next_back()
         .unwrap_or("");
     let known_exts = [".exe", ".zip", ".msi", ".7z"];
-    let file_name = if package_id.eq_ignore_ascii_case("dropbox") {
+    let file_name = if package_id.eq_ignore_ascii_case("firefox") {
+        "FirefoxSetup.exe".to_string()
+    } else if package_id.eq_ignore_ascii_case("dropbox") {
         "dropboxinstall.exe".to_string()
     } else if known_exts
         .iter()
