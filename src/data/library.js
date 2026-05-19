@@ -21,6 +21,87 @@ const minimizeWindowsCmd = (processNames = null) => {
 
 const minimizeNonStashZeroWindowsCmd = minimizeWindowsCmd();
 
+const vcredist2010PreInstallCmd = `
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+function Log($message) {
+  [Console]::Out.WriteLine([string]$message)
+  [Console]::Out.Flush()
+}
+$prereqDir = Join-Path $env:TEMP 'StashZeroPrereqs'
+New-Item -ItemType Directory -Path $prereqDir -Force | Out-Null
+$registryPaths = @(
+  'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*',
+  'HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*'
+)
+$packages = @(
+  @{
+    Name = 'Microsoft Visual C++ 2010 x64 Redistributable'
+    Arch = 'x64'
+    Url = 'https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x64.exe'
+    File = 'vcredist_2010_x64.exe'
+  },
+  @{
+    Name = 'Microsoft Visual C++ 2010 x86 Redistributable'
+    Arch = 'x86'
+    Url = 'https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe'
+    File = 'vcredist_2010_x86.exe'
+  }
+)
+function Get-Vc2010InstallInfo($arch) {
+  Get-ItemProperty $registryPaths -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -like "*Visual C++ 2010*$arch*Redistributable*" } |
+    Select-Object -First 1 DisplayName, DisplayVersion, Publisher, InstallDate
+}
+foreach ($pkg in $packages) {
+  Log "Ön koşul: $($pkg.Name)"
+  $before = Get-Vc2010InstallInfo $pkg.Arch
+  if ($before) {
+    Log "Önceden kurulu görünüyor: $($before.DisplayName) $($before.DisplayVersion)"
+  } else {
+    Log "Önceden kurulu kayıt bulunamadı: $($pkg.Arch)"
+  }
+  $target = Join-Path $prereqDir $pkg.File
+  Log "Microsoft indirme adresi: $($pkg.Url)"
+  Log "İndirme hedefi: $target"
+  try {
+    $head = Invoke-WebRequest -Uri $pkg.Url -Method Head -UseBasicParsing
+    $contentLength = $head.Headers['Content-Length']
+    if ($contentLength) {
+      $mb = [math]::Round(([double]$contentLength / 1MB), 2)
+      Log "Beklenen dosya boyutu: $mb MB ($contentLength bayt)"
+    }
+  } catch {
+    Log "Boyut bilgisi alınamadı: $($_.Exception.Message)"
+  }
+  $started = Get-Date
+  Log "İndirme başladı: $($pkg.File)"
+  Invoke-WebRequest -Uri $pkg.Url -OutFile $target -UseBasicParsing
+  $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
+  $fileInfo = Get-Item $target
+  $sizeMb = [math]::Round(($fileInfo.Length / 1MB), 2)
+  Log "İndirme tamamlandı: $sizeMb MB, süre: $elapsed sn"
+  $args = '/q /norestart'
+  Log "Sessiz kurulum komutu: $target $args"
+  Log "Kurulum işlemi başlatılıyor: $($pkg.Name)"
+  $process = Start-Process -FilePath $target -ArgumentList $args -WindowStyle Hidden -Wait -PassThru
+  Log "Kurulum işlemi bitti: $($pkg.Name)"
+  Log "Kurulum çıkış kodu: $($process.ExitCode)"
+  $after = Get-Vc2010InstallInfo $pkg.Arch
+  if ($after) {
+    Log "Kurulum sonrası kayıt: $($after.DisplayName) $($after.DisplayVersion)"
+  } else {
+    Log "Kurulum sonrası kayıt bulunamadı: $($pkg.Arch)"
+  }
+  if ($process.ExitCode -in 0, 3010) {
+    Log "Ön koşul tamamlandı: $($pkg.Name)"
+  } else {
+    Log "Ön koşul beklenmeyen çıkış kodu verdi: $($pkg.Name) -> $($process.ExitCode)"
+    throw "Ön koşul kurulamadı: $($pkg.Name), çıkış kodu $($process.ExitCode)"
+  }
+}
+`;
+
 // Library data setup
 export const APP_ICON_MAP = {
   chrome: "googlechrome", firefox: "firefoxbrowser", brave: "brave", opera: "opera",
@@ -304,11 +385,11 @@ export const LEGENDARY_APPS = [
   { id: "reshacker", name: "Resource Hacker", category: "Sistem Araçları", category_order: 60, icon: "settings", size_bytes: 1024 * 1024 * 4, version: "Güncel", description: "Dosya kaynaklarını düzenleme aracı.", download_url: "https://www.angusj.com/resourcehacker/reshacker_setup.exe", official_url: "https://www.angusj.com/resourcehacker/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", check_path: "C:\\Program Files (x86)\\Resource Hacker\\ResourceHacker.exe", uninstall_path: "C:\\Program Files (x86)\\Resource Hacker\\unins000.exe" },
   { id: "processlasso", name: "Process Lasso", category: "Sistem Araçları", category_order: 60, icon: "activity", size_bytes: 1024 * 1024 * 5, version: "Güncel", description: "Gerçek zamanlı işlem önceliği optimizasyonu.", download_url: "https://bitsum.com/files/processlassosetup64.exe", official_url: "https://bitsum.com/" },
   { id: "bcuninstaller", name: "Bulk Crap Uninstaller", category: "Sistem Araçları", category_order: 60, icon: "trash-2", version: "Güncel", description: "Gelişmiş uygulama kaldırma aracı (Otomatik güncel sürüm desteği).", download_url: "https://github.com/Klocman/Bulk-Crap-Uninstaller/releases/latest", official_url: "https://github.com/Klocman/Bulk-Crap-Uninstaller/releases/latest", install_args: "/VERYSILENT /SUPPRESSMSGBOXES", uninstall_path: "C:\\Program Files\\BCUninstaller\\unins000.exe", check_path: "C:\\Program Files\\BCUninstaller\\unins000.exe" },
-  { id: "bleachbit", name: "BleachBit", category: "Sistem Araçları", category_order: 60, icon: "trash-2", size_bytes: 1024 * 1024 * 15, version: "Güncel", description: "Sistem ve gizlilik temizleme aracı.", download_url: "https://download.bleachbit.org/BleachBit-4.6.0-setup.exe", official_url: "https://www.bleachbit.org/", install_args: "/S /allusers", check_path: "C:\\Program Files (x86)\\BleachBit\\bleachbit.exe", uninstall_path: "C:\\Program Files (x86)\\BleachBit\\uninstall.exe" },
-  { id: "ooappbuster", name: "O&O AppBuster", category: "Sistem Araçları", category_order: 60, icon: "trash-2", size_bytes: 1024 * 1024 * 3, version: "Güncel", description: "İstenmeyen Windows uygulamalarını kaldırın.", download_url: "https://dl5.oo-software.com/files/ooappbuster/OOAPB.exe", official_url: "https://www.oo-software.com/en/ooappbuster", portable: true },
+  { id: "bleachbit", name: "BleachBit", category: "Sistem Araçları", category_order: 60, icon: "trash-2", size_bytes: 1024 * 1024 * 15, version: "Güncel", description: "Sistem ve gizlilik temizleme aracı.", download_url: "https://download.bleachbit.org/BleachBit-4.6.0-setup.exe", official_url: "https://www.bleachbit.org/", install_args: "/S /allusers", pre_install_cmd: vcredist2010PreInstallCmd, check_path: "C:\\Program Files (x86)\\BleachBit\\bleachbit.exe", uninstall_path: "C:\\Program Files (x86)\\BleachBit\\uninstall.exe" },
+  { id: "ooappbuster", name: "O&O AppBuster", category: "Sistem Araçları", category_order: 60, icon: "trash-2", size_bytes: 1024 * 1024 * 3, version: "Güncel", description: "İstenmeyen Windows uygulamalarını kaldırın.", download_url: "https://dl5.oo-software.com/files/ooappbuster/OOAPB.exe", official_url: "https://www.oo-software.com/en/ooappbuster", portable: true, check_path: "C:\\StashZero\\O&O AppBuster\\ooappbuster.exe" },
   { id: "unigetui", name: "UniGetUI", category: "Sistem Araçları", category_order: 60, icon: "package", size_bytes: 1024 * 1024 * 50, version: "Güncel", description: "Modern paket yöneticisi arayüzü.", download_url: "https://github.com/marticliment/UniGetUI/releases/latest/download/UniGetUI.Installer.exe", official_url: "https://unigetui.com/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", check_path: "C:\\Program Files\\UniGetUI\\UniGetUI.exe" },
-  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 60, icon: "save", size_bytes: 1024 * 1024 * 2, version: "Güncel", description: "Önyüklenebilir USB sürücü oluşturma aracı.", download_url: "https://github.com/pbatard/rufus/releases/latest/download/rufus.exe", official_url: "https://rufus.ie/", portable: true },
-  { id: "ventoy", name: "Ventoy", category: "Sistem Araçları", category_order: 60, icon: "save", size_bytes: 1024 * 1024 * 15, version: "Güncel", description: "ISO/WIM/IMG dosyaları için yeni nesil USB önyükleme aracı.", download_url: "https://github.com/ventoy/Ventoy/releases/latest", official_url: "https://www.ventoy.net/", portable: true },
+  { id: "rufus", name: "Rufus", category: "Sistem Araçları", category_order: 60, icon: "save", size_bytes: 1024 * 1024 * 2, version: "Güncel", description: "Önyüklenebilir USB sürücü oluşturma aracı.", download_url: "https://github.com/pbatard/rufus/releases/latest/download/rufus.exe", official_url: "https://rufus.ie/", portable: true, check_path: "C:\\StashZero\\Rufus\\rufus.exe" },
+  { id: "ventoy", name: "Ventoy", category: "Sistem Araçları", category_order: 60, icon: "save", size_bytes: 1024 * 1024 * 15, version: "Güncel", description: "ISO/WIM/IMG dosyaları için yeni nesil USB önyükleme aracı.", download_url: "https://github.com/ventoy/Ventoy/releases/latest", official_url: "https://www.ventoy.net/", portable: true, check_path: "C:\\StashZero\\Ventoy\\Ventoy2Disk.exe" },
   { id: "etcher", name: "Balena Etcher", category: "Sistem Araçları", category_order: 60, icon: "disc", size_bytes: 1024 * 1024 * 145, version: "Güncel", description: "OS imajlarını USB ve SD kartlara hızlıca yazın.", download_url: "https://github.com/balena-io/etcher/releases/latest", official_url: "https://www.balena.io/etcher/", check_path: "$env:LOCALAPPDATA\\balena_etcher\\balenaEtcher.exe", post_install_cmd: minimizeWindowsCmd(["balenaEtcher", "Update"]), uninstall_script: "$ErrorActionPreference = 'SilentlyContinue'; Stop-Process -Name balenaEtcher,Update -Force; $update = \"$env:LOCALAPPDATA\\balena_etcher\\Update.exe\"; if (Test-Path $update) { Start-Process -FilePath $update -ArgumentList '--uninstall','-s' -Wait } Start-Sleep -Seconds 2; if (Test-Path \"$env:LOCALAPPDATA\\balena_etcher\") { Remove-Item \"$env:LOCALAPPDATA\\balena_etcher\" -Recurse -Force }" },
   { id: "wiztree", name: "WizTree", category: "Dosya Yönetimi", category_order: 70, icon: "search", size_bytes: 1024 * 1024 * 6, version: "Güncel", description: "En hızlı disk alanı analiz aracı.", download_url: "https://diskanalyzer.com/files/wiztree_4_31_setup.exe", official_url: "https://diskanalyzer.com/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", check_path: "C:\\Program Files\\WizTree\\WizTree.exe", uninstall_script: "$u = 'C:\\Program Files\\WizTree\\unins000.exe'; if (Test-Path $u) { Start-Process -FilePath $u -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -Wait -Verb RunAs }" },
   { id: "teracopy", name: "TeraCopy", category: "Sistem Araçları", category_order: 60, icon: "copy", size_bytes: 1024 * 1024 * 12, version: "Güncel", description: "Hızlı ve güvenli dosya kopyalama.", download_url: "https://www.codesector.com/files/teracopy.exe", official_url: "https://www.codesector.com/teracopy", install_args: "/Q", check_path: "C:\\Program Files\\TeraCopy\\TeraCopy.exe", uninstall_script: "$ErrorActionPreference = 'SilentlyContinue'; $app = Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*', 'HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' | Where-Object { $_.DisplayName -like '*TeraCopy*' } | Select-Object -First 1; if ($app.UninstallString -match '\\{[A-F0-9-]+\\}') { Start-Process msiexec.exe -ArgumentList \"/x $($matches[0]) /quiet /norestart\" -Wait }" },
@@ -321,12 +402,12 @@ export const LEGENDARY_APPS = [
   { id: "furmark2", name: "FurMark 2", category: "Donanım & Test", category_order: 65, icon: "activity", size_bytes: 1024 * 1024 * 34, version: "Güncel", description: "Ekran kartı stres testi ve benchmark.", download_url: "https://geeks3d.com/dl/get/831", official_url: "https://geeks3d.com/furmark/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", check_path: "C:\\Program Files\\Geeks3D\\Benchmarks\\FurMark2\\FurMark2_GUI.exe", uninstall_script: "$u = Get-ChildItem 'C:\\Program Files\\Geeks3D\\Benchmarks\\FurMark2\\unins*.exe' -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName; if ($u) { Start-Process -FilePath $u -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -Wait -Verb RunAs }" },
   { id: "occt", name: "OCCT", category: "Donanım & Test", category_order: 65, icon: "activity", size_bytes: 1024 * 1024 * 290, version: "Güncel", description: "Hepsi bir arada donanım test aracı.", download_url: "https://www.ocbase.com/download/edition:Personal/os:Windows", official_url: "https://www.ocbase.com/", portable: true, create_desktop_shortcut: true, check_path: "C:\\StashZero\\OCCT\\occt.exe", uninstall_paths: ["C:\\StashZero\\OCCT", "$env:USERPROFILE\\Desktop\\OCCT.lnk"] },
   { id: "performancetest", name: "PerformanceTest", category: "Donanım & Test", category_order: 65, icon: "bar-chart-2", size_bytes: 1024 * 1024 * 81, version: "Güncel", description: "Kapsamlı bilgisayar benchmark aracı.", download_url: "https://www.passmark.com/downloads/petst.exe", official_url: "https://www.passmark.com/products/performancetest/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-", check_path: "C:\\Program Files\\PerformanceTest\\PerformanceTest64.exe", uninstall_script: "$u = 'C:\\Program Files\\PerformanceTest\\unins000.exe'; if (Test-Path $u) { Start-Process -FilePath $u -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -Wait -Verb RunAs }" },
-  { id: "amd-adrenalin", name: "AMD Software: Adrenalin", category: "Donanım & Test", category_order: 65, icon: "zap", size_bytes: 1024 * 1024 * 600, version: "Güncel", description: "AMD ekran kartı sürücü ve yönetim paneli.", download_url: "https://www.amd.com/en/support/download/drivers.html", official_url: "https://www.amd.com/en/technologies/software" },
+  { id: "amd-adrenalin", name: "AMD Software: Adrenalin", category: "Donanım & Test", category_order: 65, icon: "zap", size_bytes: 47782072, version: "26.5.2", description: "AMD ekran kartı sürücü ve yönetim paneli.", download_url: "https://drivers.amd.com/drivers/installer/26.10/whql/amd-software-adrenalin-edition-26.5.2-minimalsetup-260513_web.exe", download_referer: "https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-5-2.html", official_url: "https://www.amd.com/en/resources/support-articles/release-notes/RN-RAD-WIN-26-5-2.html", check_path: "C:\\Program Files\\AMD\\CNext\\CNext\\RadeonSoftware.exe" },
   { id: "intel-dsa", name: "Intel DSA", category: "Donanım & Test", category_order: 65, icon: "refresh-cw", size_bytes: 1024 * 1024 * 5, version: "Güncel", description: "Intel sürücü ve destek asistanı.", download_url: "https://www.intel.com/content/www/us/en/support/detect.html", official_url: "https://www.intel.com/content/www/us/en/support/detect.html" },
   { id: "nvidia-app", name: "NVIDIA App", category: "Donanım & Test", category_order: 65, icon: "zap", size_bytes: 1024 * 1024 * 120, version: "Güncel", description: "NVIDIA ekran kartı sürücü ve ayar merkezi.", download_url: "https://www.nvidia.com/tr-tr/software/nvidia-app/", official_url: "https://www.nvidia.com/tr-tr/software/nvidia-app/" },
   { id: "rapr", name: "DriverStore Explorer", category: "Donanım & Test", category_order: 65, icon: "folder", size_bytes: 1024 * 1024 * 3, version: "Güncel", description: "Windows sürücü deposu (DriverStore) yönetimi.", download_url: "https://github.com/lostindark/DriverStoreExplorer/releases/latest", official_url: "https://github.com/lostindark/DriverStoreExplorer", portable: true, launch_file: "Rapr.exe", create_desktop_shortcut: true, check_path: "C:\\StashZero\\DriverStore Explorer\\Rapr.exe", uninstall_paths: ["C:\\StashZero\\DriverStore Explorer", "$env:USERPROFILE\\Desktop\\DriverStore Explorer.lnk"] },
-  { id: "win10mct", name: "Windows 10 Media Creation Tool", category: "Sistem Araçları", category_order: 60, icon: "mouse-pointer", size_bytes: 1024 * 1024 * 18, version: "Güncel", description: "Orijinal Windows 10 ISO ve kurulum medyası oluşturma aracı.", download_url: "https://go.microsoft.com/fwlink/?LinkId=2265055", official_url: "https://www.microsoft.com/tr-tr/software-download/windows10", portable: true },
-  { id: "win11mct", name: "Windows 11 Media Creation Tool", category: "Sistem Araçları", category_order: 60, icon: "mouse-pointer", size_bytes: 1024 * 1024 * 12, version: "Güncel", description: "Orijinal Windows 11 ISO ve kurulum medyası oluşturma aracı.", download_url: "https://go.microsoft.com/fwlink/?linkid=2156295", official_url: "https://www.microsoft.com/tr-tr/software-download/windows11", portable: true },
+  { id: "win10mct", name: "Windows 10 Media Creation Tool", category: "Sistem Araçları", category_order: 60, icon: "mouse-pointer", size_bytes: 1024 * 1024 * 18, version: "Güncel", description: "Orijinal Windows 10 ISO ve kurulum medyası oluşturma aracı.", download_url: "https://go.microsoft.com/fwlink/?LinkId=2265055", official_url: "https://www.microsoft.com/tr-tr/software-download/windows10", portable: true, check_path: "C:\\StashZero\\Windows 10 Media Creation Tool\\win10mct.exe" },
+  { id: "win11mct", name: "Windows 11 Media Creation Tool", category: "Sistem Araçları", category_order: 60, icon: "mouse-pointer", size_bytes: 1024 * 1024 * 12, version: "Güncel", description: "Orijinal Windows 11 ISO ve kurulum medyası oluşturma aracı.", download_url: "https://go.microsoft.com/fwlink/?linkid=2156295", official_url: "https://www.microsoft.com/tr-tr/software-download/windows11", portable: true, check_path: "C:\\StashZero\\Windows 11 Media Creation Tool\\win11mct.exe" },
 
   // Disk & Dosya (70)
   { id: "hashcheck", name: "HashCheck", category: "Dosya Yönetimi", category_order: 70, icon: "check-circle", size_bytes: 1024 * 1024 * 1, version: "Güncel", description: "Dosya doğrulama ve hash hesaplama (kabuk uzantısı).", download_url: "https://github.com/gurnec/HashCheck/releases/latest", official_url: "https://github.com/gurnec/HashCheck", install_args: "/S", check_path: "C:\\Program Files\\HashCheck\\HashCheckShellExt.dll", uninstall_script: "$u = Get-ChildItem 'C:\\Program Files\\HashCheck' -Filter 'Uninstall*.exe' -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName; if ($u) { Start-Process -FilePath $u -ArgumentList '/S' -Wait -Verb RunAs }" },
@@ -344,7 +425,7 @@ export const LEGENDARY_APPS = [
   { id: "virtualbox", name: "Oracle VM VirtualBox", category: "Sanallaştırma", category_order: 78, icon: "layers", size_bytes: 1024 * 1024 * 110, version: "Güncel", description: "Sanallaştırma platformu.", download_url: "https://download.virtualbox.org/virtualbox/7.2.6/VirtualBox-7.2.6a-172322-Win.exe", official_url: "https://www.virtualbox.org/" },
   { id: "vboxextpack", name: "VirtualBox Extension Pack", category: "Sanallaştırma", category_order: 78, icon: "box", size_bytes: 1024 * 1024 * 18, version: "Güncel", description: "VirtualBox için ek özellikler.", download_url: "https://download.virtualbox.org/virtualbox/7.2.6/Oracle_VirtualBox_Extension_Pack-7.2.6.vbox-extpack", official_url: "https://www.virtualbox.org/" },
   { id: "vmware", name: "VMware Workstation Pro", category: "Sanallaştırma", category_order: 78, icon: "layers", size_bytes: 1024 * 1024 * 615, version: "Güncel", description: "Profesyonel masaüstü sanallaştırma yazılımı.", download_url: "https://www.techspot.com/downloads/downloadnowfile/189/?evp=fd7ebfd2052d7b600a37885c4e1fb924&file=11744", official_url: "https://www.vmware.com/products/workstation-pro.html" },
-  { id: "idm", name: "Internet Download Manager", category: "İndirme Yöneticileri", category_order: 75, icon: "download-cloud", size_bytes: 1024 * 1024 * 12, version: "Güncel", description: "Dünyanın en popüler indirme yöneticisi.", download_url: "https://download.internetdownloadmanager.com/idman642build63.exe", official_url: "https://www.internetdownloadmanager.com/" },
+  { id: "idm", name: "Internet Download Manager", category: "İndirme Yöneticileri", category_order: 75, icon: "download-cloud", size_bytes: 1024 * 1024 * 12, version: "Güncel", description: "Dünyanın en popüler indirme yöneticisi.", download_url: "https://download.internetdownloadmanager.com/idman642build63.exe", official_url: "https://www.internetdownloadmanager.com/", install_args: "/skipdlgs", check_path: "C:\\Program Files (x86)\\Internet Download Manager\\IDMan.exe" },
   { id: "jdownloader", name: "JDownloader 2", category: "İndirme Yöneticileri", category_order: 75, icon: "download", size_bytes: 1024 * 1024 * 45, version: "Güncel", description: "Gelişmiş açık kaynaklı indirme yöneticisi.", download_url: "https://installer.jdownloader.org/winget/2026-03-31/JDownloader2Setup_windows-amd64_v1_8_0_482.exe", official_url: "https://jdownloader.org/", install_args: "-q", check_path: "C:\\Program Files\\JDownloader\\JDownloader2.exe", post_install_cmd: minimizeWindowsCmd(["JDownloader2"]), uninstall_script: "$u = 'C:\\Program Files\\JDownloader\\Uninstall JDownloader.exe'; if (Test-Path $u) { Start-Process -FilePath $u -Wait -Verb RunAs }" },
 
   // Güvenlik & Antivirüs (90)
@@ -353,7 +434,7 @@ export const LEGENDARY_APPS = [
   { id: "bitdefender", name: "Bitdefender Free", category: "Güvenlik", category_order: 90, icon: "shield", size_bytes: 1024 * 1024 * 15, version: "Güncel", description: "Ücretsiz ve sessiz antivirüs.", download_url: "https://download.bitdefender.com/windows/installer/en-us/bitdefender_avfree.exe", official_url: "https://www.bitdefender.com/" },
   { id: "emsisoft", name: "Emsisoft Emergency Kit", category: "Güvenlik", category_order: 90, icon: "activity", size_bytes: 1024 * 1024 * 340, version: "Güncel", description: "Kurulum gerektirmeyen malware temizleyici.", download_url: "https://dl.emsisoft.com/EmsisoftEmergencyKit.exe", official_url: "https://www.emsisoft.com/", check_path: "C:\\EEK\\Start Scanner.exe", launch_path: "C:\\EEK\\Start Scanner.exe", create_desktop_shortcut: true, create_start_menu_shortcut: true, post_install_cmd: minimizeWindowsCmd(["a2emergencykit", "a2start"]), uninstall_paths: ["C:\\EEK", "C:\\StashZero\\Emsisoft Emergency Kit"] },
   { id: "eset", name: "ESET Internet Security", category: "Güvenlik", category_order: 90, icon: "lock", size_bytes: 1024 * 1024 * 6, version: "Güncel", description: "Gelişmiş tehdit algılama çözümü.", download_url: "https://download.eset.com/com/eset/tools/installers/live_eis/latest/eset_internet_security_live_installer.exe", official_url: "https://www.eset.com/" },
-  { id: "sandboxie", name: "Sandboxie Plus", category: "Güvenlik", category_order: 90, icon: "box", size_bytes: 1024 * 1024 * 25, version: "Güncel", description: "Yazılımları izole bir sanal alanda çalıştırın.", download_url: "https://github.com/sandboxie-plus/Sandboxie/releases/latest", official_url: "https://sandboxie-plus.com/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART", check_path: "C:\\Program Files\\Sandboxie-Plus\\SandMan.exe", launch_path: "C:\\Program Files\\Sandboxie-Plus\\SandMan.exe", create_desktop_shortcut: true, create_start_menu_shortcut: true, uninstall_script: "$u = 'C:\\Program Files\\Sandboxie-Plus\\unins000.exe'; if (Test-Path $u) { Start-Process -FilePath $u -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -Wait -Verb RunAs }" },
+  { id: "sandboxie", name: "Sandboxie Plus", category: "Güvenlik", category_order: 90, icon: "box", size_bytes: 24507816, version: "1.17.6", description: "Yazılımları izole bir sanal alanda çalıştırın.", download_url: "https://github.com/sandboxie-plus/Sandboxie/releases/download/v1.17.6/Sandboxie-Plus-x64-v1.17.6.exe", official_url: "https://sandboxie-plus.com/", install_args: "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART", check_path: "C:\\Program Files\\Sandboxie-Plus\\SandMan.exe", launch_path: "C:\\Program Files\\Sandboxie-Plus\\SandMan.exe", create_desktop_shortcut: true, create_start_menu_shortcut: true, uninstall_script: "$u = 'C:\\Program Files\\Sandboxie-Plus\\unins000.exe'; if (Test-Path $u) { Start-Process -FilePath $u -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -Wait -Verb RunAs }" },
 
   // Gizlilik & VPN (95)
   { id: "zenprivacy", name: "Zen Privacy", category: "Gizlilik & Ağ Ayarları", category_order: 95, icon: "shield-off", size_bytes: 1024 * 1024 * 45, version: "Güncel", description: "Windows için güvenli ağ geçidi.", download_url: "https://github.com/ZenPrivacy/zen-desktop/releases/latest/download/Zen-amd64-installer.exe", official_url: "https://irbis.sh/zen/", check_path: "$env:LocalAppData\\Programs\\Zen\\Zen\\Zen.exe", launch_path: "$env:LocalAppData\\Programs\\Zen\\Zen\\Zen.exe", uninstall_shortcut_names: ["Zen", "Zen Privacy"], uninstall_script: "$u = Join-Path $env:LocalAppData 'Programs\\Zen\\Zen\\uninstall.exe'; if (Test-Path $u) { Start-Process -FilePath $u -ArgumentList '/S' -Wait }" },

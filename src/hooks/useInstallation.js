@@ -251,6 +251,7 @@ export const useInstallation = () => {
             preInstallCmd: app.pre_install_cmd,
             installKillTargets: app.install_kill_targets || null,
             downloadFormPost: app.download_form_post || null,
+            downloadReferer: app.download_referer || null,
             installPath: app.install_path || null,
             createDesktopShortcut: !!app.create_desktop_shortcut,
             launchFile: app.launch_file || null,

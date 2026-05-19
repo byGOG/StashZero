@@ -31,7 +31,12 @@ fn split_windows_args(args: &str) -> Vec<String> {
 fn powershell_encoded_command_args(script: &str) -> Vec<String> {
     use base64::{engine::general_purpose::STANDARD, Engine as _};
 
-    let script_utf16: Vec<u8> = script
+    let wrapped_script = format!(
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $OutputEncoding = [System.Text.Encoding]::UTF8; {}",
+        script
+    );
+
+    let script_utf16: Vec<u8> = wrapped_script
         .encode_utf16()
         .flat_map(|code_unit| code_unit.to_le_bytes())
         .collect();
@@ -763,8 +768,24 @@ pub async fn batch_check_installations(
     let mut installed: HashMap<String, String> = HashMap::new();
     for (id, _path) in &existing_paths {
         let v = versions.get(id).cloned().unwrap_or_default();
+        let app = apps.iter().find(|app| app.id == *id);
+        let registry_version = app.and_then(|app| {
+            let lower_name = app.name.to_lowercase();
+            let lower_id = app.id.to_lowercase();
+            winget.iter().find_map(|(name, version)| {
+                let lower_n = name.to_lowercase();
+                if lower_n == lower_name || lower_n == lower_id || lower_n.contains(&lower_name) {
+                    Some(version.trim().to_string())
+                } else {
+                    None
+                }
+            })
+        });
         let display = if v.is_empty() {
-            "Kurulu".to_string()
+            registry_version
+                .filter(|version| !version.is_empty())
+                .map(|version| clean_version(&version))
+                .unwrap_or_else(|| "Kurulu".to_string())
         } else {
             clean_version(&v)
         };
@@ -846,6 +867,7 @@ pub async fn install_exe_from_url(
     pre_install_cmd: Option<String>,
     install_kill_targets: Option<Vec<String>>,
     download_form_post: Option<DownloadFormPost>,
+    download_referer: Option<String>,
     install_path: Option<String>,
     create_desktop_shortcut: Option<bool>,
     launch_file: Option<String>,
@@ -1104,9 +1126,32 @@ pub async fn install_exe_from_url(
     );
     let _ = window.emit("backend-log", serde_json::json!({ "msg": format!("İndirme hedefi: {}", target_path.display()), "log_type": "info" }));
 
+    let mut curl_args = vec![
+        "-L".to_string(),
+        "--fail".to_string(),
+        "--retry".to_string(),
+        "3".to_string(),
+        "--retry-delay".to_string(),
+        "2".to_string(),
+        "-H".to_string(),
+        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36".to_string(),
+    ];
+    if let Some(referer) = download_referer
+        .as_deref()
+        .filter(|referer| !referer.trim().is_empty())
+    {
+        curl_args.push("-e".to_string());
+        curl_args.push(referer.to_string());
+    }
+    curl_args.extend([
+        "-o".to_string(),
+        target_path.to_str().unwrap().to_string(),
+        final_url.clone(),
+    ]);
+
     let mut curl_cmd = tokio::process::Command::new("curl.exe")
         .creation_flags(CREATE_NO_WINDOW)
-        .args(["-L", "--fail", "--retry", "3", "--retry-delay", "2", "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "-o", target_path.to_str().unwrap(), &final_url])
+        .args(&curl_args)
         .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| {
@@ -1598,17 +1643,124 @@ pub async fn install_exe_from_url(
         let _ = window.emit(
             "backend-log",
             serde_json::json!({
-                "msg": format!("Kurulum oncesi hazirlik: {}", app_name),
+                "msg": format!("{}: kurulum oncesi paketler hazirlaniyor...", app_name),
                 "log_type": "process"
             }),
         );
-        let status = tokio::process::Command::new("powershell")
+        let spawn_result = tokio::process::Command::new("powershell")
             .creation_flags(CREATE_NO_WINDOW)
             .args(powershell_encoded_command_args(cmd))
-            .status()
-            .await;
-        if let Err(e) = status {
-            log::warn!("pre_install_cmd baslatilamadi: {}", e);
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn();
+
+        match spawn_result {
+            Ok(mut child) => {
+                let mut pre_install_error: Option<String> = None;
+                let stdout_handle = child.stdout.take().map(|stdout| {
+                    let window_clone = window.clone();
+                    tokio::spawn(async move {
+                        use tokio::io::AsyncBufReadExt;
+                        let mut lines = tokio::io::BufReader::new(stdout).split(b'\n');
+                        while let Ok(Some(line)) = lines.next_segment().await {
+                            let text = String::from_utf8_lossy(&line);
+                            let trimmed = text.trim_matches(['\r', '\n', '\u{feff}']).trim();
+                            if !trimmed.is_empty() {
+                                log::info!("[pre_install] {}", trimmed);
+                                let _ = window_clone.emit(
+                                    "backend-log",
+                                    serde_json::json!({
+                                        "msg": trimmed,
+                                        "log_type": "process"
+                                    }),
+                                );
+                            }
+                        }
+                    })
+                });
+                let stderr_handle = child.stderr.take().map(|stderr| {
+                    let window_clone = window.clone();
+                    tokio::spawn(async move {
+                        use tokio::io::AsyncBufReadExt;
+                        let mut lines = tokio::io::BufReader::new(stderr).split(b'\n');
+                        while let Ok(Some(line)) = lines.next_segment().await {
+                            let text = String::from_utf8_lossy(&line);
+                            let trimmed = text.trim_matches(['\r', '\n', '\u{feff}']).trim();
+                            if !trimmed.is_empty() {
+                                log::warn!("[pre_install] {}", trimmed);
+                                let _ = window_clone.emit(
+                                    "backend-log",
+                                    serde_json::json!({
+                                        "msg": trimmed,
+                                        "log_type": "warning"
+                                    }),
+                                );
+                            }
+                        }
+                    })
+                });
+
+                match child.wait().await {
+                    Ok(status) if status.success() => {
+                        let _ = window.emit(
+                            "backend-log",
+                            serde_json::json!({
+                                "msg": format!("{}: kurulum oncesi paketler tamamlandi.", app_name),
+                                "log_type": "success"
+                            }),
+                        );
+                    }
+                    Ok(status) => {
+                        let code = status.code().unwrap_or(-1);
+                        log::warn!("pre_install_cmd cikis kodu: {}", code);
+                        pre_install_error =
+                            Some(format!("Kurulum oncesi komut cikis kodu {}", code));
+                        let _ = window.emit(
+                            "backend-log",
+                            serde_json::json!({
+                                "msg": format!("{}: kurulum oncesi komut cikis kodu {}", app_name, code),
+                                "log_type": "warning"
+                            }),
+                        );
+                    }
+                    Err(e) => {
+                        log::warn!("pre_install_cmd beklenirken hata: {}", e);
+                        pre_install_error =
+                            Some(format!("Kurulum oncesi hazirlik beklenemedi: {}", e));
+                        let _ = window.emit(
+                            "backend-log",
+                            serde_json::json!({
+                                "msg": format!("Kurulum oncesi hazirlik beklenemedi: {}", e),
+                                "log_type": "warning"
+                            }),
+                        );
+                    }
+                }
+
+                if let Some(handle) = stdout_handle {
+                    let _ = handle.await;
+                }
+                if let Some(handle) = stderr_handle {
+                    let _ = handle.await;
+                }
+                if let Some(error) = pre_install_error {
+                    return Err(format!("{}: {}", app_name, error));
+                }
+            }
+            Err(e) => {
+                log::warn!("pre_install_cmd baslatilamadi: {}", e);
+                let _ = window.emit(
+                    "backend-log",
+                    serde_json::json!({
+                        "msg": format!("Kurulum oncesi hazirlik baslatilamadi: {}", e),
+                        "log_type": "warning"
+                    }),
+                );
+                return Err(format!(
+                    "{}: Kurulum oncesi hazirlik baslatilamadi: {}",
+                    app_name, e
+                ));
+            }
         }
     }
 

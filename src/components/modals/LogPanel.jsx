@@ -4,6 +4,25 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { sounds } from "../../utils/audio";
 
+const LOG_VISUAL_RULES = [
+  { key: "download", label: "İNDİRME", patterns: ["indir", "download", "boyut"], className: "download" },
+  { key: "command", label: "KOMUT", patterns: ["komut", "sessiz", "powershell", "cmd", "script"], className: "command-detail" },
+  { key: "check", label: "KONTROL", patterns: ["kayıt", "kontrol", "bulunamadı", "görünüyor", "çıkış kodu"], className: "check" },
+  { key: "install", label: "KURULUM", patterns: ["kurulum", "kuruluyor", "kuruldu", "yükleyici", "ön koşul"], className: "install" },
+  { key: "system", label: "SİSTEM", patterns: ["dns", "terminal", "oturum", "başlatılıyor"], className: "system" },
+];
+
+const getLogVisual = (log) => {
+  if (log.type === "error") return { label: "HATA", className: "error-detail" };
+  if (log.type === "warning") return { label: "UYARI", className: "warning-detail" };
+  if (log.type === "success") return { label: "BAŞARI", className: "success-detail" };
+
+  const msg = log.msg.toLocaleLowerCase("tr-TR");
+  return LOG_VISUAL_RULES.find((rule) =>
+    rule.patterns.some((pattern) => msg.includes(pattern))
+  ) || { label: "BİLGİ", className: "info-detail" };
+};
+
 const LogPanel = ({
   showLogs,
   setShowLogs,
@@ -22,7 +41,7 @@ const LogPanel = ({
   handleHistoryNavigation
 }) => {
   const [copied, setCopied] = useState(false);
-  const [logFilter, setLogFilter] = useState("all"); // all, error, success, process
+  const [logFilter, setLogFilter] = useState("all"); // all, error, warning, success, process
   const [logSearch, setLogSearch] = useState("");
 
   const handleCopyAll = () => {
@@ -93,6 +112,7 @@ const LogPanel = ({
           <div className="log-filter-tabs">
             <button className={`filter-tab ${logFilter === 'all' ? 'active' : ''}`} onClick={() => setLogFilter('all')}>Hepsi</button>
             <button className={`filter-tab ${logFilter === 'error' ? 'active' : ''}`} onClick={() => setLogFilter('error')}>Hatalar</button>
+            <button className={`filter-tab ${logFilter === 'warning' ? 'active' : ''}`} onClick={() => setLogFilter('warning')}>Uyarı</button>
             <button className={`filter-tab ${logFilter === 'success' ? 'active' : ''}`} onClick={() => setLogFilter('success')}>Başarı</button>
             <button className={`filter-tab ${logFilter === 'process' ? 'active' : ''}`} onClick={() => setLogFilter('process')}>Süreç</button>
           </div>
@@ -143,12 +163,16 @@ const LogPanel = ({
           {filteredLogs.length === 0 ? (
             <div className="empty-logs">Filtreye uygun log bulunamadı.</div>
           ) : (
-            filteredLogs.map((log, i) => (
-              <div key={i} className={`terminal-log-entry ${log.type}`}>
-                <span className="log-timestamp">[{log.time}]</span>
-                <span className="log-content-text">{log.msg}</span>
-              </div>
-            ))
+            filteredLogs.map((log, i) => {
+              const visual = getLogVisual(log);
+              return (
+                <div key={i} className={`terminal-log-entry ${log.type} ${visual.className}`}>
+                  <span className="log-timestamp">[{log.time}]</span>
+                  <span className="log-kind">{visual.label}</span>
+                  <span className="log-content-text">{log.msg}</span>
+                </div>
+              );
+            })
           )}
           <div ref={logEndRef} />
         </div>
