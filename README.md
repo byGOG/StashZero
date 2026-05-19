@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/byGOG/StashZero/releases">
-    <img alt="Sürüm" src="https://img.shields.io/badge/version-0.7.0-6366f1?style=for-the-badge">
+    <img alt="Sürüm" src="https://img.shields.io/badge/version-0.7.1-6366f1?style=for-the-badge">
   </a>
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white">
   <img alt="Tauri" src="https://img.shields.io/badge/Tauri-2.x-24C8DB?style=for-the-badge&logo=tauri&logoColor=white">
