@@ -1590,7 +1590,10 @@ pub async fn install_exe_from_url(
         }),
     );
 
-    if let Some(cmd) = pre_install_cmd.as_deref().filter(|cmd| !cmd.trim().is_empty()) {
+    if let Some(cmd) = pre_install_cmd
+        .as_deref()
+        .filter(|cmd| !cmd.trim().is_empty())
+    {
         log::info!("Kurulum oncesi komut calistiriliyor: {}", cmd);
         let _ = window.emit(
             "backend-log",
