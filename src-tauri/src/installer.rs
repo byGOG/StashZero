@@ -28,6 +28,25 @@ fn split_windows_args(args: &str) -> Vec<String> {
     parsed
 }
 
+fn powershell_encoded_command_args(script: &str) -> Vec<String> {
+    use base64::{engine::general_purpose::STANDARD, Engine as _};
+
+    let script_utf16: Vec<u8> = script
+        .encode_utf16()
+        .flat_map(|code_unit| code_unit.to_le_bytes())
+        .collect();
+
+    vec![
+        "-NoProfile".to_string(),
+        "-ExecutionPolicy".to_string(),
+        "Bypass".to_string(),
+        "-WindowStyle".to_string(),
+        "Hidden".to_string(),
+        "-EncodedCommand".to_string(),
+        STANDARD.encode(script_utf16),
+    ]
+}
+
 fn copy_shortcut_to_desktop(source: &str) -> std::io::Result<()> {
     log::info!("Kısayol masaüstüne kopyalanıyor: {}", source);
     let _ = std::process::Command::new("powershell")
@@ -824,6 +843,7 @@ pub async fn install_exe_from_url(
     install_args: Option<String>,
     shortcut_path: Option<String>,
     post_install_cmd: Option<String>,
+    pre_install_cmd: Option<String>,
     install_kill_targets: Option<Vec<String>>,
     download_form_post: Option<DownloadFormPost>,
     install_path: Option<String>,
@@ -1484,7 +1504,7 @@ pub async fn install_exe_from_url(
                 );
                 let spawn_result = tokio::process::Command::new("powershell")
                     .creation_flags(CREATE_NO_WINDOW)
-                    .args(["-NoProfile", "-Command", &cmd])
+                    .args(powershell_encoded_command_args(&cmd))
                     .stdout(std::process::Stdio::piped())
                     .stderr(std::process::Stdio::piped())
                     .spawn();
@@ -1569,6 +1589,25 @@ pub async fn install_exe_from_url(
             "message": format!("{} kuruluyor...", app_name)
         }),
     );
+
+    if let Some(cmd) = pre_install_cmd.as_deref().filter(|cmd| !cmd.trim().is_empty()) {
+        log::info!("Kurulum oncesi komut calistiriliyor: {}", cmd);
+        let _ = window.emit(
+            "backend-log",
+            serde_json::json!({
+                "msg": format!("Kurulum oncesi hazirlik: {}", app_name),
+                "log_type": "process"
+            }),
+        );
+        let status = tokio::process::Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(powershell_encoded_command_args(cmd))
+            .status()
+            .await;
+        if let Err(e) = status {
+            log::warn!("pre_install_cmd baslatilamadi: {}", e);
+        }
+    }
 
     let target_str = target_path.to_str().unwrap();
     // Default silent flag depends on installer type: MSI uses /qn /norestart,
@@ -1728,7 +1767,7 @@ pub async fn install_exe_from_url(
 
             let spawn_result = tokio::process::Command::new("powershell")
                 .creation_flags(CREATE_NO_WINDOW)
-                .args(["-NoProfile", "-Command", &cmd])
+                .args(powershell_encoded_command_args(&cmd))
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped())
                 .spawn();

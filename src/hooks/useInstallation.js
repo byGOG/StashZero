@@ -248,6 +248,7 @@ export const useInstallation = () => {
             installArgs: app.install_args,
             shortcutPath: app.shortcut_path,
             postInstallCmd: app.post_install_cmd,
+            preInstallCmd: app.pre_install_cmd,
             installKillTargets: app.install_kill_targets || null,
             downloadFormPost: app.download_form_post || null,
             installPath: app.install_path || null,
